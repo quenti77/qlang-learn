@@ -15,6 +15,7 @@ fs.mkdirSync(path.dirname(mjsOut), { recursive: true });
 fs.mkdirSync(path.dirname(wasmOut), { recursive: true }); // git does not keep empty folders
 
 let languageDoc;
+let readme;
 
 if (process.env.QLANG_REPO) {
   const repo = path.resolve(root, process.env.QLANG_REPO);
@@ -26,6 +27,7 @@ if (process.env.QLANG_REPO) {
   fs.copyFileSync(wasm, wasmOut);
   fs.copyFileSync(path.join(repo, 'crates/qlang-wasm/js/qlang.mjs'), mjsOut);
   languageDoc = fs.readFileSync(path.join(repo, 'docs/language.md'), 'utf8');
+  readme = fs.readFileSync(path.join(repo, 'README.md'), 'utf8');
   console.log(`qlang taken from ${repo}`);
 } else {
   const version = fs.readFileSync(path.join(root, 'QLANG_VERSION'), 'utf8').trim();
@@ -38,63 +40,102 @@ if (process.env.QLANG_REPO) {
     }
     fs.writeFileSync(out, Buffer.from(await res.arrayBuffer()));
   }
-  const doc = await fetch(`https://raw.githubusercontent.com/quenti77/qlang/v${version}/docs/language.md`);
-  if (!doc.ok) {
-    console.error(`cannot download docs/language.md of v${version}: ${doc.status}`);
-    process.exit(1);
-  }
-  languageDoc = await doc.text();
+  const raw = async (file) => {
+    const res = await fetch(`https://raw.githubusercontent.com/quenti77/qlang/v${version}/${file}`);
+    if (!res.ok) {
+      console.error(`cannot download ${file} of v${version}: ${res.status}`);
+      process.exit(1);
+    }
+    return res.text();
+  };
+  languageDoc = await raw('docs/language.md');
+  readme = await raw('README.md');
   console.log(`qlang ${version} downloaded`);
 }
 
-// The reference of the language (docs/language.md of qlang) becomes one page per chapter:
-// content/fr/reference/NN-name.md. They are generated: not committed.
+// The documentation pages generated from qlang's own documents (not committed):
+// - docs/language.md, one page per chapter: the language;
+// - README.md, a few sections: installation, usage, the JSON protocol…
+// They go to content/fr/docs-generated/NN-name.md; the pages written for this site (the VS Code
+// extension…) are in content/<lang>/docs/. The number in the name orders them all.
 const slugify = (text) => new GithubSlugger().slug(text.replace(/`/g, ''));
-// file names: no accents (the anchors inside the pages keep them, as the links to them do)
-const ascii = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+// file names have no accents (the anchors inside the pages keep them, as the links to them do)
+const ascii = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '');
 const plain = (title) => title.replace(/^\d+\.\s*/, '').replace(/`/g, '').trim();
+const fileSlug = (number, title) => `${String(number).padStart(2, '0')}-${ascii(slugify(plain(title))).replace(/[^a-z0-9-]/g, '')}`.replace(/-+/g, '-').replace(/-$/, '');
+const sections = (text) => text.split(/^(?=## )/m).filter((c) => c.startsWith('## '));
+const titleOf = (chapter) => chapter.match(/^## (.*)$/m)[1];
+
+const pages = [];
+// the README: only these sections, in this order
+const readmeSections = [
+  ['Installation', 1, 'Démarrer'],
+  ['Utilisation', 2, 'Démarrer'],
+  ['Protocole JSON', 31, 'Outils'],
+  ['Navigateur : WebAssembly', 32, 'Outils'],
+  ['Architecture', 40, 'Pour aller plus loin'],
+  ['Développement', 41, 'Pour aller plus loin'],
+];
+const readmeChapters = sections(readme);
+for (const [title, number, group] of readmeSections) {
+  const chapter = readmeChapters.find((c) => titleOf(c) === title);
+  if (!chapter) {
+    console.error(`README.md has no section "${title}"`);
+    process.exit(1);
+  }
+  pages.push({ slug: fileSlug(number, title), title: plain(title), chapter, group, source: 'readme' });
+}
+// the language: chapters 1..18 numbered 10..27
 const body = languageDoc.replace(/^# .*\n/, '').replace(/^## Sommaire\n[\s\S]*?(?=^## 1\. )/m, '');
-const chapters = body.split(/^(?=## )/m).filter((c) => c.startsWith('## '));
-const anchors = new Map(); // anchor -> page
-const chapterAnchors = new Set(); // anchors of the chapter titles: they are page titles here, without that anchor
-const pages = chapters.map((chapter, i) => {
-  const title = chapter.match(/^## (.*)$/m)[1];
-  const slug = `${String(i + 1).padStart(2, '0')}-${ascii(slugify(plain(title))).replace(/[^a-z0-9-]/g, '')}`.replace(/-+$/, '');
+sections(body).forEach((chapter, i) => pages.push({ slug: fileSlug(10 + i, titleOf(chapter)), title: plain(titleOf(chapter)), chapter, group: 'Le langage', source: 'language' }));
+
+// every anchor and the page it is in, to turn `](#anchor)` into links between pages
+const anchors = new Map();
+const chapterAnchors = new Set(); // chapter titles are page titles here: they have no anchor
+for (const page of pages) {
   const seen = new GithubSlugger();
-  for (const h of chapter.matchAll(/^#{2,4} (.*)$/gm)) {
+  for (const h of page.chapter.matchAll(/^#{2,4} (.*)$/gm)) {
     const anchor = seen.slug(h[1].replace(/`/g, ''));
-    anchors.set(anchor, slug);
+    if (!anchors.has(anchor)) anchors.set(anchor, page.slug);
     if (h[0].startsWith('## ')) chapterAnchors.add(anchor);
   }
-  return { slug, title: plain(title), chapter };
-});
-const outDir = path.join(root, 'content', 'fr', 'reference');
+}
+const pageOfLanguage = (anchor) => pages.find((p) => p.source === 'language' && p.slug === anchors.get(anchor));
+const REPO = 'https://github.com/quenti77/qlang';
+
+const outDir = path.join(root, 'content', 'fr', 'docs-generated');
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
-for (const { slug, title, chapter } of pages) {
+for (const { slug, title, chapter, group } of pages) {
   let text = chapter
     .replace(/^## .*\n/, '') // the title is the page title
     .replace(/^(#{3,4}) /gm, (m, h) => h.slice(1) + ' ') // one level up
-    .replace(/^```$/gm, '```QLANGREF') // placeholder, see below
+    .replace(/^```(\w*)$/gm, (m, lang) => `\u0000FENCE${lang}`)
+    // links between pages
     .replace(/\]\(#([^)]+)\)/g, (m, anchor) => {
       if (!anchors.has(anchor)) return m;
       const target = anchors.get(anchor);
       if (chapterAnchors.has(anchor)) return `](../${target}/)`;
       return target === slug ? m : `](../${target}/#${anchor})`;
     })
-    .replace(/\]\(\.\.\/([A-Za-z0-9_.-]+)\)/g, '](https://github.com/quenti77/qlang/blob/main/$1)');
-  // fences come in pairs: the opening one gets the language, the closing one stays bare
+    // links to the language reference, and to files of the repository
+    .replace(/\]\(docs\/language\.md(?:#([^)]+))?\)/g, (m, anchor) => {
+      const target = anchor && pageOfLanguage(anchor);
+      return target ? `](../${target.slug}/${chapterAnchors.has(anchor) ? '' : '#' + anchor})` : `](../${pages.find((p) => p.source === 'language').slug}/)`;
+    })
+    .replace(/\]\(((?:(?:docs|crates|editors|scripts)\/|\.\.\/(?!\d\d-))[^)#]*|[A-Z][A-Za-z.]+|qlang\.g4|install\.sh)(#[^)]*)?\)/g, (m, file, hash = '') => `](${REPO}/blob/main/${file.replace(/^\.\.\//, '')}${hash})`);
+  // fences come in pairs: the opening one carries the language, the closing one is bare; code with no
+  // language is qlang, shown highlighted but not runnable
   let open = false;
   text = text
     .split('\n')
     .map((line) => {
-      if (line === '```QLANGREF') {
-        open = !open;
-        return open ? '```qlang-ref' : '```';
-      }
-      return line;
+      const m = line.match(/^\u0000FENCE(\w*)$/);
+      if (!m) return line;
+      open = !open;
+      return open ? '```' + (m[1] === '' ? 'qlang-ref' : m[1]) : '```';
     })
     .join('\n');
-  fs.writeFileSync(path.join(outDir, `${slug}.md`), `---\ntitle: ${JSON.stringify(title)}\n---\n\n# ${title}\n${text}`);
+  fs.writeFileSync(path.join(outDir, `${slug}.md`), `---\ntitle: ${JSON.stringify(title)}\ngroup: ${JSON.stringify(group)}\n---\n\n# ${title}\n${text}`);
 }
-console.log(`reference: ${pages.length} pages`);
+console.log(`documentation: ${pages.length} pages generated`);

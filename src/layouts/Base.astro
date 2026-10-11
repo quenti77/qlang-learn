@@ -28,8 +28,7 @@ const otherHref = !slug
         <nav class="main-nav" aria-label="Menu">
           <a href={`${base}/${lang}/`} data-testid="nav-lessons" aria-current={section === "cours" ? "page" : undefined}>{t(lang, 'nav.lessons')}</a>
           <a href={`${base}/${lang}/exercices/`} data-testid="nav-exercises" aria-current={section === "exercices" ? "page" : undefined}>{t(lang, 'nav.exercises')}</a>
-          <a href={`${base}/${lang}/reference/`} data-testid="nav-reference" aria-current={section === "reference" ? "page" : undefined}>{t(lang, 'nav.reference')}</a>
-          <a href={`${base}/${lang}/outils/vscode/`} data-testid="nav-tools" aria-current={section === "outils" ? "page" : undefined}>{t(lang, 'nav.tools')}</a>
+          <a href={`${base}/${lang}/docs/`} data-testid="nav-docs" aria-current={section === "docs" ? "page" : undefined}>{t(lang, 'nav.docs')}</a>
         </nav>
         <a href={otherHref} hreflang={other} lang={other} class="lang" data-testid="switch-language">{t(lang, 'lang.switch')}</a>
       </div>

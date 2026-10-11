@@ -35,11 +35,9 @@
   "exercise.solution.title": "Solution",
   "progress.reset": "Erase my progress",
   "progress.confirm": "Erase all your progress in this browser?",
-  "nav.reference": "Reference",
-  "nav.tools": "VS Code",
-  "reference.title": "Language reference",
-  "reference.intro": "The language in detail, chapter by chapter. The examples are highlighted but do not run: to try code, see the lessons.",
-  "reference.none": "The reference is not available in this language yet.",
-  "reference.chapters": "Chapters",
-  "tools.title": "VS Code extension"
+  "nav.docs": "Documentation",
+  "docs.title": "Documentation",
+  "docs.intro": "Installing qlang, using it, the language in detail and the tools. The examples of the documentation are highlighted but do not run: to try code, see the lessons.",
+  "docs.none": "The documentation is not available in this language yet.",
+  "docs.menu": "Documentation"
 }

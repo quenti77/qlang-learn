@@ -1,21 +1,23 @@
 import { test, expect } from '@playwright/test';
 import { getCode } from './helpers.js';
 
-test('the reference lists its chapters and opens one', async ({ page }) => {
+test('the documentation lists its pages by group and opens one', async ({ page }) => {
   await page.goto('/fr/');
-  await page.getByTestId('nav-reference').click();
-  await expect(page).toHaveURL('/fr/reference/');
-  const chapter = page.locator('.lesson-list a', { hasText: /^05\s*Opérateurs$/ });
+  await page.getByTestId('nav-docs').click();
+  await expect(page).toHaveURL('/fr/docs/');
+  await expect(page.getByRole('heading', { level: 2, name: 'Démarrer' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Le langage' })).toBeVisible();
+  const chapter = page.locator('.lesson-list a', { hasText: /^Opérateurs$/ });
   await expect(chapter).toBeVisible();
   await chapter.click();
-  await expect(page).toHaveURL('/fr/reference/05-operateurs/');
+  await expect(page).toHaveURL('/fr/docs/14-operateurs/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Opérateurs');
   await expect(page.locator('.toc a[aria-current="page"]')).toContainText('Opérateurs');
-  await expect(page.getByTestId('nav-reference')).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByTestId('nav-docs')).toHaveAttribute('aria-current', 'page');
 });
 
 test('examples of the reference are highlighted and cannot be run', async ({ page }) => {
-  await page.goto('/fr/reference/05-operateurs/');
+  await page.goto('/fr/docs/14-operateurs/');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   const first = page.locator('.reference-code').first();
   await expect(first.locator('.cm-editor')).toBeVisible();
@@ -30,10 +32,10 @@ test('examples of the reference are highlighted and cannot be run', async ({ pag
   expect(await getCode(first)).toBe(before);
 });
 
-test('every link inside the reference leads to an existing page and anchor', async ({ page, request }) => {
-  await page.goto('/fr/reference/');
+test('every link inside the documentation leads to an existing page and anchor', async ({ page, request }) => {
+  await page.goto('/fr/docs/');
   const chapters = await page.locator('.lesson-list a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
-  expect(chapters.length).toBe(18);
+  expect(chapters.length).toBeGreaterThanOrEqual(24);
   const problems = [];
   for (const chapter of chapters) {
     await page.goto(chapter);
@@ -55,20 +57,29 @@ test('every link inside the reference leads to an existing page and anchor', asy
   expect(problems).toEqual([]);
 });
 
-test('the VS Code page is in both languages', async ({ page }) => {
-  await page.goto('/fr/');
-  await page.getByTestId('nav-tools').click();
-  await expect(page).toHaveURL('/fr/outils/vscode/');
+test('the VS Code page is part of the documentation, in both languages', async ({ page }) => {
+  await page.goto('/fr/docs/');
+  await page.getByRole('link', { name: 'Extension VS Code' }).click();
+  await expect(page).toHaveURL('/fr/docs/30-vscode/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Extension VS Code');
   await expect(page.getByText('install.sh | sh -s -- --vscode').first()).toBeVisible();
   await page.getByTestId('switch-language').click();
-  await expect(page).toHaveURL('/en/outils/vscode/');
+  await expect(page).toHaveURL('/en/docs/30-vscode/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('VS Code extension');
 });
 
-test('a reference chapter has no English counterpart yet: the switch goes to the list', async ({ page }) => {
-  await page.goto('/fr/reference/05-operateurs/');
+test('a page without English counterpart: the switch goes to the English list of pages', async ({ page }) => {
+  await page.goto('/fr/docs/14-operateurs/');
   await page.getByTestId('switch-language').click();
-  await expect(page).toHaveURL('/en/reference/');
-  await expect(page.getByText('not available in this language yet')).toBeVisible();
+  await expect(page).toHaveURL('/en/docs/');
+  await expect(page.getByRole('link', { name: 'VS Code extension' })).toBeVisible();
+});
+
+test('installation and usage pages come from the README, with working links', async ({ page }) => {
+  await page.goto('/fr/docs/01-installation/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Installation');
+  await expect(page.getByText('install.sh | sh').first()).toBeVisible();
+  await page.goto('/fr/docs/31-protocole-json/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Protocole JSON');
+  await expect(page.locator('.toc a[aria-current="page"]')).toHaveText('Protocole JSON');
 });

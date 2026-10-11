@@ -1,0 +1,44 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { languages, t } from '../../../i18n/index.js';
+import { docGroups, docPages } from '../../../content.js';
+
+export function getStaticPaths() {
+  return languages.flatMap((lang) => docPages(lang).map((p) => ({ params: { lang, slug: p.slug } })));
+}
+const { lang, slug } = Astro.params;
+const all = docPages(lang);
+const groups = docGroups(lang);
+const index = all.findIndex((p) => p.slug === slug);
+const page = all[index];
+const previous = all[index - 1];
+const next = all[index + 1];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const { Content } = page;
+---
+<Base lang={lang} title={page.title} slug={slug} section="docs">
+  <div class="layout">
+    <nav class="toc" aria-label={t(lang, 'docs.menu')}>
+      <h2><a href={`${base}/${lang}/docs/`}>{t(lang, 'docs.title')}</a></h2>
+      {groups.map((group) => (
+        <>
+          <h3 class="toc-group">{group.name}</h3>
+          <ol>
+            {group.pages.map((p) => (
+              <li><a href={`${base}/${lang}/docs/${p.slug}/`} aria-current={p.slug === slug ? 'page' : undefined}><span>{p.title}</span></a></li>
+            ))}
+          </ol>
+        </>
+      ))}
+    </nav>
+    <div>
+      <article class="reference">
+        <Content />
+      </article>
+      <nav class="pager" aria-label="Navigation">
+        {previous ? <a href={`${base}/${lang}/docs/${previous.slug}/`}>← {previous.title}</a> : <span />}
+        {next ? <a href={`${base}/${lang}/docs/${next.slug}/`}>{next.title} →</a> : <span />}
+      </nav>
+    </div>
+  </div>
+</Base>

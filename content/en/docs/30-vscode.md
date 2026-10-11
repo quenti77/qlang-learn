@@ -1,5 +1,6 @@
 ---
 title: "VS Code extension"
+group: "Tools"
 ---
 
 # VS Code extension
