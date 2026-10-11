@@ -4,6 +4,7 @@ import { EditorView, keymap, drawSelection, highlightActiveLine, placeholder } f
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { HighlightStyle, syntaxHighlighting, bracketMatching, indentOnInput } from '@codemirror/language';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { intelExtensions } from './intel.js';
 import { tags as t } from '@lezer/highlight';
 import { qlangLanguage } from './qlang-language.js';
 
@@ -35,13 +36,22 @@ const theme = EditorView.theme({
   '.cm-cursor': { borderLeftColor: 'var(--fg)' },
   '.cm-matchingBracket': { backgroundColor: 'var(--selection)', outline: '1px solid var(--muted)' },
   '.cm-scroller': { overflow: 'auto', minHeight: '3rem' },
+  '.cm-tooltip': { backgroundColor: 'var(--surface)', color: 'var(--fg)', border: '1px solid var(--line)', borderRadius: '6px', boxShadow: '0 4px 14px rgba(0,0,0,.18)' },
+  '.cm-tooltip.cm-tooltip-autocomplete > ul': { fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace', fontSize: '0.85rem', maxHeight: '14rem' },
+  '.cm-tooltip-autocomplete ul li[aria-selected]': { backgroundColor: 'var(--selection)', color: 'var(--fg)' },
+  '.cm-completionDetail': { color: 'var(--muted)', fontStyle: 'normal' },
+  '.cm-completionInfo': { padding: '0.4rem 0.6rem', maxWidth: '24rem' },
+  '.intel-doc': { padding: '0.35rem 0.6rem', maxWidth: '26rem', fontSize: '0.85rem', lineHeight: '1.4' },
+  '.intel-doc p': { margin: '0.3rem 0 0' },
+  '.intel-doc pre': { margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace', fontSize: '0.85rem' },
+  '.intel-doc code': { fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace' },
 });
 
 /**
  * Put an editor in `host`. Returns `{ value, focus }`; `value` can be read and assigned.
  * `readOnly` shows highlighted code that cannot be changed; `onRun` is called on Ctrl+Enter.
  */
-export function mountEditor(host, { doc = '', readOnly = false, onRun = null, label = '' } = {}) {
+export function mountEditor(host, { doc = '', readOnly = false, onRun = null, label = '', intel = null } = {}) {
   const extensions = [
     qlangLanguage,
     syntaxHighlighting(highlight),
@@ -59,6 +69,7 @@ export function mountEditor(host, { doc = '', readOnly = false, onRun = null, la
       indentOnInput(),
       bracketMatching(),
       closeBrackets(),
+      ...(intel ? intelExtensions(intel) : []),
       Prec.highest(keymap.of([{ key: 'Mod-Enter', run: () => (onRun ? (onRun(), true) : false) }])),
       keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab])
     );

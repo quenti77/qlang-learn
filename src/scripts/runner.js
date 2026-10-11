@@ -46,7 +46,7 @@ function widget(block) {
   const runButton = root.querySelector('[data-testid=run]');
   const resetButton = root.querySelector('[data-testid=reset]');
   const output = root.querySelector('output');
-  const code = mountEditor(root.querySelector('.editor'), { doc: original, onRun: () => execute() });
+  const code = mountEditor(root.querySelector('.editor'), { doc: original, onRun: () => execute(), intel: { files: () => modules } });
   stdin.placeholder = text('input');
   output.dataset.label = text('output');
   stdin.hidden = !/\bread\s*\(/.test(original);
@@ -109,6 +109,9 @@ function exerciseWidget(block) {
   const starter = block.textContent.replace(/\n$/, '');
   const tests = testsPre.textContent.replace(/\n$/, '');
   const solution = solutionPre.textContent.replace(/\n$/, '');
+  // optional hints: ```qlang-hint, paragraphs revealed one at a time
+  const hintPre = solutionPre.nextElementSibling?.querySelector('code.language-qlang-hint') ? solutionPre.nextElementSibling : null;
+  const hints = hintPre ? hintPre.textContent.trim().split(/\n{2,}/) : [];
   const heading = [...document.querySelectorAll('article h2')].filter((h) => h.compareDocumentPosition(pre) & Node.DOCUMENT_POSITION_FOLLOWING).pop();
   const number = heading ? heading.textContent.replace(/\D+/g, '') : '0';
   const id = `${document.querySelector('article').dataset.series}#${number}`;
@@ -125,7 +128,8 @@ function exerciseWidget(block) {
     <div class="editor" data-testid="code"></div>
     <details class="tests"><summary></summary><div class="editor" data-testid="tests"></div></details>
     <output data-testid="output" aria-live="polite"></output>
-    <div class="solution-bar"><button type="button" class="secondary" data-testid="solution-toggle"></button></div>
+    <div class="hints" data-testid="hints" hidden></div>
+    <div class="solution-bar"><button type="button" class="secondary" data-testid="hint" hidden></button><button type="button" class="secondary" data-testid="solution-toggle"></button></div>
     <div class="solution" data-testid="solution" hidden><div class="head"><span class="tag"></span></div><div class="editor" data-testid="solution-code"></div></div>`;
   const status = root.querySelector('.status');
   const runButton = root.querySelector('[data-testid=run]');
@@ -134,7 +138,7 @@ function exerciseWidget(block) {
   const toggle = root.querySelector('[data-testid=solution-toggle]');
   const solutionBox = root.querySelector('.solution');
   root.querySelector('.tag').textContent = `qlang · ${heading ? heading.textContent : ''}`;
-  const code = mountEditor(root.querySelector('.editor[data-testid=code]'), { doc: starter, onRun: () => check() });
+  const code = mountEditor(root.querySelector('.editor[data-testid=code]'), { doc: starter, onRun: () => check(), intel: { files: () => modules, suffix: () => tests } });
   root.querySelector('summary').textContent = text('exercise.tests');
   mountEditor(root.querySelector('.editor[data-testid=tests]'), { doc: tests, readOnly: true, label: text('exercise.tests') });
   output.dataset.label = text('output');
@@ -144,6 +148,31 @@ function exerciseWidget(block) {
   solutionBox.querySelector('.tag').textContent = text('exercise.solution.title');
   mountEditor(solutionBox.querySelector('.editor'), { doc: solution, readOnly: true, label: text('exercise.solution.title') });
 
+  const hintList = root.querySelector('.hints');
+  const hintButton = root.querySelector('[data-testid=hint]');
+  let shown = 0;
+  const updateHintButton = () => {
+    hintButton.hidden = shown >= hints.length;
+    hintButton.textContent = `${text('exercise.hint')} (${shown + 1}/${hints.length})`;
+  };
+  if (hints.length) updateHintButton();
+  hintButton.addEventListener('click', () => {
+    const p = document.createElement('p');
+    // `code` spans
+    hints[shown].split(/(`[^`]+`)/).forEach((part) => {
+      if (/^`[^`]+`$/.test(part)) {
+        const c = document.createElement('code');
+        c.textContent = part.slice(1, -1);
+        p.append(c);
+      } else if (part) {
+        p.append(part);
+      }
+    });
+    hintList.append(p);
+    hintList.hidden = false;
+    shown++;
+    updateHintButton();
+  });
   const refresh = () => {
     const done = isDone(id);
     status.textContent = done ? text('exercise.done') : text('exercise.todo');
@@ -190,6 +219,7 @@ function exerciseWidget(block) {
   });
   testsPre.remove();
   solutionPre.remove();
+  hintPre?.remove();
   pre.replaceWith(root);
 }
 

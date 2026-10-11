@@ -30,6 +30,7 @@
   "exercise.passed": "Bravo, tous les tests passent !",
   "exercise.failed": "Test échoué",
   "exercise.tests": "Tests (exécutés après ton code)",
+  "exercise.hint": "Indice",
   "exercise.solution.show": "Voir la solution",
   "exercise.solution.hide": "Masquer la solution",
   "exercise.solution.title": "Solution",

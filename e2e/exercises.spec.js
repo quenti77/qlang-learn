@@ -105,3 +105,30 @@ for (const lang of ['fr', 'en']) test(`every ${lang} exercise has a solution tha
     }
   }
 });
+
+test('hints are revealed one at a time', async ({ page }) => {
+  await page.goto(series);
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const e = page.getByTestId('exercise').first();
+  await expect(e.getByTestId('hints')).toBeHidden();
+  await expect(e.getByTestId('hint')).toHaveText('Indice (1/2)');
+  await e.getByTestId('hint').click();
+  await expect(e.getByTestId('hints')).toContainText('multiplié par lui-même');
+  await expect(e.getByTestId('hint')).toHaveText('Indice (2/2)');
+  await e.getByTestId('hint').click();
+  await expect(e.getByTestId('hints').locator('p')).toHaveCount(2);
+  await expect(e.getByTestId('hint')).toBeHidden();
+  // the hints are not part of the page as plain code blocks
+  await expect(page.locator('pre code.language-qlang-hint')).toHaveCount(0);
+});
+
+test('every exercise has hints, in both languages', async ({ page }) => {
+  for (const lang of ['fr', 'en']) {
+    for (const s of ['01-bases', '02-tableaux-chaines', '03-structs-traits', '04-algorithmes']) {
+      await page.goto(`/${lang}/exercices/${s}/`);
+      await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+      const count = await page.getByTestId('exercise').count();
+      await expect(page.getByTestId('hint'), `${lang}/${s}`).toHaveCount(count);
+    }
+  }
+});

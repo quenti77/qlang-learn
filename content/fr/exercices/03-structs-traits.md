@@ -45,6 +45,12 @@ impl Rectangle
 end
 ```
 
+```qlang-hint
+Dans une méthode, les champs se lisent avec `self` : `self.l`, `self.h`.
+
+L'aire est `l * h`, le périmètre `2 * (l + h)`.
+```
+
 ## Exercice 2
 
 Surcharge + pour Fraction (a/b) sans simplifier : 1/2 + 1/3 = 5/6.
@@ -77,6 +83,12 @@ impl Add for Fraction
     Fraction { n: self.n * o.d + o.n * self.d, d: self.d * o.d }
   end
 end
+```
+
+```qlang-hint
+a/b + c/d = (a·d + c·b) / (b·d). Crée une nouvelle `Fraction` avec ce résultat.
+
+`Fraction { n: self.n * o.d + o.n * self.d, d: self.d * o.d }`
 ```
 
 ## Exercice 3
@@ -127,6 +139,12 @@ impl<T> Pile<T>
 end
 ```
 
+```qlang-hint
+Les éléments sont rangés dans le tableau `self.items` : la pile se manipule par sa fin.
+
+Empiler : `self.items[] = v`. Dépiler : la méthode `pop()` d'un tableau renvoie déjà un `T?` (`none` si vide).
+```
+
 ## Exercice 4
 
 Écris une fonction générique plus_petit<T: Ord> qui renvoie le minimum d'un tableau non vide.
@@ -151,4 +169,10 @@ fun plus_petit<T: Ord>(xs: array<T>) -> T
   end
   m
 end
+```
+
+```qlang-hint
+Le type `T: Ord` garantit qu'on peut comparer deux éléments avec `<`.
+
+Garde le plus petit vu jusqu'ici : `let m = xs[0]`, puis `if x < m then m = x end` dans une boucle.
 ```

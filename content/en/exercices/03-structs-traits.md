@@ -45,6 +45,12 @@ impl Rectangle
 end
 ```
 
+```qlang-hint
+In a method, fields are read with `self`: `self.w`, `self.h`.
+
+The area is `w * h`, the perimeter `2 * (w + h)`.
+```
+
 ## Exercise 2
 
 Overload + for Fraction (a/b) without simplifying: 1/2 + 1/3 = 5/6.
@@ -77,6 +83,12 @@ impl Add for Fraction
     Fraction { n: self.n * o.d + o.n * self.d, d: self.d * o.d }
   end
 end
+```
+
+```qlang-hint
+a/b + c/d = (a·d + c·b) / (b·d). Create a new `Fraction` with this result.
+
+`Fraction { n: self.n * o.d + o.n * self.d, d: self.d * o.d }`
 ```
 
 ## Exercise 3
@@ -127,6 +139,12 @@ impl<T> Stack<T>
 end
 ```
 
+```qlang-hint
+The elements are stored in the array `self.items`: the stack is handled from its end.
+
+Push: `self.items[] = v`. Pop: the `pop()` method of an array already returns a `T?` (`none` if empty).
+```
+
 ## Exercise 4
 
 Write a generic function smallest<T: Ord> that returns the minimum of a non-empty array.
@@ -151,4 +169,10 @@ fun smallest<T: Ord>(xs: array<T>) -> T
   end
   m
 end
+```
+
+```qlang-hint
+The type `T: Ord` guarantees that two elements can be compared with `<`.
+
+Keep the smallest seen so far: `let m = xs[0]`, then `if x < m then m = x end` in a loop.
 ```

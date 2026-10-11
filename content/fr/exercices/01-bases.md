@@ -26,6 +26,12 @@ fun carre(n: int) -> int
 end
 ```
 
+```qlang-hint
+Le carré d'un nombre est ce nombre multiplié par lui-même.
+
+La dernière expression d'une fonction est sa valeur de retour : `n * n` suffit.
+```
+
 ## Exercice 2
 
 Renvoie true si n est pair.
@@ -46,6 +52,12 @@ print("exercice 2 OK")
 fun est_pair(n: int) -> bool
   n mod 2 == 0
 end
+```
+
+```qlang-hint
+Un nombre est pair si le reste de sa division par 2 est 0.
+
+L'opérateur `mod` donne le reste : `n mod 2`. Compare-le à `0` avec `==`.
 ```
 
 ## Exercice 3
@@ -74,6 +86,12 @@ fun max3(a: int, b: int, c: int) -> int
 end
 ```
 
+```qlang-hint
+Garde le plus grand vu jusqu'ici dans une variable, et compare-le aux autres nombres un par un.
+
+Commence avec `let m = a`, puis `if b > m then m = b end`, puis fais pareil avec `c`.
+```
+
 ## Exercice 4
 
 Renvoie la somme des entiers de 1 à n avec une boucle.
@@ -96,6 +114,12 @@ fun somme_jusqua(n: int) -> int
   for i in 1..=n do s += i end
   s
 end
+```
+
+```qlang-hint
+Il faut un total qui grandit à chaque tour de boucle.
+
+`let s = 0`, puis `for i in 1..=n do s += i end` (`..=` inclut la borne `n`), puis renvoie `s`.
 ```
 
 ## Exercice 5
@@ -125,6 +149,12 @@ fun fizzbuzz(n: int) -> string
 end
 ```
 
+```qlang-hint
+Teste d'abord le cas « multiple de 3 et de 5 », sinon `FizzBuzz` ne sera jamais renvoyé.
+
+Un nombre est multiple de 15 quand `n mod 15 == 0`. Utilise `return` dans chaque `if`, et termine par `n as string`.
+```
+
 ## Exercice 6
 
 Renvoie n! (factorielle) de façon récursive.
@@ -146,4 +176,10 @@ fun fact(n: int) -> int
   if n <= 1 then return 1 end
   n * fact(n - 1)
 end
+```
+
+```qlang-hint
+Une fonction récursive s'appelle elle-même sur un problème plus petit, et a un cas d'arrêt.
+
+Le cas d'arrêt : `fact(0)` et `fact(1)` valent 1. Sinon, `n * fact(n - 1)`.
 ```
