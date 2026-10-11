@@ -35,7 +35,9 @@ function runNow(request) {
   if (!worker) start();
   const { timeoutMs, maxSteps, maxDepth } = settings();
   const id = nextId++;
-  const full = { ...request, limits: { max_steps: maxSteps, max_depth: maxDepth, ...(request.limits || {}) } };
+  // the page is the host: it gives the clock and the seed of the random generator (53 bits)
+  const [hi, lo] = crypto.getRandomValues(new Uint32Array(2));
+  const full = { now: Date.now(), seed: hi * 2 ** 21 + (lo >>> 11), ...request, limits: { max_steps: maxSteps, max_depth: maxDepth, ...(request.limits || {}) } };
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
       pending.delete(id);

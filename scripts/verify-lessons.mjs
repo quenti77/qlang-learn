@@ -25,6 +25,8 @@ for (const lang of fs.readdirSync(content)) {
       const answer = qlang.handle({
         files: { ...modules, 'main.q': m[2] },
         input: ['Ada', '36', '12', 'x', 'y', 'z', 'a', 'b', 'c', 'd'],
+        now: 1_700_000_000_000,
+        seed: 1,
         limits: { max_steps: 20_000_000, max_depth: 250 },
       });
       const expectError = Boolean(m[1]);

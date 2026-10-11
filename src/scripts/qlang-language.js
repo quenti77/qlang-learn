@@ -9,7 +9,7 @@ const MODIFIER = new Set('public private protected static override extends impor
 const OPERATOR_WORDS = new Set('and or not div mod'.split(' '));
 const ATOMS = new Set(['true', 'false', 'none']);
 const SELF = new Set(['self', 'super']);
-const TYPES = new Set('int float bool string array map range'.split(' '));
+const TYPES = new Set('int float bool string uuid ulid array map range'.split(' '));
 const NAMES_AFTER = { fun: 'fnDef', struct: 'typeDef', enum: 'typeDef', trait: 'typeDef', extends: 'type' };
 
 const tokenTable = {
