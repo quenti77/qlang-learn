@@ -56,7 +56,7 @@ if (process.env.QLANG_REPO) {
 // The documentation pages generated from qlang's own documents (not committed):
 // - docs/language.md, one page per chapter: the language;
 // - README.md, a few sections: installation, usage, the JSON protocol…
-// They go to content/fr/docs-generated/NN-name.md; the pages written for this site (the VS Code
+// They go to content/<lang>/docs-generated/NN-name.md; the pages written for this site (the VS Code
 // extension…) are in content/<lang>/docs/. The number in the name orders them all.
 const slugify = (text) => new GithubSlugger().slug(text.replace(/`/g, ''));
 // file names have no accents (the anchors inside the pages keep them, as the links to them do)
@@ -66,16 +66,39 @@ const fileSlug = (number, title) => `${String(number).padStart(2, '0')}-${ascii(
 const sections = (text) => text.split(/^(?=## )/m).filter((c) => c.startsWith('## '));
 const titleOf = (chapter) => chapter.match(/^## (.*)$/m)[1];
 
+// Per language: the sources (French: qlang's own documents; English: translations kept in
+// content/en/reference/), the README sections to keep, the groups of the menu.
+const LANGS = {
+  fr: {
+    contents: 'Sommaire',
+    languageGroup: 'Le langage',
+    readmeSections: [
+      ['Installation', 1, 'Démarrer'],
+      ['Utilisation', 2, 'Démarrer'],
+      ['Protocole JSON', 31, 'Outils'],
+      ['Navigateur : WebAssembly', 32, 'Outils'],
+      ['Architecture', 40, 'Pour aller plus loin'],
+      ['Développement', 41, 'Pour aller plus loin'],
+    ],
+  },
+  en: {
+    contents: 'Contents',
+    languageGroup: 'The language',
+    readmeSections: [
+      ['Installation', 1, 'Getting started'],
+      ['Usage', 2, 'Getting started'],
+      ['JSON protocol', 31, 'Tools'],
+      ['Browser: WebAssembly', 32, 'Tools'],
+      ['Architecture', 40, 'Going further'],
+      ['Development', 41, 'Going further'],
+    ],
+  },
+};
+
+function generate(lang, languageDoc, readme) {
+const { readmeSections, contents, languageGroup } = LANGS[lang];
 const pages = [];
 // the README: only these sections, in this order
-const readmeSections = [
-  ['Installation', 1, 'Démarrer'],
-  ['Utilisation', 2, 'Démarrer'],
-  ['Protocole JSON', 31, 'Outils'],
-  ['Navigateur : WebAssembly', 32, 'Outils'],
-  ['Architecture', 40, 'Pour aller plus loin'],
-  ['Développement', 41, 'Pour aller plus loin'],
-];
 const readmeChapters = sections(readme);
 for (const [title, number, group] of readmeSections) {
   const chapter = readmeChapters.find((c) => titleOf(c) === title);
@@ -86,8 +109,8 @@ for (const [title, number, group] of readmeSections) {
   pages.push({ slug: fileSlug(number, title), title: plain(title), chapter, group, source: 'readme' });
 }
 // the language: chapters 1..18 numbered 10..27
-const body = languageDoc.replace(/^# .*\n/, '').replace(/^## Sommaire\n[\s\S]*?(?=^## 1\. )/m, '');
-sections(body).forEach((chapter, i) => pages.push({ slug: fileSlug(10 + i, titleOf(chapter)), title: plain(titleOf(chapter)), chapter, group: 'Le langage', source: 'language' }));
+const body = languageDoc.replace(/^# .*\n/, '').replace(new RegExp(`^## ${contents}\\n[\\s\\S]*?(?=^## 1\\. )`, 'm'), '');
+sections(body).forEach((chapter, i) => pages.push({ slug: fileSlug(10 + i, titleOf(chapter)), title: plain(titleOf(chapter)), chapter, group: languageGroup, source: 'language' }));
 
 // every anchor and the page it is in, to turn `](#anchor)` into links between pages
 const anchors = new Map();
@@ -103,7 +126,7 @@ for (const page of pages) {
 const pageOfLanguage = (anchor) => pages.find((p) => p.source === 'language' && p.slug === anchors.get(anchor));
 const REPO = 'https://github.com/quenti77/qlang';
 
-const outDir = path.join(root, 'content', 'fr', 'docs-generated');
+const outDir = path.join(root, 'content', lang, 'docs-generated');
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
 for (const { slug, title, chapter, group } of pages) {
@@ -138,4 +161,17 @@ for (const { slug, title, chapter, group } of pages) {
     .join('\n');
   fs.writeFileSync(path.join(outDir, `${slug}.md`), `---\ntitle: ${JSON.stringify(title)}\ngroup: ${JSON.stringify(group)}\n---\n\n# ${title}\n${text}`);
 }
-console.log(`documentation: ${pages.length} pages generated`);
+console.log(`documentation (${lang}): ${pages.length} pages generated`);
+}
+
+generate('fr', languageDoc, readme);
+// the English text is a translation kept in content/en/reference/: warn when the French source has moved on
+const countOf = (text, re) => (text.match(re) || []).length;
+const enLanguage = fs.readFileSync(path.join(root, 'content', 'en', 'reference', 'language.md'), 'utf8');
+for (const [what, re] of [['chapters', /^## \d+\. /gm], ['sections', /^### /gm], ['code blocks', /^```/gm]]) {
+  const fr = countOf(languageDoc, re);
+  const en = countOf(enLanguage, re);
+  if (fr !== en) console.warn(`warning: docs/language.md has ${fr} ${what} in French and ${en} in content/en/reference/language.md: update the translation`);
+}
+const reference = (file) => fs.readFileSync(path.join(root, 'content', 'en', 'reference', file), 'utf8');
+generate('en', reference('language.md'), reference('readme.md'));

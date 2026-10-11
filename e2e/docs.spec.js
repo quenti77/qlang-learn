@@ -68,11 +68,20 @@ test('the VS Code page is part of the documentation, in both languages', async (
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('VS Code extension');
 });
 
-test('a page without English counterpart: the switch goes to the English list of pages', async ({ page }) => {
+test('the documentation exists in English, and the switch keeps the page', async ({ page }) => {
   await page.goto('/fr/docs/14-operateurs/');
   await page.getByTestId('switch-language').click();
-  await expect(page).toHaveURL('/en/docs/');
+  await expect(page).toHaveURL('/en/docs/14-operators/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Operators');
   await expect(page.getByRole('link', { name: 'VS Code extension' })).toBeVisible();
+  await page.getByTestId('switch-language').click();
+  await expect(page).toHaveURL('/fr/docs/14-operateurs/');
+});
+
+test('the English documentation links between its pages', async ({ page }) => {
+  await page.goto('/en/docs/12-values-and-types/');
+  await page.getByRole('link', { name: 'section 14' }).click();
+  await expect(page).toHaveURL(/\/en\/docs\/23-input-output-and-the-standard-library\/#dictionaries$/);
 });
 
 test('installation and usage pages come from the README, with working links', async ({ page }) => {
