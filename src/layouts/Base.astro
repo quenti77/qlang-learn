@@ -1,4 +1,5 @@
 ---
+import '../styles/site.css';
 import { strings, t } from '../i18n/index.js';
 import { hasLesson } from '../content.js';
 const { lang, title, slug } = Astro.props;
@@ -16,44 +17,19 @@ const otherHref = slug && !hasLesson(other, slug) ? `${base}/${other}/` : `${bas
     <link rel="icon" href="data:," />
   </head>
   <body>
-    <header>
-      <a href={`${base}/${lang}/`} class="brand">qlang</a>
-      <a href={otherHref} hreflang={other} lang={other} data-testid="switch-language">{t(lang, 'lang.switch')}</a>
+    <header class="site-header">
+      <div class="bar">
+        <a href={`${base}/${lang}/`} class="brand"><span class="logo" aria-hidden="true">q</span>qlang</a>
+        <a href={otherHref} hreflang={other} lang={other} class="lang" data-testid="switch-language">{t(lang, 'lang.switch')}</a>
+      </div>
     </header>
-    <main><slot /></main>
+    <slot />
+    <footer class="site-footer">
+      <a href="https://github.com/quenti77/qlang">qlang</a> · <a href="https://github.com/quenti77/qlang-learn">{t(lang, 'footer.source')}</a>
+    </footer>
     <script type="application/json" id="ui-strings" set:html={JSON.stringify(strings(lang))}></script>
     <script>
       import '../scripts/runner.js';
     </script>
-    <style is:global>
-      :root {
-        --bg: #fff; --fg: #1d2330; --muted: #5b6577; --line: #d9dee8; --accent: #2b59c3; --code: #f4f6fa; --err: #b3261e;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root { --bg: #15181f; --fg: #e6e9f0; --muted: #98a1b3; --line: #2e3442; --accent: #8ab4ff; --code: #1d222c; --err: #ff8a80; }
-      }
-      * { box-sizing: border-box; }
-      body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, sans-serif; }
-      header { display: flex; justify-content: space-between; align-items: center; max-width: 52rem; margin: 0 auto; padding: 1rem; border-bottom: 1px solid var(--line); }
-      header a { color: var(--accent); text-decoration: none; }
-      .brand { font-weight: 700; font-size: 1.2rem; }
-      main { max-width: 52rem; margin: 0 auto; padding: 1rem; }
-      h1, h2, h3 { line-height: 1.25; }
-      a { color: var(--accent); }
-      pre, code, textarea { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 0.92rem; }
-      :not(pre) > code { background: var(--code); padding: 0.1em 0.35em; border-radius: 4px; }
-      .qlang-widget { margin: 1rem 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-      .qlang-widget textarea { display: block; width: 100%; min-height: 3rem; padding: 0.75rem; border: 0; resize: vertical; background: var(--code); color: var(--fg); tab-size: 2; white-space: pre; overflow: auto; }
-      .qlang-widget .bar { display: flex; gap: 0.5rem; padding: 0.4rem 0.75rem; border-top: 1px solid var(--line); }
-      .qlang-widget button { cursor: pointer; padding: 0.3rem 0.9rem; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); font: inherit; }
-      .qlang-widget button.secondary { background: transparent; color: var(--accent); }
-      .qlang-widget button:disabled { opacity: 0.6; cursor: progress; }
-      .qlang-widget .stdin { width: 100%; padding: 0.5rem 0.75rem; border: 0; border-top: 1px solid var(--line); background: var(--bg); color: var(--fg); }
-      .qlang-widget output { display: block; padding: 0.5rem 0.75rem; border-top: 1px solid var(--line); white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 0.92rem; }
-      .qlang-widget output:empty { display: none; }
-      .qlang-widget .error { color: var(--err); }
-      .qlang-widget .muted { color: var(--muted); }
-      nav.pager { display: flex; justify-content: space-between; margin-top: 2rem; }
-    </style>
   </body>
 </html>

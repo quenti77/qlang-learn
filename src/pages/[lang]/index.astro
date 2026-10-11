@@ -8,12 +8,18 @@ export function getStaticPaths() {
 }
 const { lang } = Astro.params;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const all = lessons(lang);
 ---
 <Base lang={lang} title={t(lang, 'site')}>
-  <h1>{t(lang, 'site')}</h1>
-  <p>{t(lang, 'home.intro')}</p>
-  <h2>{t(lang, 'home.lessons')}</h2>
-  <ol>
-    {lessons(lang).map((l) => <li><a href={`${base}/${lang}/cours/${l.slug}/`}>{l.title}</a></li>)}
-  </ol>
+  <section class="hero">
+    <h1>{t(lang, 'site')}</h1>
+    <p>{t(lang, 'home.intro')}</p>
+    {all[0] && <a class="button" href={`${base}/${lang}/cours/${all[0].slug}/`}>{t(lang, 'home.start')}</a>}
+  </section>
+  <section class="home-lessons">
+    <h2>{t(lang, 'home.lessons')}</h2>
+    <ol class="lesson-list">
+      {all.map((l) => <li><a href={`${base}/${lang}/cours/${l.slug}/`}><span class="n">{l.slug.slice(0, 2)}</span><span>{l.title}</span></a></li>)}
+    </ol>
+  </section>
 </Base>

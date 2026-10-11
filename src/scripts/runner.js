@@ -15,12 +15,12 @@ function widget(block) {
   const root = document.createElement('div');
   root.className = 'qlang-widget';
   root.innerHTML = `
+    <div class="head"><span class="tag">qlang</span><span class="actions">
+      <button type="button" class="secondary" data-testid="reset"></button>
+      <button type="button" data-testid="run"></button>
+    </span></div>
     <textarea data-testid="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="qlang"></textarea>
     <input class="stdin" data-testid="stdin" hidden />
-    <div class="bar">
-      <button type="button" data-testid="run"></button>
-      <button type="button" class="secondary" data-testid="reset"></button>
-    </div>
     <output data-testid="output" aria-live="polite"></output>`;
   const code = root.querySelector('textarea');
   const stdin = root.querySelector('.stdin');
@@ -30,6 +30,7 @@ function widget(block) {
   code.value = original;
   code.rows = Math.max(2, original.split('\n').length);
   stdin.placeholder = text('input');
+  output.dataset.label = text('output');
   stdin.hidden = !/\bread\s*\(/.test(original);
   runButton.textContent = text('run');
   resetButton.textContent = text('reset');

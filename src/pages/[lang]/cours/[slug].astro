@@ -16,11 +16,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const { Content } = lesson;
 ---
 <Base lang={lang} title={lesson.title} slug={slug}>
-  <article>
-    <Content />
-  </article>
-  <nav class="pager">
-    {previous ? <a href={`${base}/${lang}/cours/${previous.slug}/`}>← {t(lang, 'previous')}</a> : <span />}
-    {next ? <a href={`${base}/${lang}/cours/${next.slug}/`}>{t(lang, 'next')} →</a> : <span />}
-  </nav>
+  <div class="layout">
+    <nav class="toc" aria-label={t(lang, 'lesson.contents')}>
+      <h2>{t(lang, 'lesson.contents')}</h2>
+      <ol>
+        {all.map((l) => (
+          <li><a href={`${base}/${lang}/cours/${l.slug}/`} aria-current={l.slug === slug ? 'page' : undefined}><span class="n">{l.slug.slice(0, 2)}</span><span>{l.title}</span></a></li>
+        ))}
+      </ol>
+    </nav>
+    <div>
+      <article>
+        <Content />
+      </article>
+      <nav class="pager" aria-label="Navigation">
+        {previous ? <a href={`${base}/${lang}/cours/${previous.slug}/`}>← {t(lang, 'previous')}</a> : <span />}
+        {next ? <a href={`${base}/${lang}/cours/${next.slug}/`}>{t(lang, 'next')} →</a> : <span />}
+      </nav>
+    </div>
+  </div>
 </Base>
