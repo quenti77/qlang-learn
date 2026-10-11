@@ -11,6 +11,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const wasmOut = path.join(root, 'public', 'qlang.wasm');
 const mjsOut = path.join(root, 'src', 'vendor', 'qlang.mjs');
 fs.mkdirSync(path.dirname(mjsOut), { recursive: true });
+fs.mkdirSync(path.dirname(wasmOut), { recursive: true }); // git does not keep empty folders
 
 if (process.env.QLANG_REPO) {
   const repo = path.resolve(root, process.env.QLANG_REPO);
