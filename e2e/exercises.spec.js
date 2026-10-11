@@ -87,12 +87,12 @@ test('the exercises are reachable from the menu, in both languages', async ({ pa
   await expect(page).toHaveURL('/fr/exercices/');
   await page.getByTestId('switch-language').click();
   await expect(page).toHaveURL('/en/exercices/');
-  await expect(page.getByText('not available in this language yet')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Variables, conditions, loops, functions' })).toBeVisible();
 });
 
-test('every exercise has a solution that passes its own tests', async ({ page }) => {
+for (const lang of ['fr', 'en']) test(`every ${lang} exercise has a solution that passes its own tests`, async ({ page }) => {
   for (const s of ['01-bases', '02-tableaux-chaines', '03-structs-traits', '04-algorithmes']) {
-    await page.goto(`/fr/exercices/${s}/`);
+    await page.goto(`/${lang}/exercices/${s}/`);
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
     const count = await page.getByTestId('exercise').count();
     for (let i = 0; i < count; i++) {
@@ -101,7 +101,7 @@ test('every exercise has a solution that passes its own tests', async ({ page })
       const solution = await getCode(w.getByTestId('solution-code'));
       await setCode(w.getByTestId('code'), solution);
       await w.getByTestId('run').click();
-      await expect(w.getByTestId('status'), `${s} #${i + 1}`).toHaveText('Réussi ✓');
+      await expect(w.getByTestId('status'), `${s} #${i + 1}`).toHaveText(lang === 'fr' ? 'Réussi ✓' : 'Done ✓');
     }
   }
 });

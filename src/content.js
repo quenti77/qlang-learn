@@ -58,6 +58,16 @@ export function docGroups(lang) {
   return groups;
 }
 
+/**
+ * The slug of the page of `section` in `lang` that matches `slug` of the other language: the
+ * same slug, or (documentation pages are named after their titles) the same number. Or null.
+ */
+export function counterpart(lang, section, slug) {
+  const pages = { cours: lessons, exercices: exerciseSeries, docs: docPages }[section](lang);
+  const same = pages.find((p) => p.slug === slug) || pages.find((p) => section === 'docs' && p.slug.slice(0, 2) === slug.slice(0, 2));
+  return same ? same.slug : null;
+}
+
 /** Is there a page `slug` in `section` in this language? (to link to the same page in another language) */
 export function pageExists(lang, section, slug) {
   const pages = { cours: lessons, exercices: exerciseSeries, docs: docPages }[section];
