@@ -949,7 +949,7 @@ The language does not read or write anything itself: `print`, `read` and `import
 the **execution environment** (the terminal, a web server…).
 
 - `print` is always available.
-- `time.now()`, `random.…`, `uuid.v4()`, `uuid.v7()`, `ulid.new()` and `ulid.at()` also
+- `time.now()`, `datetime.now()`, `random.…`, `uuid.v4()`, `uuid.v7()`, `ulid.new()` and `ulid.at()` also
   depend on the environment (a clock, a source of randomness): see
   [Time and randomness](#time-and-randomness).
 - `read` **depends on the environment**. In a terminal, it reads the keyboard. In an
@@ -1181,6 +1181,57 @@ orders[a] = "first"                  -- a ulid or a uuid can be a key
 in their text form (`id as string` gives that string). For the reverse, `uuid.parse` and
 `ulid.parse` check the text.
 
+### Dates and times: `datetime`
+
+A `datetime` is an **instant**: a date and a time, always in **UTC** (no time zones, so the
+same results everywhere). It goes from year 1 to year 9999. It is a type of its own, like
+`uuid`: it can be compared (`<`, `==`), sorted, and used as a dictionary key.
+
+| Call                                   | Result                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------------- |
+| `datetime.now()`                       | the present moment (needs a clock, like `time.now()`)                           |
+| `datetime.of(2026, 10, 11)`            | 11 October 2026 at midnight                                                     |
+| `datetime.of(2026, 10, 11, 14, 30, 0)` | with the time: hour, minute, second                                             |
+| `datetime.parse(text)`                 | a `datetime?`: `none` if the text is invalid (see below)                        |
+| `datetime.at(ms)`                      | the moment `ms` milliseconds after 1 January 1970                               |
+| `d.year()` `d.month()` `d.day()`       | year, month (1 to 12), day of the month                                         |
+| `d.hour()` `d.minute()` `d.second()`   | hour (0 to 23), minute, second                                                  |
+| `d.weekday()`                          | day of the week: 1 = Monday, 7 = Sunday                                         |
+| `d.ms()`                               | milliseconds since 1970 (an `int`)                                              |
+| `d.add_days(n)`                        | `n` days later (`n` can be negative); also `add_years`, `add_months`, `add_hours`, `add_minutes`, `add_seconds` |
+| `d.start_of_day()`                     | midnight of the same day                                                        |
+| `b - a`                                | the time from `a` to `b`, in **milliseconds** (an `int`)                        |
+| `a.days_until(b)`                      | the number of days between the day of `a` and the day of `b`                    |
+| `d.format("DD/MM/YYYY")`               | the text following a pattern                                                    |
+
+```
+let due = datetime.of(2026, 10, 11, 14, 30, 0)
+print(due)                            -- 2026-10-11T14:30:00Z
+print(due.add_days(30).format("DD/MM/YYYY"))   -- 10/11/2026
+print(due.weekday())                  -- 7 (Sunday)
+
+let christmas = datetime.of(2026, 12, 25)
+print(due.days_until(christmas))      -- 75
+print((christmas - due) div 3_600_000)      -- the hours left
+
+let d = datetime.parse("2026-10-11 14:30")
+if d != none then
+  print(d.hour())
+end
+```
+
+- **Display**: a `datetime` is shown in ISO 8601 format, `2026-10-11T14:30:00Z` (with `.123`
+  before the `Z` if there are milliseconds). `"{d}"` and `d as string` give this text.
+- **`format`** knows `YYYY` (year), `MM` (month), `DD` (day), `HH` (hour), `mm` (minute), `ss`
+  (second) and `SSS` (milliseconds). Other characters are kept as they are:
+  `d.format("YYYY-MM-DD at HH:mm")`.
+- **`parse`** reads `YYYY-MM-DD`, optionally followed by `T` or a space and then `HH:MM`,
+  `HH:MM:SS` or `HH:MM:SS.mmm`, and an optional `Z`. A date alone is midnight.
+- **`add_months` and `add_years`**: a day that does not exist in the new month becomes its
+  last day (31 January + 1 month = 28 or 29 February).
+- **Errors**: `datetime.of(2026, 2, 29)` (a date that does not exist) is an `R064` error;
+  going outside the years 1 to 9999 (`add_days`…) is an `R065` error.
+
 ## 15. Line endings
 
 There is no `;`. **A statement ends at the end of the line.** The line continues on the next
@@ -1219,7 +1270,7 @@ and or not div mod
 true false none self super
 ```
 
-`int`, `float`, `bool`, `string`, `uuid`, `ulid`, `array` and `range` are **not** keywords:
+`int`, `float`, `bool`, `string`, `uuid`, `ulid`, `datetime`, `array` and `range` are **not** keywords:
 they are ordinary type names, but you cannot define a type or a function with one of these
 names, nor the name of a built-in function (`print`, `write`, `read`, `panic`, `assert`).
 
