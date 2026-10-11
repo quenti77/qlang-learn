@@ -14,6 +14,18 @@
   --ok: #2f9e44;
   --radius: 10px;
   --measure: 46rem;
+  --tok-comment: #7a8194;
+  --tok-string: #1a7f4b;
+  --tok-number: #b4540a;
+  --tok-keyword: #7b3fc4;
+  --tok-operator-word: #7b3fc4;
+  --tok-operator: #8a4a00;
+  --tok-atom: #b4540a;
+  --tok-type: #0b6e99;
+  --tok-function: #2b59c3;
+  --tok-property: #2b59c3;
+  --active-line: #f6f4ee;
+  --selection: #cfdcff;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -28,6 +40,18 @@
     --accent-soft: #232a45;
     --code-bg: #1e222c;
     --out-bg: #0c0e13;
+    --tok-comment: #7d8599;
+    --tok-string: #7fd6a2;
+    --tok-number: #f0a86a;
+    --tok-keyword: #c9a0ff;
+    --tok-operator-word: #c9a0ff;
+    --tok-operator: #f0b97a;
+    --tok-atom: #f0a86a;
+    --tok-type: #6fcfff;
+    --tok-function: #8fb4ff;
+    --tok-property: #8fb4ff;
+    --active-line: #1f2430;
+    --selection: #2f3d66;
   }
 }
 * { box-sizing: border-box; }
@@ -89,9 +113,10 @@ nav.pager { display: flex; justify-content: space-between; gap: 1rem; margin-top
 nav.pager a { text-decoration: none; padding: 0.5rem 0.9rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 nav.pager a:hover { border-color: var(--accent); }
 @media (max-width: 52rem) {
-  .layout { grid-template-columns: 1fr; gap: 1rem; }
-  .toc { position: static; max-height: none; border-bottom: 1px solid var(--line); padding-bottom: 0.8rem; }
-  .toc ol { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .toc { position: static; max-height: none; border-bottom: 1px solid var(--line); padding-bottom: 0.8rem; min-width: 0; }
+  .toc ol { display: flex; flex-wrap: nowrap; gap: 0.3rem; overflow-x: auto; padding-bottom: 0.3rem; }
+  .toc a { white-space: nowrap; }
   body { font-size: 16px; }
 }
 
@@ -100,6 +125,7 @@ nav.pager a:hover { border-color: var(--accent); }
 .qlang-widget .head { display: flex; align-items: center; justify-content: space-between; padding: 0.35rem 0.5rem 0.35rem 0.9rem; border-bottom: 1px solid var(--line); background: var(--code-bg); font-size: 0.82rem; color: var(--muted); }
 .qlang-widget .head .tag { font-family: ui-monospace, monospace; letter-spacing: 0.04em; }
 .qlang-widget .actions { display: flex; gap: 0.4rem; }
+.qlang-widget .cm-editor { }
 .qlang-widget textarea { display: block; width: 100%; min-height: 3rem; padding: 0.8rem 1rem; border: 0; outline: 0; resize: vertical; background: var(--surface); color: var(--fg); font-size: 0.93rem; line-height: 1.55; tab-size: 2; white-space: pre; overflow: auto; }
 .qlang-widget textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
 .qlang-widget button { cursor: pointer; padding: 0.3rem 0.85rem; border-radius: 7px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); font: inherit; font-size: 0.85rem; font-weight: 650; }
@@ -113,7 +139,7 @@ nav.pager a:hover { border-color: var(--accent); }
 .qlang-widget output::before { content: attr(data-label); display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.55; margin-bottom: 0.25rem; font-family: ui-sans-serif, system-ui, sans-serif; }
 .qlang-widget .error { color: var(--err); }
 .qlang-widget .muted { opacity: 0.6; }
-.qlang-widget.module textarea { background: var(--code-bg); color: var(--muted); cursor: default; }
+.qlang-widget.module .cm-editor, .exercise .solution .cm-editor { background: var(--code-bg); }
 
 .main-nav { display: flex; gap: 0.4rem; margin-left: auto; margin-right: 1rem; }
 .main-nav a { text-decoration: none; color: var(--muted); padding: 0.25rem 0.7rem; border-radius: 999px; }
@@ -123,12 +149,24 @@ nav.pager a:hover { border-color: var(--accent); }
 .exercise.is-done .status { color: var(--ok); border-color: var(--ok); }
 .exercise details.tests { border-top: 1px solid var(--line); background: var(--code-bg); }
 .exercise details.tests summary { cursor: pointer; padding: 0.4rem 1rem; font-size: 0.85rem; color: var(--muted); }
-.exercise details.tests pre { margin: 0; padding: 0.4rem 1rem 0.8rem; font-size: 0.88rem; overflow: auto; }
+
 .exercise .solution-bar { padding: 0.4rem 0.75rem; border-top: 1px solid var(--line); }
 .exercise .solution { border-top: 1px solid var(--line); }
-.exercise .solution textarea { background: var(--code-bg); color: var(--muted); }
+.exercise details.tests .cm-editor { background: var(--code-bg); }
 .qlang-widget .success { color: #7ee2a0; }
 .series-count { margin-left: auto; font-family: ui-monospace, monospace; color: var(--muted); }
 @media (max-width: 40rem) { .main-nav { margin-right: 0.4rem; } .main-nav a { padding: 0.25rem 0.4rem; } }
 .layout.single { grid-template-columns: minmax(0, 1fr); max-width: var(--measure); }
 .link-button { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.9rem; }
+.reference-code .cm-editor { background: var(--code-bg); }
+.reference table { border-collapse: collapse; display: block; overflow-x: auto; margin: 1rem 0; }
+.reference th, .reference td { border: 1px solid var(--line); padding: 0.35rem 0.7rem; text-align: left; vertical-align: top; }
+.reference th { background: var(--code-bg); }
+article h1:first-child { margin-top: 0; }
+.toc h2 a { color: inherit; text-decoration: none; }
+article pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.8rem 1rem; overflow: auto; font-size: 0.9rem; line-height: 1.55; }
+@media (max-width: 40rem) {
+  .site-header .bar { flex-wrap: wrap; row-gap: 0.3rem; }
+  .main-nav { order: 3; width: 100%; margin: 0; overflow-x: auto; gap: 0.1rem; }
+  .main-nav a { white-space: nowrap; }
+}

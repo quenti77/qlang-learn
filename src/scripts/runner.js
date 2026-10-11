@@ -1,5 +1,6 @@
 // Turns the ```qlang code blocks of a lesson into small editors that run their code.
 import { run } from './engine.js';
+import { mountEditor } from './editor.js';
 import { isDone, markDone, doneIn, reset } from './progress.js';
 
 const ui = JSON.parse(document.getElementById('ui-strings')?.textContent || '{}');
@@ -23,13 +24,10 @@ function moduleWidget(block) {
   root.className = 'qlang-widget module';
   root.innerHTML = `
     <div class="head"><span class="tag" data-testid="module-name"></span></div>
-    <textarea data-testid="module-code" spellcheck="false" readonly aria-label=""></textarea>`;
+    <div class="editor" data-testid="module-code"></div>`;
   root.querySelector('.tag').textContent = path;
-  const area = root.querySelector('textarea');
-  area.setAttribute('aria-label', path);
-  area.value = source;
-  area.rows = Math.max(2, source.split('\n').length);
   block.closest('pre').replaceWith(root);
+  mountEditor(root.querySelector('.editor'), { doc: source, readOnly: true, label: path });
 }
 
 function widget(block) {
@@ -41,16 +39,14 @@ function widget(block) {
       <button type="button" class="secondary" data-testid="reset"></button>
       <button type="button" data-testid="run"></button>
     </span></div>
-    <textarea data-testid="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="qlang"></textarea>
+    <div class="editor" data-testid="code"></div>
     <input class="stdin" data-testid="stdin" hidden />
     <output data-testid="output" aria-live="polite"></output>`;
-  const code = root.querySelector('textarea');
   const stdin = root.querySelector('.stdin');
   const runButton = root.querySelector('[data-testid=run]');
   const resetButton = root.querySelector('[data-testid=reset]');
   const output = root.querySelector('output');
-  code.value = original;
-  code.rows = Math.max(2, original.split('\n').length);
+  const code = mountEditor(root.querySelector('.editor'), { doc: original, onRun: () => execute() });
   stdin.placeholder = text('input');
   output.dataset.label = text('output');
   stdin.hidden = !/\bread\s*\(/.test(original);
@@ -88,12 +84,6 @@ function widget(block) {
   }
 
   runButton.addEventListener('click', execute);
-  code.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      execute();
-    }
-  });
   resetButton.addEventListener('click', () => {
     code.value = original;
     output.replaceChildren();
@@ -132,12 +122,11 @@ function exerciseWidget(block) {
       <button type="button" class="secondary" data-testid="reset"></button>
       <button type="button" data-testid="run"></button>
     </span></div>
-    <textarea data-testid="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="qlang"></textarea>
-    <details class="tests"><summary></summary><pre data-testid="tests"></pre></details>
+    <div class="editor" data-testid="code"></div>
+    <details class="tests"><summary></summary><div class="editor" data-testid="tests"></div></details>
     <output data-testid="output" aria-live="polite"></output>
     <div class="solution-bar"><button type="button" class="secondary" data-testid="solution-toggle"></button></div>
-    <div class="solution" data-testid="solution" hidden><div class="head"><span class="tag"></span></div><textarea readonly spellcheck="false"></textarea></div>`;
-  const code = root.querySelector('textarea[data-testid=code]');
+    <div class="solution" data-testid="solution" hidden><div class="head"><span class="tag"></span></div><div class="editor" data-testid="solution-code"></div></div>`;
   const status = root.querySelector('.status');
   const runButton = root.querySelector('[data-testid=run]');
   const resetButton = root.querySelector('[data-testid=reset]');
@@ -145,18 +134,15 @@ function exerciseWidget(block) {
   const toggle = root.querySelector('[data-testid=solution-toggle]');
   const solutionBox = root.querySelector('.solution');
   root.querySelector('.tag').textContent = `qlang · ${heading ? heading.textContent : ''}`;
-  code.value = starter;
-  code.rows = Math.max(3, starter.split('\n').length);
+  const code = mountEditor(root.querySelector('.editor[data-testid=code]'), { doc: starter, onRun: () => check() });
   root.querySelector('summary').textContent = text('exercise.tests');
-  root.querySelector('[data-testid=tests]').textContent = tests;
+  mountEditor(root.querySelector('.editor[data-testid=tests]'), { doc: tests, readOnly: true, label: text('exercise.tests') });
   output.dataset.label = text('output');
   runButton.textContent = text('exercise.check');
   resetButton.textContent = text('reset');
   toggle.textContent = text('exercise.solution.show');
   solutionBox.querySelector('.tag').textContent = text('exercise.solution.title');
-  const solutionArea = solutionBox.querySelector('textarea');
-  solutionArea.value = solution;
-  solutionArea.rows = Math.max(3, solution.split('\n').length);
+  mountEditor(solutionBox.querySelector('.editor'), { doc: solution, readOnly: true, label: text('exercise.solution.title') });
 
   const refresh = () => {
     const done = isDone(id);
@@ -194,12 +180,6 @@ function exerciseWidget(block) {
     output.replaceChildren(...parts);
   }
   runButton.addEventListener('click', check);
-  code.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      check();
-    }
-  });
   resetButton.addEventListener('click', () => {
     code.value = starter;
     output.replaceChildren();
@@ -225,6 +205,15 @@ document.querySelector('[data-testid=reset-progress]')?.addEventListener('click'
   if (confirm(text('progress.confirm'))) reset();
 });
 
+// examples of the reference: highlighted, not runnable
+for (const block of document.querySelectorAll('pre > code.language-qlang-ref')) {
+  const host = document.createElement('div');
+  host.className = 'qlang-widget reference-code';
+  const pre = block.closest('pre');
+  const source = block.textContent.replace(/\n$/, '');
+  pre.replaceWith(host);
+  mountEditor(host, { doc: source, readOnly: true, label: 'qlang' });
+}
 for (const block of document.querySelectorAll('pre > code.language-qlang-module')) moduleWidget(block);
 for (const block of document.querySelectorAll('pre > code.language-qlang-exercise')) exerciseWidget(block);
 for (const block of document.querySelectorAll('pre > code.language-qlang')) widget(block);

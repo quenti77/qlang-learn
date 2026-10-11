@@ -34,5 +34,12 @@
   "exercise.solution.hide": "Hide the solution",
   "exercise.solution.title": "Solution",
   "progress.reset": "Erase my progress",
-  "progress.confirm": "Erase all your progress in this browser?"
+  "progress.confirm": "Erase all your progress in this browser?",
+  "nav.reference": "Reference",
+  "nav.tools": "VS Code",
+  "reference.title": "Language reference",
+  "reference.intro": "The language in detail, chapter by chapter. The examples are highlighted but do not run: to try code, see the lessons.",
+  "reference.none": "The reference is not available in this language yet.",
+  "reference.chapters": "Chapters",
+  "tools.title": "VS Code extension"
 }

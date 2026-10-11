@@ -14,7 +14,16 @@
     "verify-lessons": "node scripts/verify-lessons.mjs"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.14",
+    "@lezer/highlight": "^1.2.5",
     "@playwright/test": "^1.64.0",
     "astro": "^7.3.8"
+  },
+  "devDependencies": {
+    "github-slugger": "^2.0.0"
   }
 }

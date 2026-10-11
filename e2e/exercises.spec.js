@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getCode, setCode } from './helpers.js';
 
 const series = '/fr/exercices/01-bases/';
 const exercise = (page, n) => {
@@ -14,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 test('the series page shows its exercises with a starter code and the tests', async ({ page }) => {
   await expect(page.getByTestId('exercise')).toHaveCount(6);
   const e = exercise(page, 1);
-  await expect(e.code).toHaveValue(/fun carre\(n: int\) -> int/);
+  expect(await getCode(e.code)).toMatch(/fun carre\(n: int\) -> int/);
   await expect(e.status).toHaveText('À faire');
   await e.w.locator('details.tests summary').click();
   await expect(e.w.getByTestId('tests')).toContainText('assert(carre(4) == 16');
@@ -30,7 +31,7 @@ test('starter code fails a test, with the test that failed', async ({ page }) =>
 
 test('a correct solution passes, and the progress is kept', async ({ page }) => {
   const e = exercise(page, 1);
-  await e.code.fill('fun carre(n: int) -> int\n  n * n\nend');
+  await setCode(e.code, 'fun carre(n: int) -> int\n  n * n\nend');
   await e.check.click();
   await expect(e.out).toContainText('exercice 1 OK');
   await expect(e.out).toContainText('tous les tests passent');
@@ -46,7 +47,7 @@ test('a correct solution passes, and the progress is kept', async ({ page }) => 
 
 test('errors in the student code are shown at their own line', async ({ page }) => {
   const e = exercise(page, 1);
-  await e.code.fill('fun carre(n: int) -> int\n  n * "x"\nend');
+  await setCode(e.code, 'fun carre(n: int) -> int\n  n * "x"\nend');
   await e.check.click();
   await expect(e.out).toContainText(/2:\d+ T\d+/);
 });
@@ -56,21 +57,21 @@ test('the solution can be shown and hidden', async ({ page }) => {
   await expect(e.solution).toBeHidden();
   await e.toggle.click();
   await expect(e.solution).toBeVisible();
-  await expect(e.solution.locator('textarea')).toHaveValue(/n \* n/);
+  expect(await getCode(e.solution.getByTestId('solution-code'))).toMatch(/n \* n/);
   await e.toggle.click();
   await expect(e.solution).toBeHidden();
 });
 
 test('reset brings the starter code back', async ({ page }) => {
   const e = exercise(page, 2);
-  await e.code.fill('nothing');
+  await setCode(e.code, 'nothing');
   await e.reset.click();
-  await expect(e.code).toHaveValue(/est_pair/);
+  expect(await getCode(e.code)).toMatch(/est_pair/);
 });
 
 test('the progress can be erased', async ({ page }) => {
   const e = exercise(page, 1);
-  await e.code.fill('fun carre(n: int) -> int\n  n * n\nend');
+  await setCode(e.code, 'fun carre(n: int) -> int\n  n * n\nend');
   await e.check.click();
   await expect(e.status).toHaveText('Réussi ✓');
   await page.goto('/fr/exercices/');
@@ -97,8 +98,8 @@ test('every exercise has a solution that passes its own tests', async ({ page })
     for (let i = 0; i < count; i++) {
       const w = page.getByTestId('exercise').nth(i);
       await w.getByTestId('solution-toggle').click();
-      const solution = await w.getByTestId('solution').locator('textarea').inputValue();
-      await w.getByTestId('code').fill(solution);
+      const solution = await getCode(w.getByTestId('solution-code'));
+      await setCode(w.getByTestId('code'), solution);
       await w.getByTestId('run').click();
       await expect(w.getByTestId('status'), `${s} #${i + 1}`).toHaveText('Réussi ✓');
     }

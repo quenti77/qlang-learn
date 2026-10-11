@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getCode, setCode } from './helpers.js';
 
 const lesson = '/fr/cours/01-premiers-pas/';
 
@@ -32,25 +33,40 @@ test('the root page picks the language of the browser', async ({ browser }) => {
 
 test('code blocks run in the browser', async ({ page }) => {
   const b = block(page, 0);
-  await expect(b.code).toHaveValue(/Bonjour le monde/);
+  expect(await getCode(b.code)).toMatch(/Bonjour le monde/);
   await b.run.click();
   await expect(b.out).toHaveText('Bonjour le monde !\nJe m\'appelle qlang.\n');
 });
 
+test('typing in the editor works: indentation, closing brackets, highlighting', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Android reports keys differently: the emulated keyboard cannot type into CodeMirror');
+  const b = block(page, 0);
+  await setCode(b.code, '');
+  await b.code.locator('.cm-content').click();
+  await page.keyboard.type('if true then\nprint("a')
+  // the closing quote and bracket were not typed: the editor closes them
+  expect(await getCode(b.code)).toBe('if true then\nprint("a")');
+  // keywords, strings and function calls are colored differently
+  const colors = await b.code.locator('.cm-line span').evaluateAll((els) => [...new Set(els.map((e) => getComputedStyle(e).color))]);
+  expect(colors.length).toBeGreaterThanOrEqual(3);
+});
+
 test('the code can be edited, run again, and reset', async ({ page }) => {
   const b = block(page, 0);
-  await b.code.fill('print(123 * 456)');
+  await setCode(b.code, 'print(123 * 456)');
   await b.run.click();
   await expect(b.out).toHaveText('56088\n');
   await b.reset.click();
-  await expect(b.code).toHaveValue(/Bonjour le monde/);
+  expect(await getCode(b.code)).toMatch(/Bonjour le monde/);
   await expect(b.out).toHaveText('');
 });
 
-test('Ctrl+Enter runs the code', async ({ page }) => {
+test('Ctrl+Enter runs the code', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'a phone has no physical keyboard (and Android reports its keys differently)');
   const b = block(page, 0);
-  await b.code.fill('print("raccourci")');
-  await b.code.press('Control+Enter');
+  await setCode(b.code, 'print("raccourci")');
+  await b.code.locator('.cm-content').click();
+  await page.keyboard.press('Control+Enter');
   await expect(b.out).toHaveText('raccourci\n');
 });
 
@@ -62,7 +78,7 @@ test('errors show their position and code', async ({ page }) => {
 
 test('a type error is explained', async ({ page }) => {
   const b = block(page, 0);
-  await b.code.fill('let x: int = "texte"');
+  await setCode(b.code, 'let x: int = "texte"');
   await b.run.click();
   await expect(b.out).toContainText('expected `int`, found `string`');
 });
@@ -83,10 +99,10 @@ test('an infinite loop is stopped by the step limit, and the page stays usable',
   await page.addInitScript(() => (window.__QLANG = { maxSteps: 200_000 }));
   await page.reload();
   const b = block(page, 0);
-  await b.code.fill('while true do end');
+  await setCode(b.code, 'while true do end');
   await b.run.click();
   await expect(b.out).toContainText(/step/i);
-  await b.code.fill('print("encore là")');
+  await setCode(b.code, 'print("encore là")');
   await b.run.click();
   await expect(b.out).toHaveText('encore là\n');
 });
@@ -95,10 +111,10 @@ test('a program that does not end is killed by the timeout, and the engine resta
   await page.addInitScript(() => (window.__QLANG = { timeoutMs: 300, maxSteps: 4_000_000_000 }));
   await page.reload();
   const b = block(page, 0);
-  await b.code.fill('while true do end');
+  await setCode(b.code, 'while true do end');
   await b.run.click();
   await expect(b.out).toContainText('arrêté');
-  await b.code.fill('print("relancé")');
+  await setCode(b.code, 'print("relancé")');
   await b.run.click();
   await expect(b.out).toHaveText('relancé\n');
 });
@@ -106,10 +122,10 @@ test('a program that does not end is killed by the timeout, and the engine resta
 test('recursion works, and runaway recursion is a clear error, not a crash', async ({ page }) => {
   const b = block(page, 0);
   const program = (n) => `fun d(n: int) -> int\n  if n == 0 then return 0 end\n  1 + d(n - 1)\nend\nprint(d(${n}))`;
-  await b.code.fill(program(200));
+  await setCode(b.code, program(200));
   await b.run.click();
   await expect(b.out).toHaveText('200\n');
-  await b.code.fill(program(100000));
+  await setCode(b.code, program(100000));
   await b.run.click();
   await expect(b.out).toContainText(/depth|nested|deep/i);
   await expect(b.out).not.toContainText('moteur');

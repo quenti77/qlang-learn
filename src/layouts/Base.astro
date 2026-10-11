@@ -1,12 +1,17 @@
 ---
 import '../styles/site.css';
 import { strings, t } from '../i18n/index.js';
-import { hasLesson } from '../content.js';
+import { pageExists } from '../content.js';
 const { lang, title, slug, section = 'cours' } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const other = lang === 'fr' ? 'en' : 'fr';
 // the same page in the other language, if it exists
-const otherHref = !slug ? `${base}/${other}/${section === 'exercices' ? 'exercices/' : ''}` : section === 'cours' && hasLesson(other, slug) ? `${base}/${other}/cours/${slug}/` : `${base}/${other}/${section === 'exercices' ? 'exercices/' : ''}`;
+const sectionPath = section === 'cours' ? '' : `${section}/`;
+const otherHref = !slug
+  ? `${base}/${other}/${sectionPath}`
+  : pageExists(other, section, slug)
+    ? `${base}/${other}/${section}/${slug}/`
+    : `${base}/${other}/${sectionPath}`;
 ---
 <!doctype html>
 <html lang={lang}>
@@ -21,8 +26,10 @@ const otherHref = !slug ? `${base}/${other}/${section === 'exercices' ? 'exercic
       <div class="bar">
         <a href={`${base}/${lang}/`} class="brand"><span class="logo" aria-hidden="true">q</span>qlang</a>
         <nav class="main-nav" aria-label="Menu">
-          <a href={`${base}/${lang}/`} data-testid="nav-lessons">{t(lang, 'nav.lessons')}</a>
-          <a href={`${base}/${lang}/exercices/`} data-testid="nav-exercises">{t(lang, 'nav.exercises')}</a>
+          <a href={`${base}/${lang}/`} data-testid="nav-lessons" aria-current={section === "cours" ? "page" : undefined}>{t(lang, 'nav.lessons')}</a>
+          <a href={`${base}/${lang}/exercices/`} data-testid="nav-exercises" aria-current={section === "exercices" ? "page" : undefined}>{t(lang, 'nav.exercises')}</a>
+          <a href={`${base}/${lang}/reference/`} data-testid="nav-reference" aria-current={section === "reference" ? "page" : undefined}>{t(lang, 'nav.reference')}</a>
+          <a href={`${base}/${lang}/outils/vscode/`} data-testid="nav-tools" aria-current={section === "outils" ? "page" : undefined}>{t(lang, 'nav.tools')}</a>
         </nav>
         <a href={otherHref} hreflang={other} lang={other} class="lang" data-testid="switch-language">{t(lang, 'lang.switch')}</a>
       </div>

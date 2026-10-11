@@ -34,5 +34,12 @@
   "exercise.solution.hide": "Masquer la solution",
   "exercise.solution.title": "Solution",
   "progress.reset": "Effacer ma progression",
-  "progress.confirm": "Effacer toute ta progression dans ce navigateur ?"
+  "progress.confirm": "Effacer toute ta progression dans ce navigateur ?",
+  "nav.reference": "Référence",
+  "nav.tools": "VS Code",
+  "reference.title": "Référence du langage",
+  "reference.intro": "Le langage décrit en détail, chapitre par chapitre. Les exemples sont colorés mais ne s'exécutent pas : pour essayer du code, vois les cours.",
+  "reference.none": "La référence n'est pas encore disponible dans cette langue.",
+  "reference.chapters": "Chapitres",
+  "tools.title": "Extension VS Code"
 }
