@@ -1,0 +1,18 @@
+{
+  "site": "Learn to program with qlang",
+  "home.intro": "Step-by-step lessons, with code you can edit and run right in the page.",
+  "home.lessons": "Lessons",
+  "nav.home": "Home",
+  "lang.switch": "Français",
+  "run": "Run",
+  "running": "Running…",
+  "reset": "Reset",
+  "output": "Output",
+  "input": "Input for read() (one line per line)",
+  "empty": "(the program printed nothing)",
+  "stopped.timeout": "The program was stopped: it takes too long to finish.",
+  "stopped.crash": "The qlang engine had a problem and was restarted. Try again.",
+  "loading": "Loading qlang…",
+  "previous": "Previous lesson",
+  "next": "Next lesson"
+}

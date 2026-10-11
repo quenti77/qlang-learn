@@ -1,0 +1,17 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>qlang</title>
+    <noscript><meta http-equiv="refresh" content={`0; url=${base}/fr/`} /></noscript>
+    <script is:inline define:vars={{ base }}>
+      // the language of the browser, French by default
+      const wanted = (navigator.language || 'fr').toLowerCase().startsWith('en') ? 'en' : 'fr';
+      location.replace(`${base}/${wanted}/`);
+    </script>
+  </head>
+  <body><a href={`${base}/fr/`}>Français</a> · <a href={`${base}/en/`}>English</a></body>
+</html>

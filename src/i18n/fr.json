@@ -1,0 +1,18 @@
+{
+  "site": "Apprendre à programmer avec qlang",
+  "home.intro": "Des cours progressifs, avec du code que tu peux modifier et exécuter directement dans la page.",
+  "home.lessons": "Cours",
+  "nav.home": "Accueil",
+  "lang.switch": "English",
+  "run": "Exécuter",
+  "running": "Exécution…",
+  "reset": "Rétablir",
+  "output": "Résultat",
+  "input": "Entrée pour read() (une ligne par ligne)",
+  "empty": "(le programme n'a rien affiché)",
+  "stopped.timeout": "Le programme a été arrêté : il met trop de temps à finir.",
+  "stopped.crash": "Le moteur qlang a rencontré un problème et a été relancé. Recommence.",
+  "loading": "Chargement de qlang…",
+  "previous": "Chapitre précédent",
+  "next": "Chapitre suivant"
+}

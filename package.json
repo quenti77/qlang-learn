@@ -1,0 +1,19 @@
+{
+  "name": "qlang-learn",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "license": "MIT",
+  "scripts": {
+    "sync": "node scripts/sync-qlang.mjs",
+    "dev": "npm run sync && astro dev",
+    "build": "npm run sync && astro build",
+    "preview": "astro preview",
+    "test:e2e": "playwright test",
+    "check-content": "node scripts/check-content.mjs"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.64.0",
+    "astro": "^7.3.8"
+  }
+}

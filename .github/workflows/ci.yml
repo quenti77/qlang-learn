@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # the tests use the real qlang.wasm: build it from the qlang repository
+      # (once a qlang release publishes qlang.wasm, `npm run sync` downloads it instead)
+      - uses: actions/checkout@v4
+        with:
+          repository: quenti77/qlang
+          path: qlang
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: qlang
+      - run: cargo build --profile wasm --target wasm32-unknown-unknown -p qlang-wasm
+        working-directory: qlang
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check-content
+      - run: npx playwright install --with-deps chromium firefox
+      - run: npx playwright test
+        env:
+          QLANG_REPO: qlang
+          CI: "true"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: test-results/

@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import { languages, t } from '../../i18n/index.js';
+import { lessons } from '../../content.js';
+
+export function getStaticPaths() {
+  return languages.map((lang) => ({ params: { lang } }));
+}
+const { lang } = Astro.params;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base lang={lang} title={t(lang, 'site')}>
+  <h1>{t(lang, 'site')}</h1>
+  <p>{t(lang, 'home.intro')}</p>
+  <h2>{t(lang, 'home.lessons')}</h2>
+  <ol>
+    {lessons(lang).map((l) => <li><a href={`${base}/${lang}/cours/${l.slug}/`}>{l.title}</a></li>)}
+  </ol>
+</Base>

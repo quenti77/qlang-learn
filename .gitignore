@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+test-results/
+playwright-report/
+# copied from a qlang release by `npm run sync`
+/public/qlang.wasm
+/src/vendor/qlang.mjs
