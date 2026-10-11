@@ -26,6 +26,12 @@ fun square(n: int) -> int
 end
 ```
 
+```qlang-hint
+The square of a number is that number multiplied by itself.
+
+The last expression of a function is its return value: `n * n` is enough.
+```
+
 ## Exercise 2
 
 Return true if n is even.
@@ -46,6 +52,12 @@ print("exercise 2 OK")
 fun is_even(n: int) -> bool
   n mod 2 == 0
 end
+```
+
+```qlang-hint
+A number is even if the remainder of its division by 2 is 0.
+
+The `mod` operator gives the remainder: `n mod 2`. Compare it to `0` with `==`.
 ```
 
 ## Exercise 3
@@ -74,6 +86,12 @@ fun max3(a: int, b: int, c: int) -> int
 end
 ```
 
+```qlang-hint
+Keep the largest value seen so far in a variable, and compare it with the other numbers one by one.
+
+Start with `let m = a`, then `if b > m then m = b end`, then do the same with `c`.
+```
+
 ## Exercise 4
 
 Return the sum of the integers from 1 to n, using a loop.
@@ -96,6 +114,12 @@ fun sum_up_to(n: int) -> int
   for i in 1..=n do s += i end
   s
 end
+```
+
+```qlang-hint
+You need a total that grows at each turn of the loop.
+
+`let s = 0`, then `for i in 1..=n do s += i end` (`..=` includes the bound `n`), then return `s`.
 ```
 
 ## Exercise 5
@@ -125,6 +149,12 @@ fun fizzbuzz(n: int) -> string
 end
 ```
 
+```qlang-hint
+Test the case "multiple of 3 and of 5" first, otherwise `FizzBuzz` will never be returned.
+
+A number is a multiple of 15 when `n mod 15 == 0`. Use `return` in each `if`, and finish with `n as string`.
+```
+
 ## Exercise 6
 
 Return n! (factorial), recursively.
@@ -146,4 +176,10 @@ fun fact(n: int) -> int
   if n <= 1 then return 1 end
   n * fact(n - 1)
 end
+```
+
+```qlang-hint
+A recursive function calls itself on a smaller problem, and has a stopping case.
+
+The stopping case: `fact(0)` and `fact(1)` are 1. Otherwise, `n * fact(n - 1)`.
 ```

@@ -150,7 +150,10 @@ nav.pager a:hover { border-color: var(--accent); }
 .exercise details.tests { border-top: 1px solid var(--line); background: var(--code-bg); }
 .exercise details.tests summary { cursor: pointer; padding: 0.4rem 1rem; font-size: 0.85rem; color: var(--muted); }
 
-.exercise .solution-bar { padding: 0.4rem 0.75rem; border-top: 1px solid var(--line); }
+.exercise .solution-bar { padding: 0.4rem 0.75rem; border-top: 1px solid var(--line); display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.exercise .hints { padding: 0.5rem 0.9rem 0.1rem; border-top: 1px solid var(--line); background: var(--code-bg); }
+.exercise .hints p { margin: 0 0 0.5rem; font-size: 0.95rem; }
+.exercise .hints p::before { content: "💡 "; }
 .exercise .solution { border-top: 1px solid var(--line); }
 .exercise details.tests .cm-editor { background: var(--code-bg); }
 .qlang-widget .success { color: #7ee2a0; }

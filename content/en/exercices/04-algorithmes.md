@@ -33,6 +33,12 @@ fun fib(n: int) -> int
 end
 ```
 
+```qlang-hint
+Keep the last two numbers of the sequence, and move one step forward at each turn.
+
+`a` and `b` are 0 and 1 at the start. At each turn: `let t = a + b`, `a = b`, `b = t`. After `n` turns, return `a`.
+```
+
 ## Exercise 2
 
 Return the GCD of two integers (Euclid).
@@ -53,6 +59,12 @@ print("exercise 2 OK")
 fun gcd(a: int, b: int) -> int
   if b == 0 then a else gcd(b, a mod b) end
 end
+```
+
+```qlang-hint
+Euclid: the GCD of `a` and `b` is the one of `b` and of the remainder of `a` divided by `b`.
+
+Stopping case: if `b == 0`, the result is `a`. Otherwise, call the function again with `(b, a mod b)`.
 ```
 
 ## Exercise 3
@@ -82,6 +94,12 @@ fun search(xs: array<int>, target: int) -> int?
   end
   none
 end
+```
+
+```qlang-hint
+At each step, look at the middle element: the target is before it, after it, or it is the target.
+
+Keep two bounds `low` and `high`. While `low <= high`, `m = (low + high) div 2`, then shrink the interval on one side. If the loop ends, return `none`.
 ```
 
 ## Exercise 4
@@ -115,6 +133,12 @@ fun sort_in_place(xs: array<int>)
 end
 ```
 
+```qlang-hint
+Take each element from the second one and move it back to its place in the part that is already sorted.
+
+For each `i`, keep `let key = xs[i]`, shift the bigger elements to the right (`while j >= 0 and xs[j] > key`), then put `key` in place.
+```
+
 ## Exercise 5
 
 Return true if the parentheses "(" and ")" of a string are balanced.
@@ -144,4 +168,10 @@ fun balanced(s: string) -> bool
   end
   n == 0
 end
+```
+
+```qlang-hint
+Count the open parentheses that are not closed yet.
+
+Add 1 for `(` and subtract 1 for `)`. If the count becomes negative, it is unbalanced; at the end it must be 0.
 ```

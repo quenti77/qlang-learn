@@ -25,6 +25,12 @@ fun moyenne(xs: array<int>) -> float
 end
 ```
 
+```qlang-hint
+La moyenne est la somme divisée par le nombre d'éléments.
+
+`xs.sum()` donne la somme et `xs.len()` la taille. Le `/` donne toujours un `float`.
+```
+
 ## Exercice 2
 
 Renvoie un nouveau tableau sans les doublons (ordre conservé).
@@ -50,6 +56,12 @@ fun sans_doublons(xs: array<int>) -> array<int>
 end
 ```
 
+```qlang-hint
+Construis un nouveau tableau, et n'y ajoute un élément que s'il n'y est pas déjà.
+
+`res.contains(x)` te dit si `x` est déjà dans `res`, et `res[] = x` ajoute à la fin.
+```
+
 ## Exercice 3
 
 Renvoie true si la chaîne est un palindrome (ignore la casse).
@@ -73,6 +85,12 @@ fun palindrome(s: string) -> bool
 end
 ```
 
+```qlang-hint
+Un palindrome se lit pareil dans les deux sens. Ignore la casse en passant tout en minuscules.
+
+`s.lower()` met en minuscules et `.reverse()` inverse une chaîne : compare les deux avec `==`.
+```
+
 ## Exercice 4
 
 Renvoie le nombre de mots d'une phrase.
@@ -93,6 +111,12 @@ print("exercice 4 OK")
 fun nb_mots(s: string) -> int
   s.words().len()
 end
+```
+
+```qlang-hint
+Il existe une méthode de chaîne qui coupe un texte en mots.
+
+`s.words()` renvoie un tableau de mots ; il ne reste qu'à en donner la taille avec `len()`.
 ```
 
 ## Exercice 5
@@ -124,6 +148,12 @@ fun frequences(s: string) -> map<string, int>
 end
 ```
 
+```qlang-hint
+Parcours la chaîne caractère par caractère et compte dans le dictionnaire.
+
+Pour chaque lettre `c` : `m[c] = m.get(c, 0) + 1` (`get` donne 0 si la lettre n'est pas encore là).
+```
+
 ## Exercice 6
 
 Fais pivoter un tableau d'un cran vers la gauche : [1,2,3] -> [2,3,1] (nouveau tableau).
@@ -146,4 +176,10 @@ fun rotation(xs: array<int>) -> array<int>
   res[] = xs[0]
   res
 end
+```
+
+```qlang-hint
+Le résultat est le tableau sans son premier élément, suivi de ce premier élément.
+
+`xs.slice(1, xs.len())` donne le tableau sans le premier ; ajoute `xs[0]` à la fin avec `res[] = xs[0]`. Pense au tableau vide.
 ```
