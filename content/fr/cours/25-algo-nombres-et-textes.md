@@ -4,7 +4,7 @@ title: "Algorithmes — nombres et textes"
 
 # Algorithmes — nombres et textes
 
-Nombres premiers
+## Les nombres premiers
 
 ```qlang
 fun est_premier(n: int) -> bool
@@ -22,7 +22,9 @@ end
 print("")
 ```
 
-Crible d'Ératosthène : tous les premiers jusqu'à n, très efficace
+## Le crible d'Ératosthène
+
+Tous les nombres premiers jusqu'à `n`, très efficacement.
 
 ```qlang
 fun crible(n: int) -> array<int>
@@ -44,7 +46,7 @@ end
 print(crible(60))
 ```
 
-Décomposition en facteurs premiers
+## Décomposition en facteurs premiers
 
 ```qlang
 fun facteurs(n: int) -> array<int>
@@ -62,7 +64,9 @@ end
 print(facteurs(360))     -- [2, 2, 2, 3, 3, 5]
 ```
 
-Conversion en binaire (ou toute base jusqu'à 10)
+## Conversion en binaire
+
+Ou dans n'importe quelle base jusqu'à 10.
 
 ```qlang
 fun en_base(n: int, base: int) -> string
@@ -78,7 +82,9 @@ print(en_base(42, 2))     -- 101010
 print(en_base(255, 8))    -- 377
 ```
 
-Nombre d'Armstrong, parfait, etc. : exercices classiques
+## Les nombres parfaits
+
+Un exercice classique (comme les nombres d'Armstrong…).
 
 ```qlang
 fun est_parfait(n: int) -> bool
@@ -94,9 +100,9 @@ end
 print("")
 ```
 
-## Textes
+## Les textes
 
-Compter les voyelles
+### Compter les voyelles
 
 ```qlang
 fun voyelles(s: string) -> int
@@ -109,7 +115,9 @@ end
 print(voyelles("Programmation"))
 ```
 
-Anagrammes : mêmes lettres triées
+### Anagrammes
+
+Deux mots sont des anagrammes s'ils ont les mêmes lettres une fois triées.
 
 ```qlang
 fun trier_lettres(s: string) -> string
@@ -124,7 +132,7 @@ print(anagrammes("chien", "niche"))
 print(anagrammes("chien", "chat"))
 ```
 
-Chiffre de César
+### Le chiffre de César
 
 ```qlang
 fun cesar(s: string, decalage: int) -> string
@@ -144,7 +152,7 @@ print(secret)
 print(cesar(secret, 23))     -- 26 - 3 : on retrouve le message
 ```
 
-Mot le plus fréquent
+### Le mot le plus fréquent
 
 ```qlang
 fun plus_frequent(texte: string) -> string?
@@ -165,7 +173,9 @@ end
 print(plus_frequent("le chat voit le chien et le rat"))
 ```
 
-Parenthèses bien équilibrées (avec une pile)
+### Parenthèses bien équilibrées
+
+On utilise une pile.
 
 ```qlang
 fun equilibre(s: string) -> bool
@@ -190,8 +200,9 @@ print(equilibre("(a[b]\{c\})"))
 print(equilibre("(a[b)]"))
 ```
 
-Distance de Levenshtein (programmation dynamique) : nb de modifications
-pour passer d'un mot à l'autre
+### Distance de Levenshtein
+
+C'est le nombre de modifications pour passer d'un mot à l'autre (programmation dynamique).
 
 ```qlang
 fun levenshtein(a: string, b: string) -> int
@@ -212,7 +223,8 @@ print(levenshtein("kitten", "sitting"))   -- 3
 
 ## À retenir
 
-- Les chaînes sont des tableaux de caractères en lecture seule :
-  boucle for, indices, code()/char().
-- Pile (tableau + push/pop) : parenthèses, annuler, évaluer une expression.
+- Les chaînes se parcourent comme des tableaux de caractères en lecture seule : boucle
+  `for`, indices, `code()` / `char()`.
+- Une pile (un tableau avec `push` / `pop`) sert pour les parenthèses, pour annuler, pour
+  évaluer une expression.
 - Programmation dynamique : mémoriser des sous-résultats.

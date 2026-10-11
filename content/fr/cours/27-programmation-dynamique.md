@@ -4,11 +4,12 @@ title: "Programmation dynamique et glouton"
 
 # Programmation dynamique et glouton
 
-Idée : un gros problème = des petits problèmes qui se répètent.
-On stocke chaque réponse (dans un tableau ou une map) pour ne la calculer
-qu'une fois.
+L'idée : un gros problème est fait de petits problèmes qui se répètent. On stocke chaque
+réponse (dans un tableau ou un dictionnaire) pour ne la calculer qu'une fois.
 
-Escaliers : de combien de façons monter n marches par pas de 1 ou 2 ?
+## Les escaliers
+
+De combien de façons peut-on monter `n` marches, par pas de 1 ou 2 ?
 
 ```qlang
 fun escaliers(n: int) -> int
@@ -21,7 +22,9 @@ end
 print(escaliers(10))   -- 89
 ```
 
-Rendu de monnaie : le moins de pièces pour atteindre une somme
+## Le rendu de monnaie
+
+Le moins de pièces pour atteindre une somme.
 
 ```qlang
 fun rendu(pieces: array<int>, somme: int) -> int?
@@ -44,8 +47,10 @@ print(rendu([1, 5, 10, 25], 63))   -- 6
 print(rendu([4, 6], 7))            -- none : impossible
 ```
 
-Glouton : à chaque étape on prend le meilleur choix local.
-Rapide, mais pas toujours optimal (voici un contre-exemple) :
+## Les algorithmes gloutons
+
+À chaque étape, on prend le meilleur choix local. C'est rapide, mais pas toujours optimal :
+voici un contre-exemple.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -84,7 +89,7 @@ print(rendu_glouton([1, 3, 4], 6))         -- 3 (4+1+1) alors que 3+3 = 2 pièce
 print(rendu([1, 3, 4], 6))                 -- 2
 ```
 
-Plus longue sous-suite commune (LCS)
+## La plus longue sous-suite commune (LCS)
 
 ```qlang
 fun lcs(a: string, b: string) -> int
@@ -108,7 +113,9 @@ end
 print(lcs("ABCBDAB", "BDCABA"))   -- 4
 ```
 
-Sac à dos 0/1 : maximiser la valeur sans dépasser la capacité
+## Le sac à dos 0/1
+
+Maximiser la valeur sans dépasser la capacité.
 
 ```qlang
 fun sac_a_dos(poids: array<int>, valeurs: array<int>, capacite: int) -> int
@@ -126,7 +133,9 @@ end
 print(sac_a_dos([1, 3, 4, 5], [1, 4, 5, 7], 7))   -- 9
 ```
 
-Sous-tableau de somme maximale (Kadane) en un seul passage O(n)
+## Le sous-tableau de somme maximale
+
+L'algorithme de Kadane le trouve en un seul passage, en O(n).
 
 ```qlang
 fun kadane(xs: array<int>) -> int
@@ -143,5 +152,5 @@ print(kadane([-2, 1, -3, 4, -1, 2, 1, -5, 4]))   -- 6
 
 ## À retenir
 
-- Programmation dynamique : sous-problèmes qui se recoupent + mémoire.
+- Programmation dynamique : des sous-problèmes qui se recoupent, plus une mémoire.
 - Glouton : rapide, mais à prouver (il peut se tromper).

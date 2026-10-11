@@ -2,10 +2,10 @@
 title: "Les énumérations (enum)"
 ---
 
-# Les énumérations (enum)
+# Les énumérations (`enum`)
 
-Un enum est une liste FERMÉE de choix possibles. Mieux que des nombres
-magiques (0 = lundi ?) ou des textes sujets aux fautes de frappe.
+Un `enum` est une liste **fermée** de choix possibles. C'est mieux que des nombres magiques
+(0 = lundi ?) ou que des textes sujets aux fautes de frappe.
 
 ```qlang
 enum Direction
@@ -21,10 +21,9 @@ print(d == Direction.Est)         -- true
 print(d == Direction.Nord)        -- false
 ```
 
-match vérifie qu'aucun cas n'est oublié
+## `match` vérifie qu'aucun cas n'est oublié
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 enum Direction
   Nord
   Est
@@ -48,10 +47,9 @@ end
 print("")
 ```
 
-Un enum peut avoir des méthodes
+## Un enum peut avoir des méthodes, et servir de clé
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 enum Direction
   Nord
   Est
@@ -83,26 +81,17 @@ for d in [Direction.Nord, Direction.Nord, Direction.Est, Direction.Sud] do
   y += d.dy()
 end
 print("position finale : {x},{y}")
-```
 
-Un enum peut être une clé de dictionnaire
-
-```qlang
--- (défini plus haut dans ce chapitre)
-enum Direction
-  Nord
-  Est
-  Sud
-  Ouest
-end
-
+-- un enum peut être une clé de dictionnaire
 let visites: map<Direction, int> = {}
 visites[Direction.Nord] = 2
 visites[Direction.Sud] = 1
 print(visites[Direction.Nord])
 ```
 
-États d'un système (machine à états)
+## Les états d'un système
+
+Une machine à états :
 
 ```qlang
 enum Etat
@@ -127,6 +116,6 @@ print(e)
 
 ## À retenir
 
-- Les variantes ne portent pas de données, mais on peut leur ajouter des
-  méthodes avec `impl`.
-- Elles se comparent avec == et s'utilisent dans match et comme clés de map.
+- Les variantes ne portent pas de données, mais on peut leur ajouter des méthodes avec
+  `impl`.
+- Elles se comparent avec `==` et s'utilisent dans `match` et comme clés de `map`.

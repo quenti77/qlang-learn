@@ -4,10 +4,10 @@ title: "Les fonctions"
 
 # Les fonctions
 
-Une fonction est un bout de code NOMMÉ qu'on peut réutiliser.
-Elle reçoit des paramètres (entrées) et peut renvoyer un résultat (sortie).
+Une fonction est un bout de code **nommé** qu'on peut réutiliser. Elle reçoit des
+paramètres (les entrées) et peut renvoyer un résultat (la sortie).
 
-Une fonction sans résultat
+## Une fonction sans résultat
 
 ```qlang
 fun dire_bonjour(nom: string)
@@ -17,8 +17,10 @@ dire_bonjour("Ada")
 dire_bonjour("Linus")
 ```
 
-Une fonction avec résultat : `-> type`
-La DERNIÈRE expression du corps est la valeur renvoyée.
+## Une fonction avec résultat
+
+On écrit `-> type` après les paramètres. La **dernière** expression du corps est la
+valeur renvoyée.
 
 ```qlang
 fun carre(x: int) -> int
@@ -28,7 +30,7 @@ print(carre(7))
 print(carre(carre(2)))     -- on peut imbriquer
 ```
 
-Plusieurs paramètres
+## Plusieurs paramètres
 
 ```qlang
 fun aire_rectangle(l: float, h: float) -> float
@@ -37,7 +39,7 @@ end
 print(aire_rectangle(3.0, 4.5))
 ```
 
-`return` : sortie anticipée
+## `return` : sortie anticipée
 
 ```qlang
 fun signe(n: int) -> string
@@ -50,7 +52,9 @@ print(signe(-5))
 print(signe(0))
 ```
 
-Une fonction qui renvoie un bool = un "prédicat"
+## Un prédicat
+
+Une fonction qui renvoie un `bool` s'appelle un *prédicat*.
 
 ```qlang
 fun est_pair(n: int) -> bool
@@ -59,7 +63,9 @@ end
 print(est_pair(10))
 ```
 
-Fonction qui modifie un tableau (les tableaux sont partagés)
+## Modifier un tableau
+
+Les tableaux sont partagés : la fonction modifie le tableau de l'appelant.
 
 ```qlang
 fun doubler_tout(xs: array<int>)
@@ -72,7 +78,7 @@ doubler_tout(t)
 print(t)
 ```
 
-Renvoyer "peut-être rien" : le type nullable
+## Peut-être rien : le type nullable
 
 ```qlang
 fun premier_pair(xs: array<int>) -> int?
@@ -85,8 +91,10 @@ print(premier_pair([1, 3, 6, 8]))   -- 6
 print(premier_pair([1, 3]))         -- none
 ```
 
-Récursivité : une fonction qui s'appelle elle-même
-Il faut TOUJOURS un cas de base qui arrête la récursion.
+## La récursivité
+
+Une fonction peut s'appeler elle-même. Il faut **toujours** un cas de base qui arrête
+la récursion.
 
 ```qlang
 fun factorielle(n: int) -> int
@@ -104,7 +112,7 @@ for i in 0..10 do write("{fibonacci(i)} ") end
 print("")
 ```
 
-Compte à rebours récursif
+Un compte à rebours récursif :
 
 ```qlang
 fun decompte(n: int)
@@ -118,7 +126,9 @@ end
 decompte(3)
 ```
 
-## Les fonctions sont des VALEURS : on peut les ranger, les passer, les renvoyer
+## Les fonctions sont des valeurs
+
+On peut les ranger dans une variable, les passer en paramètre, les renvoyer.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -132,7 +142,9 @@ end
 print(appliquer(carre, 6))
 ```
 
-Fonction anonyme (sans nom)
+## Fonction anonyme
+
+Une fonction sans nom :
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -147,7 +159,9 @@ print(triple(5))
 print(appliquer(fun(x: int) -> int x + 100 end, 1))
 ```
 
-Appliquer une fonction à tous les éléments (le fameux "map")
+## Appliquer une fonction à tous les éléments
+
+C'est le fameux « map ».
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -170,7 +184,7 @@ print(transformer([1, 2, 3], carre))
 print(transformer([1, 2, 3], triple))
 ```
 
-Filtrer ("filter")
+## Filtrer
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -188,7 +202,7 @@ end
 print(filtrer([1, 2, 3, 4, 5, 6], est_pair))
 ```
 
-Réduire ("reduce")
+## Réduire
 
 ```qlang
 fun reduire(xs: array<int>, depart: int, f: fun(int, int) -> int) -> int
@@ -204,8 +218,9 @@ print(reduire([1, 2, 3, 4], 1, fun(a: int, b: int) -> int a * b end))   -- 24
 
 ## À retenir
 
-- fun nom(param: type) -> type_retour ... end
+- `fun nom(param: type) -> type_retour … end`
 - Dernière expression = valeur renvoyée ; `return` pour sortir plus tôt.
 - Récursion = cas de base + cas récursif.
-- Une fonction est une valeur : map/filter/reduce en découlent.
-- Limite de profondeur : 1000 appels imbriqués (R901).
+- Une fonction est une valeur : `map` / `filter` / `reduce` en découlent.
+- Limite de profondeur : 1000 appels imbriqués (erreur `R901`) ; 250 sur ce site, où le
+  navigateur a moins de place.

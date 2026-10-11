@@ -4,9 +4,9 @@ title: "Les boucles"
 
 # Les boucles
 
-Répéter une action sans la réécrire 100 fois.
+Une boucle répète une action sans qu'on ait à la réécrire 100 fois.
 
-## while : répète TANT QUE la condition est vraie
+## `while` : répète tant que la condition est vraie
 
 ```qlang
 let n = 1
@@ -17,7 +17,7 @@ end
 print("")
 ```
 
-## for + intervalle : un nombre de tours connu
+## `for` avec un intervalle : un nombre de tours connu
 
 ```qlang
 for i in 0..5 do        -- 0,1,2,3,4 (5 exclu)
@@ -41,7 +41,7 @@ end
 print("")
 ```
 
-## for sur un tableau / une chaîne
+## `for` sur un tableau ou une chaîne
 
 ```qlang
 let fruits = ["pomme", "poire", "prune"]
@@ -59,7 +59,9 @@ end
 print("")
 ```
 
-## break et continue
+## `break` et `continue`
+
+`continue` passe au tour suivant, `break` sort de la boucle.
 
 ```qlang
 for i in 1..=10 do
@@ -70,7 +72,7 @@ end
 print("")
 ```
 
-Il n'y a pas de `loop` : on écrit while true
+Il n'y a pas de `loop` : on écrit `while true`.
 
 ```qlang
 let essais = 0
@@ -81,7 +83,9 @@ end
 print("premier essai dont le carré dépasse 50 : {essais}")
 ```
 
-## Boucles imbriquées : une boucle dans une boucle
+## Boucles imbriquées
+
+Une boucle peut contenir une autre boucle.
 
 ```qlang
 for ligne in 1..=3 do
@@ -93,7 +97,7 @@ for ligne in 1..=3 do
 end
 ```
 
-Dessiner un triangle
+Un triangle :
 
 ```qlang
 for i in 1..=5 do
@@ -103,7 +107,7 @@ end
 
 ## Patrons classiques
 
-1. Accumuler (somme)
+### Accumuler (une somme)
 
 ```qlang
 let somme = 0
@@ -113,7 +117,7 @@ end
 print("1+2+...+100 = {somme}")      -- 5050
 ```
 
-2. Compter
+### Compter
 
 ```qlang
 let pairs = 0
@@ -123,7 +127,7 @@ end
 print("pairs entre 1 et 20 : {pairs}")
 ```
 
-3. Chercher un maximum
+### Chercher un maximum
 
 ```qlang
 let valeurs = [4, 17, 9, 23, 8]
@@ -134,7 +138,9 @@ end
 print("max = {max}")
 ```
 
-4. FizzBuzz, le classique des entretiens
+### FizzBuzz
+
+Le classique des entretiens d'embauche.
 
 ```qlang
 for i in 1..=15 do
@@ -149,7 +155,7 @@ print("")
 
 ## À retenir
 
-- while = tant que ; for = pour chaque.
-- a..b exclut b, a..=b l'inclut. `step` règle le pas.
-- break sort de la boucle, continue passe au tour suivant.
-- Boucle infinie ? qlang s'arrête tout seul après 100 millions d'étapes (R900).
+- `while` = tant que ; `for` = pour chaque.
+- `a..b` exclut `b`, `a..=b` l'inclut. `step` règle le pas.
+- `break` sort de la boucle, `continue` passe au tour suivant.
+- Boucle infinie ? qlang s'arrête tout seul après un nombre limite d'étapes (erreur `R900`).

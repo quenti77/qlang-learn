@@ -4,8 +4,10 @@ title: "Les chaînes de caractères"
 
 # Les chaînes de caractères
 
-Une string est du texte. Elle est IMMUABLE : on ne la modifie jamais sur
-place, les opérations en créent une nouvelle.
+Une `string` est du texte. Elle est **immuable** : on ne la modifie jamais sur place,
+les opérations en créent une nouvelle.
+
+## Longueur, indices et extraits
 
 ```qlang
 let s = "Bonjour le monde"
@@ -16,7 +18,7 @@ print(s[8])                 -- "l"
 print(s.substring(0, 7))    -- "Bonjour" (début inclus, fin exclue)
 ```
 
-Concaténer (coller)
+## Concaténer (coller)
 
 ```qlang
 print("Bon" + "jour")
@@ -25,7 +27,9 @@ print("Salut " + nom + " !")
 print("Salut {nom} !")        -- plus pratique
 ```
 
-Transformations (renvoient une nouvelle chaîne)
+## Transformations
+
+Elles renvoient une nouvelle chaîne.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -42,7 +46,9 @@ print("ha".repeat(3))
 print(s.replace("o", "0"))
 ```
 
-Questions (renvoient un bool)
+## Questions
+
+Elles renvoient un `bool`.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -57,7 +63,9 @@ print("abc".is_alpha())
 print("   ".is_blank())
 ```
 
-Chercher : indice de la première occurrence, ou none
+## Chercher
+
+On obtient l'indice de la première occurrence, ou `none`.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -69,7 +77,7 @@ print(s.index_of("z"))       -- none
 print(s.count("o"))          -- 3
 ```
 
-Découper et assembler
+## Découper et assembler
 
 ```qlang
 let mots = "pomme,poire,prune".split(",")
@@ -81,14 +89,16 @@ print("l1\nl2\nl3".lines())
 print("abc".chars())
 ```
 
-Aligner du texte (pratique pour faire des tableaux)
+## Aligner du texte
+
+Pratique pour faire des tableaux.
 
 ```qlang
 print("7".pad_left(3, "0"))     -- 007
 print("ab".pad_right(5, ".") + "|")
 ```
 
-Parcourir les caractères
+## Parcourir les caractères
 
 ```qlang
 for c in "abc" do
@@ -97,7 +107,9 @@ end
 print("")
 ```
 
-Codes Unicode : chaque caractère a un numéro
+## Codes Unicode
+
+Chaque caractère a un numéro.
 
 ```qlang
 print("A".code())      -- 65
@@ -107,7 +119,7 @@ print("é".code())      -- 233
 print(("a".code() + 3).char())   -- "d"
 ```
 
-Comparer
+## Comparer
 
 ```qlang
 print("abc" == "abc")
@@ -115,7 +127,7 @@ print("abc" < "abd")
 print("Z" < "a")       -- les majuscules viennent avant les minuscules
 ```
 
-Convertir en nombre
+## Convertir en nombre
 
 ```qlang
 print("42".to_int())
@@ -123,7 +135,9 @@ print("4.5".to_float())
 print("x".to_int())    -- none
 ```
 
-Les chaînes peuvent s'étendre sur plusieurs lignes
+## Sur plusieurs lignes
+
+Une chaîne peut s'étendre sur plusieurs lignes.
 
 ```qlang
 let poeme = "Roses rouges
@@ -135,4 +149,4 @@ print(poeme)
 
 - Les indices commencent à 0.
 - Une chaîne ne change jamais : on obtient une nouvelle chaîne.
-- split / join / replace / contains / index_of couvrent 90% des besoins.
+- `split`, `join`, `replace`, `contains`, `index_of` couvrent 90 % des besoins.

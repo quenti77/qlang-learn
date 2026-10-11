@@ -4,10 +4,12 @@ title: "Structures de données"
 
 # Structures de données
 
-Choisir comment ranger les données change tout. Ici on construit les
-classiques avec ce que le langage offre : struct, generics, traits.
+Choisir comment ranger les données change tout. Ici on construit les structures classiques
+avec ce que le langage offre : `struct`, génériques, traits.
 
-## Pile (stack) : dernier entré, premier sorti (LIFO) — comme une pile d'assiettes
+## La pile (*stack*)
+
+Dernier entré, premier sorti (LIFO) : comme une pile d'assiettes.
 
 ```qlang
 struct Pile<T>
@@ -40,7 +42,9 @@ print(p.sommet())      -- 2
 print(p.taille())      -- 2
 ```
 
-## File (queue) : premier entré, premier sorti (FIFO) — comme une file d'attente
+## La file (*queue*)
+
+Premier entré, premier sorti (FIFO) : comme une file d'attente.
 
 ```qlang
 struct File<T>
@@ -69,7 +73,9 @@ print(f.defiler())     -- Linus
 print(f.defiler())     -- none
 ```
 
-## Liste chaînée : chaque nœud pointe vers le suivant (next, nullable !)
+## La liste chaînée
+
+Chaque nœud pointe vers le suivant. Le lien est **nullable** : le dernier nœud n'a pas de suivant.
 
 ```qlang
 struct Noeud
@@ -114,8 +120,10 @@ print(longueur(liste))
 afficher_liste(inverser_liste(liste))
 ```
 
-Arbre binaire de recherche : à gauche plus petit, à droite plus grand
-Recherche et insertion en O(log n) si l'arbre est équilibré.
+## L'arbre binaire de recherche
+
+À gauche, plus petit ; à droite, plus grand. La recherche et l'insertion se font en
+O(log n) si l'arbre est équilibré.
 
 ```qlang
 struct Arbre
@@ -164,9 +172,12 @@ print(contient(racine, 65))   -- false
 print(hauteur(racine))        -- 3
 ```
 
-Graphe : dictionnaire "sommet -> voisins"
-Parcours en largeur (BFS) = plus court chemin sans poids
-Parcours en profondeur (DFS) = explorer à fond d'abord
+## Le graphe
+
+Un graphe se représente par un dictionnaire « sommet → voisins ».
+
+- Le parcours **en largeur** (BFS) trouve le plus court chemin sans poids.
+- Le parcours **en profondeur** (DFS) explore à fond d'abord.
 
 ```qlang
 let graphe: map<string, array<string>> = {
@@ -210,7 +221,9 @@ profondeur(graphe, "A", vus_dfs, ordre_dfs)
 print(ordre_dfs)
 ```
 
-Plus court chemin (nombre d'arêtes) avec mémoire du parent
+### Le plus court chemin
+
+Il se trouve en gardant en mémoire le parent de chaque sommet.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -254,6 +267,6 @@ print(chemin(graphe, "A", "F"))
 
 ## À retenir
 
-- Pile (LIFO), file (FIFO), liste chaînée, arbre, graphe : les 5 piliers.
-- Un type nullable (Noeud?) exprime naturellement "il n'y a pas de suivant".
+- Pile (LIFO), file (FIFO), liste chaînée, arbre, graphe : les cinq piliers.
+- Un type nullable (`Noeud?`) exprime naturellement « il n'y a pas de suivant ».
 - Le choix de la structure détermine la complexité de l'algorithme.

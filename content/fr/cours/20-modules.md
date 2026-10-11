@@ -4,14 +4,17 @@ title: "Modules"
 
 # Modules
 
-Un projet grandit : on découpe le code en plusieurs fichiers. Un fichier
-`export` ce qu'il offre, un autre l'`import`. Voir lib/maths.q.
+Un projet grandit : on découpe le code en plusieurs fichiers. Un fichier **exporte** ce
+qu'il offre avec `export`, un autre l'**importe** avec `import`.
 
-Importer des noms précis
+## Le fichier qui offre
+
+Voici `lib/maths.q`. À la fin, `export` liste ce que les autres fichiers ont le droit
+d'utiliser.
 
 ```qlang-module
 -- file: lib/maths.q
--- Petit module de démonstration (importé par 20_modules.q)
+-- Petit module de démonstration (importé par le chapitre 20)
 const SECRET = 42
 
 fun additionner(a: int, b: int) -> int
@@ -42,6 +45,10 @@ print("[maths.q chargé]")
 export additionner, pgcd, Compteur, SECRET
 ```
 
+## Importer
+
+Les chemins sont relatifs au fichier qui importe, toujours écrits avec `/`.
+
 ```qlang
 import additionner, pgcd from "lib/maths.q"
 print(additionner(2, 3))
@@ -61,12 +68,12 @@ c.incrementer()
 print(c.valeur)
 ```
 
-Le module n'est chargé qu'une fois : le print "[maths.q chargé]" apparaît
-une seule fois tout en haut, avant même la première ligne de ce fichier.
+Le module n'est chargé qu'**une seule fois** : le `print("[maths.q chargé]")` du module
+apparaît une seule fois, tout en haut, avant même la première ligne du fichier qui l'importe.
 
 ## À retenir
 
-- export a, b, c   à la fin du fichier qui offre.
-- import a, b from "chemin.q"   |   import "chemin.q" as nom
+- `export a, b, c` à la fin du fichier qui offre.
+- `import a, b from "chemin.q"` ou `import "chemin.q" as nom`.
 - Les chemins sont relatifs au fichier, séparés par `/`, jamais absolus.
 - Les imports circulaires sont interdits.

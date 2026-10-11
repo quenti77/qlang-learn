@@ -4,13 +4,16 @@ title: "Algorithmes — recherche et tri"
 
 # Algorithmes — recherche et tri
 
-Un algorithme est une méthode précise pour résoudre un problème.
-On compare les algorithmes par leur COÛT : combien d'étapes pour n éléments ?
-O(1)      constant       accéder à xs[i]
-O(log n)  logarithmique  recherche dichotomique
-O(n)      linéaire       parcourir un tableau
-O(n log n)               bons tris
-O(n²)                    deux boucles imbriquées (tris simples)
+Un algorithme est une méthode précise pour résoudre un problème. On compare les algorithmes
+par leur **coût** : combien d'étapes pour `n` éléments ?
+
+| Coût | Nom | Exemple |
+| --- | --- | --- |
+| O(1) | constant | accéder à `xs[i]` |
+| O(log n) | logarithmique | la recherche dichotomique |
+| O(n) | linéaire | parcourir un tableau |
+| O(n log n) | | les bons tris |
+| O(n²) | | deux boucles imbriquées (les tris simples) |
 
 ## Recherche linéaire : O(n)
 
@@ -25,8 +28,9 @@ print(recherche_lineaire([4, 8, 15, 16, 23, 42], 16))   -- 3
 print(recherche_lineaire([4, 8], 99))                   -- none
 ```
 
-Recherche dichotomique : O(log n), sur un tableau TRIÉ
-On coupe l'espace de recherche en deux à chaque étape.
+## Recherche dichotomique : O(log n)
+
+Elle demande un tableau **trié**. On coupe l'espace de recherche en deux à chaque étape.
 
 ```qlang
 fun dichotomie(xs: array<int>, cible: int) -> int?
@@ -49,7 +53,9 @@ print(dichotomie(tries, 11))   -- 5
 print(dichotomie(tries, 4))    -- none
 ```
 
-## Tri à bulles : O(n²). Simple mais lent. On échange les voisins mal placés.
+## Tri à bulles : O(n²)
+
+Simple mais lent : on échange les voisins mal placés.
 
 ```qlang
 fun tri_bulles(xs: array<int>)
@@ -69,7 +75,9 @@ tri_bulles(a)
 print(a)
 ```
 
-## Tri par sélection : O(n²). On cherche le minimum et on le place devant.
+## Tri par sélection : O(n²)
+
+On cherche le minimum et on le place devant.
 
 ```qlang
 fun tri_selection(xs: array<int>)
@@ -89,8 +97,9 @@ tri_selection(b)
 print(b)
 ```
 
-Tri par insertion : O(n²) mais rapide sur du presque trié.
-Comme trier des cartes dans sa main.
+## Tri par insertion : O(n²)
+
+Rapide sur du presque trié. C'est comme trier des cartes dans sa main.
 
 ```qlang
 fun tri_insertion(xs: array<int>)
@@ -109,8 +118,10 @@ tri_insertion(c)
 print(c)
 ```
 
-Tri fusion : O(n log n). "Diviser pour régner" :
-couper en deux, trier chaque moitié (récursivement), fusionner.
+## Tri fusion : O(n log n)
+
+C'est « diviser pour régner » : on coupe en deux, on trie chaque moitié (récursivement),
+puis on fusionne.
 
 ```qlang
 fun fusionner(g: array<int>, d: array<int>) -> array<int>
@@ -145,8 +156,9 @@ end
 print(tri_fusion([38, 27, 43, 3, 9, 82, 10]))
 ```
 
-Tri rapide : O(n log n) en moyenne. On choisit un pivot, on sépare
-les plus petits des plus grands, puis on recommence.
+## Tri rapide : O(n log n) en moyenne
+
+On choisit un pivot, on sépare les plus petits des plus grands, puis on recommence.
 
 ```qlang
 fun tri_rapide(xs: array<int>) -> array<int>
@@ -165,40 +177,11 @@ end
 print(tri_rapide([38, 27, 43, 3, 9, 82, 10]))
 ```
 
-Vérifier qu'ils s'accordent tous avec le tri natif `sort`
+## Les comparer au tri natif
+
+Un bon réflexe : vérifier que ton tri donne le même résultat que `sort`.
 
 ```qlang
--- (défini plus haut dans ce chapitre)
-fun fusionner(g: array<int>, d: array<int>) -> array<int>
-  let res: array<int> = []
-  let i = 0
-  let j = 0
-  while i < g.len() and j < d.len() do
-    if g[i] <= d[j] then
-      res[] = g[i]
-      i += 1
-    else
-      res[] = d[j]
-      j += 1
-    end
-  end
-  while i < g.len() do
-    res[] = g[i]
-    i += 1
-  end
-  while j < d.len() do
-    res[] = d[j]
-    j += 1
-  end
-  res
-end
-
-fun tri_fusion(xs: array<int>) -> array<int>
-  if xs.len() <= 1 then return xs end
-  let m = xs.len() div 2
-  fusionner(tri_fusion(xs.slice(0, m)), tri_fusion(xs.slice(m, xs.len())))
-end
-
 fun tri_rapide(xs: array<int>) -> array<int>
   if xs.len() <= 1 then return xs end
   let pivot = xs[0]
@@ -214,16 +197,14 @@ fun tri_rapide(xs: array<int>) -> array<int>
 end
 
 let ref = [8, 3, 5, 1, 9, 2, 7]
-let attendu = tri_fusion(ref)
 let natif = ref.slice(0, ref.len())
 natif.sort()
-assert(attendu == natif, "tri fusion == sort natif")
 assert(tri_rapide(ref) == natif, "tri rapide == sort natif")
-print("tous les tris concordent")
+print("le tri rapide concorde avec sort")
 ```
 
 ## À retenir
 
-- Dichotomie : exige un tableau trié, divise le travail par 2 à chaque tour.
-- Tris simples O(n²) ; fusion et rapide O(n log n).
-- En pratique on utilise `xs.sort()`, mais comprendre les tris est formateur.
+- La dichotomie exige un tableau trié et divise le travail par 2 à chaque tour.
+- Les tris simples sont en O(n²) ; le tri fusion et le tri rapide en O(n log n).
+- En pratique, on utilise `xs.sort()`, mais comprendre les tris est formateur.

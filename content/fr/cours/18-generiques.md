@@ -4,10 +4,13 @@ title: "Les génériques"
 
 # Les génériques
 
-Écrire UNE fonction ou UN type qui marche pour plusieurs types, au lieu de
-copier-coller une version par type. `T` est un type "à remplir".
+Les génériques permettent d'écrire **une** fonction ou **un** type qui marche pour
+plusieurs types, au lieu de copier-coller une version par type. `T` est un type « à
+remplir ».
 
-Sans générique il faudrait premier_int, premier_string, premier_float...
+Sans générique, il faudrait `premier_int`, `premier_string`, `premier_float`…
+
+## Des fonctions génériques
 
 ```qlang
 fun premier<T>(xs: array<T>) -> T?
@@ -32,7 +35,9 @@ echanger(lettres, 0, 1)
 print(lettres)
 ```
 
-Bornes : T doit respecter un contrat (trait) pour qu'on puisse l'utiliser
+## Les bornes
+
+`T` doit respecter un contrat (un trait) pour qu'on puisse l'utiliser.
 
 ```qlang
 fun plus_grand<T: Ord>(a: T, b: T) -> T
@@ -60,7 +65,7 @@ print(maximum([3, 9, 2]))
 print(maximum(["b", "z", "a"]))
 ```
 
-Plusieurs bornes avec +
+Plusieurs bornes se combinent avec `+` :
 
 ```qlang
 fun sont_egaux_ordonnes<T: Eq + Ord>(a: T, b: T) -> bool
@@ -69,7 +74,7 @@ end
 print(sont_egaux_ordonnes(4, 4))
 ```
 
-Structures génériques
+## Des structures génériques
 
 ```qlang
 struct Paire<A, B>
@@ -88,7 +93,7 @@ print(p)
 print(p.inverser())
 ```
 
-Un conteneur générique : une boîte
+Un conteneur générique : une boîte.
 
 ```qlang
 struct Boite<T>
@@ -108,7 +113,9 @@ let bs = Boite<string>.nouvelle("hé")
 print(bs.lire())
 ```
 
-Quand le type ne peut pas être deviné, on l'écrit
+## Préciser le type
+
+Quand le type ne peut pas être deviné, on l'écrit entre chevrons.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -127,6 +134,6 @@ print(additionner<float>(1.5, 2.5))
 
 ## À retenir
 
-- fun f<T>(...) ; struct S<T> ; impl<T> S<T>.
-- Sans borne on ne peut presque rien faire d'un T : on ajoute T: Ord, T: Add...
-- qlang devine T d'après les arguments, sinon on le précise : f<int>(...).
+- `fun f<T>(…)`, `struct S<T>`, `impl<T> S<T>`.
+- Sans borne, on ne peut presque rien faire d'un `T` : on ajoute `T: Ord`, `T: Add`…
+- qlang devine `T` d'après les arguments, sinon on le précise : `f<int>(…)`.

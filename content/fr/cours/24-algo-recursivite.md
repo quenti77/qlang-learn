@@ -4,7 +4,12 @@ title: "Algorithmes — récursivité et diviser pour régner"
 
 # Algorithmes — récursivité et diviser pour régner
 
-Puissance rapide : x^n en O(log n) en élevant au carré
+La récursivité résout un problème en le ramenant à un problème plus petit, jusqu'à un cas
+de base.
+
+## Puissance rapide
+
+`x^n` en O(log n), en élevant au carré.
 
 ```qlang
 fun puissance(x: int, n: int) -> int
@@ -15,7 +20,9 @@ end
 print(puissance(2, 30))
 ```
 
-PGCD : algorithme d'Euclide (vieux de 2300 ans, toujours le meilleur)
+## Le PGCD : l'algorithme d'Euclide
+
+Il a 2 300 ans et il est toujours le meilleur.
 
 ```qlang
 fun pgcd(a: int, b: int) -> int
@@ -24,7 +31,7 @@ end
 print(pgcd(1071, 462))     -- 21
 ```
 
-Somme des chiffres
+## Somme des chiffres
 
 ```qlang
 fun somme_chiffres(n: int) -> int
@@ -33,7 +40,7 @@ end
 print(somme_chiffres(12345))   -- 15
 ```
 
-Palindrome
+## Palindrome
 
 ```qlang
 fun palindrome(s: string) -> bool
@@ -45,7 +52,9 @@ print(palindrome("kayak"))
 print(palindrome("bonjour"))
 ```
 
-Tours de Hanoï : déplacer n disques de A vers C en passant par B
+## Les tours de Hanoï
+
+Déplacer `n` disques de A vers C en passant par B.
 
 ```qlang
 let coups = 0
@@ -60,7 +69,9 @@ hanoi(4, "A", "C", "B")
 print("{coups} coups (2^4 - 1 = 15)")
 ```
 
-Toutes les permutations d'un tableau (retour sur trace / backtracking)
+## Toutes les permutations d'un tableau
+
+C'est le *retour sur trace* (*backtracking*).
 
 ```qlang
 fun permutations(xs: array<int>) -> array<array<int>>
@@ -84,7 +95,9 @@ print(perms.len())
 for p in perms do print(p) end
 ```
 
-Tous les sous-ensembles (l'ensemble des parties)
+## Tous les sous-ensembles
+
+L'ensemble des parties.
 
 ```qlang
 fun sous_ensembles(xs: array<int>, i: int) -> array<array<int>>
@@ -102,7 +115,9 @@ end
 print(sous_ensembles([1, 2, 3], 0))
 ```
 
-Le problème des N reines : placer N reines sans qu'elles se menacent
+## Le problème des N reines
+
+Placer N reines sur un échiquier sans qu'elles se menacent.
 
 ```qlang
 fun reines(n: int, ligne: int, cols: array<int>) -> int
@@ -126,7 +141,9 @@ for i in 0..6 do cols[] = 0 end
 print("solutions pour 6 reines : {reines(6, 0, cols)}")   -- 4
 ```
 
-Fibonacci : naïf (exponentiel) vs itératif (linéaire)
+## Fibonacci : récursif ou itératif ?
+
+La version récursive naïve est exponentielle ; la version itérative est linéaire.
 
 ```qlang
 fun fib_iteratif(n: int) -> int
@@ -144,7 +161,8 @@ print(fib_iteratif(80))
 
 ## À retenir
 
-- Toute récursion = cas de base + appel sur un problème plus petit.
+- Toute récursion = un cas de base + un appel sur un problème plus petit.
 - Diviser pour régner : puissance rapide, tri fusion, dichotomie.
 - Retour sur trace : essayer, vérifier, annuler (reines, permutations).
-- Profondeur max 1000 : pour de grosses données, préfère une boucle.
+- Profondeur maximale limitée (1000 appels, 250 sur ce site) : pour de grosses données,
+  préfère une boucle.

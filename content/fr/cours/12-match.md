@@ -4,8 +4,8 @@ title: "Match"
 
 # Match
 
-`match` compare une valeur à plusieurs MOTIFS. C'est un if/elseif plus lisible
-quand on teste une même valeur. C'est aussi une expression (elle a une valeur).
+`match` compare une valeur à plusieurs **motifs**. C'est un `if` / `elseif` plus lisible
+quand on teste une même valeur. C'est aussi une expression : elle a une valeur.
 
 ```qlang
 fun jour(n: int) -> string
@@ -24,7 +24,7 @@ print(jour(3))
 print(jour(9))
 ```
 
-Intervalles
+## Intervalles
 
 ```qlang
 fun mention(note: int) -> string
@@ -43,7 +43,9 @@ print(mention(18))
 print(mention(25))
 ```
 
-Garde : `case x if condition` — x désigne la valeur testée
+## Garde
+
+`case x if condition` : `x` désigne la valeur testée.
 
 ```qlang
 fun classer(n: int) -> string
@@ -60,7 +62,7 @@ print(classer(10))
 print(classer(7))
 ```
 
-Sur des chaînes et des booléens
+## Sur des chaînes
 
 ```qlang
 fun reponse(s: string) -> bool
@@ -74,7 +76,9 @@ print(reponse("oui"))
 print(reponse("peut-être"))
 ```
 
-Sur un nullable : case none
+## Sur un nullable
+
+`case none` traite le cas « rien ».
 
 ```qlang
 fun decrire(x: int?) -> string
@@ -89,7 +93,9 @@ print(decrire(0))
 print(decrire(9))
 ```
 
-Avec une énumération : le compilateur vérifie que tout est couvert
+## Avec une énumération
+
+Le compilateur vérifie que tous les cas sont couverts.
 
 ```qlang
 enum Feu
@@ -107,7 +113,9 @@ end
 print(action(Feu.Orange))
 ```
 
-`_` accepte tout sans nommer
+## Le motif `_`
+
+`_` accepte tout sans lui donner de nom.
 
 ```qlang
 fun est_special(n: int) -> bool
@@ -119,7 +127,9 @@ end
 print(est_special(42))
 ```
 
-match comme instruction (sans utiliser sa valeur)
+## `match` comme instruction
+
+On peut ne pas utiliser sa valeur.
 
 ```qlang
 let n = 3
@@ -131,7 +141,7 @@ end
 
 ## À retenir
 
-- Les case sont essayés dans l'ordre ; le premier qui correspond gagne.
-- Intervalles (a..b, a..=b), gardes (if), none, enums sont des motifs.
-- Pas de `case 1, 2, 3` : un case par valeur (ou une garde).
-- Pour qu'un match serve de valeur, il doit être exhaustif (else, ou enum complet).
+- Les `case` sont essayés dans l'ordre ; le premier qui correspond gagne.
+- Intervalles (`a..b`, `a..=b`), gardes (`if`), `none` et énumérations sont des motifs.
+- Pas de `case 1, 2, 3` : un `case` par valeur (ou une garde).
+- Pour qu'un `match` serve de valeur, il doit être exhaustif (`else`, ou énumération complète).

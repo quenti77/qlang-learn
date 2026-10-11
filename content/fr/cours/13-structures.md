@@ -2,22 +2,16 @@
 title: "Les structures (struct)"
 ---
 
-# Les structures (struct)
+# Les structures (`struct`)
 
-Une struct regroupe plusieurs valeurs liées sous un même nom : c'est TON
-propre type. Une `impl` lui ajoute des comportements (méthodes).
+Une `struct` regroupe plusieurs valeurs liées sous un même nom : c'est **ton propre type**.
+Un bloc `impl` lui ajoute des comportements, les méthodes.
 
-```qlang
-struct Point
-  public x: int
-  public y: int
-end
-```
+## Déclarer et créer
 
-Créer une valeur : on nomme les champs
+On crée une valeur en nommant les champs.
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 struct Point
   public x: int
   public y: int
@@ -30,10 +24,12 @@ p.x = 10
 print(p)                  -- Point { x: 10, y: 4 }
 ```
 
-Raccourci : si la variable porte le nom du champ
+## Raccourcis
+
+Si une variable porte le nom du champ, on peut l'écrire une seule fois. `..autre` reprend les
+champs d'une valeur existante, avec les modifications qu'on indique.
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 struct Point
   public x: int
   public y: int
@@ -41,49 +37,32 @@ end
 
 let x = 1
 let y = 2
-let q = Point { x, y }
+let q = Point { x, y }         -- raccourci : la variable porte le nom du champ
 print(q)
-```
 
-Copie avec modification : ..autre reprend les champs
-
-```qlang
--- (défini plus haut dans ce chapitre)
-struct Point
-  public x: int
-  public y: int
-end
-
-let x = 1
-
-let y = 2
-
-let q = Point { x, y }
-
-let r = Point { ..q, y: 99 }
+let r = Point { ..q, y: 99 }   -- copie avec modification
 print(r)
 ```
 
-Les structs sont des RÉFÉRENCES : partagées, pas copiées
+## Les structs sont des références
+
+Elles sont **partagées**, pas copiées.
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 struct Point
   public x: int
   public y: int
 end
 
 let p = Point { x: 3, y: 4 }
-
 let s = p
 s.x = 0
 print(p.x)                -- 0 !
 ```
 
-## Méthodes : bloc impl
+## Méthodes : le bloc `impl`
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 struct Point
   public x: int
   public y: int
@@ -171,40 +150,12 @@ print(Compte.total())         -- 2
 -- print(compte.solde)         -- ERREUR : champ privé (encapsulation)
 ```
 
-Une struct peut contenir d'autres structs et des tableaux
+## Une struct peut en contenir d'autres
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 struct Point
   public x: int
   public y: int
-end
-
-impl Point
-  -- méthode statique (pas de self) : s'appelle sur le type
-  public fun new(x: int, y: int) -> Point
-    Point { x, y }
-  end
-
-  public fun origine() -> Point
-    Point.new(0, 0)
-  end
-
-  -- méthode d'instance (premier paramètre `self`)
-  public fun distance_carree(self, autre: Point) -> int
-    let dx = self.x - autre.x
-    let dy = self.y - autre.y
-    dx * dx + dy * dy
-  end
-
-  public fun deplacer(self, dx: int, dy: int)
-    self.x += dx
-    self.y += dy
-  end
-
-  public fun clone(self) -> Point
-    Point { x: self.x, y: self.y }
-  end
 end
 
 struct Rectangle
@@ -212,14 +163,15 @@ struct Rectangle
   public largeur: int
   public hauteur: int
 end
-let rect = Rectangle { coin: Point.new(1, 1), largeur: 4, hauteur: 3 }
-print(rect.coin.x + rect.largeur)
+
+let rect = Rectangle { coin: Point { x: 1, y: 1 }, largeur: 4, hauteur: 3 }
+print(rect.coin.x + rect.largeur)    -- 5
 ```
 
 ## À retenir
 
-- struct = données ; impl = comportements.
-- `self` en premier paramètre = méthode d'instance ; sinon statique.
-- private (défaut) / protected / public contrôlent qui accède à quoi :
-  cacher les détails s'appelle l'ENCAPSULATION.
-- Pas de constructeur magique : on écrit `new` soi-même.
+- `struct` = les données ; `impl` = les comportements.
+- `self` en premier paramètre = méthode d'instance ; sinon, la méthode est statique.
+- `private` (par défaut), `protected` et `public` contrôlent qui accède à quoi : cacher les
+  détails s'appelle l'**encapsulation**.
+- Il n'y a pas de constructeur magique : on écrit `new` soi-même.

@@ -4,8 +4,18 @@ title: "Projet final — gestionnaire de tâches"
 
 # Projet final — gestionnaire de tâches
 
-On assemble tout : struct, enum, trait, générique, map, tri, match,
-surcharge d'opérateurs, fermetures, tests.
+On assemble tout ce qu'on a vu : `struct`, `enum`, trait, `map`, tri, `match`, surcharge
+d'opérateurs, fermetures et tests.
+
+Le programme ci-dessous gère une liste de tâches :
+
+- un `enum` `Priorite`, avec une méthode `poids` ;
+- une `struct` `Tache`, qui se convertit en texte (`As<string>`) et se compare (`Ord`) ;
+- une `struct` `Liste`, avec des champs privés et des méthodes pour ajouter, trouver,
+  terminer et filtrer (avec une fonction passée en paramètre) ;
+- un dictionnaire pour les statistiques, et des `assert` pour tester.
+
+Lis-le, exécute-le, puis modifie-le.
 
 ```qlang
 enum Priorite
@@ -126,8 +136,11 @@ assert(t1 != none and t1.faite, "tâche 1 terminée")
 print("projet OK")
 ```
 
-PROLONGEMENTS (à toi de jouer)
-- Ajouter supprimer(id).
+## Prolongements
+
+À toi de jouer :
+
+- Ajouter une méthode `supprimer(id)`.
 - Ajouter une date d'échéance et trier dessus.
-- Lire des commandes avec read() dans une boucle : "add titre", "done 3", "list".
-- Sauvegarder l'état en texte et le recharger via split().
+- Lire des commandes avec `read()` dans une boucle : `add titre`, `done 3`, `list`.
+- Sauvegarder l'état en texte et le recharger avec `split()`.

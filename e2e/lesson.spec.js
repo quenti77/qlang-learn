@@ -168,15 +168,17 @@ test('a lesson can import files shown on the page', async ({ page }) => {
   await expect(run.getByTestId('output')).toContainText('5');
 });
 
-test('every lesson page runs its first example', async ({ page, request }) => {
-  const home = await (await request.get('/fr/')).text();
-  const links = [...home.matchAll(/href="(\/fr\/cours\/[^"]+)"/g)].map((m) => m[1]);
-  expect(links.length).toBeGreaterThanOrEqual(28);
-  for (const href of [...new Set(links)]) {
-    await page.goto(href);
-    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
-    const first = page.locator('.qlang-widget:not(.module)').first();
-    await first.getByTestId('run').click();
-    await expect(first.getByTestId('output'), href).not.toBeEmpty();
-  }
-});
+for (const lang of ['fr', 'en']) {
+  test(`every ${lang} lesson page runs its first example`, async ({ page, request }) => {
+    const home = await (await request.get(`/${lang}/`)).text();
+    const links = [...home.matchAll(new RegExp(`href="(/${lang}/cours/[^"]+)"`, 'g'))].map((m) => m[1]);
+    expect(links.length).toBeGreaterThanOrEqual(28);
+    for (const href of [...new Set(links)]) {
+      await page.goto(href);
+      await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+      const first = page.locator('.qlang-widget:not(.module)').first();
+      await first.getByTestId('run').click();
+      await expect(first.getByTestId('output'), href).not.toBeEmpty();
+    }
+  });
+}

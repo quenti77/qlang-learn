@@ -4,16 +4,20 @@ title: "Les variables"
 
 # Les variables
 
-Une variable est une BOÎTE ÉTIQUETÉE qui garde une valeur pour plus tard.
+Une variable est une **boîte étiquetée** qui garde une valeur pour plus tard.
 
-`let` crée une variable. Elle est TOUJOURS initialisée.
+## Créer une variable
+
+`let` crée une variable. Elle est **toujours** initialisée.
 
 ```qlang
 let age = 30
 print(age)
 ```
 
-On peut changer sa valeur (réaffecter).
+## Changer sa valeur
+
+On peut changer sa valeur : c'est une réaffectation.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -23,8 +27,10 @@ age = 31
 print(age)
 ```
 
-Le type est deviné (inféré) : ici age est un int.
-On peut aussi l'écrire explicitement après les deux-points.
+## Le type
+
+Le type est deviné (on dit *inféré*) : ici `age` est un `int`. On peut aussi l'écrire
+explicitement après les deux-points.
 
 ```qlang
 let taille: float = 1.75
@@ -32,17 +38,20 @@ let prenom: string = "Ada"
 print("{prenom} mesure {taille} m")
 ```
 
-Une variable garde son type : ceci serait une ERREUR (décommente pour voir) :
+Une variable garde son type : `age = "trente"` serait une **erreur**. Essaie-le dans
+l'exemple ci-dessus.
 
-`age = "trente"`
+## Les constantes
 
-`const` : le nom ne peut plus être réaffecté.
+Avec `const`, le nom ne peut plus être réaffecté.
 
 ```qlang
 const PI_APPROX = 3.14
 print(PI_APPROX)
 -- PI_APPROX = 3     -- erreur !
 ```
+
+## Calculer avec des variables
 
 On peut calculer une variable à partir d'autres.
 
@@ -53,7 +62,9 @@ let aire = largeur * hauteur
 print("aire = {aire}")
 ```
 
-Raccourcis : x += 1 veut dire x = x + 1
+## Les raccourcis
+
+`x += 1` veut dire `x = x + 1`. Il existe aussi `-=`, `*=`…
 
 ```qlang
 let compteur = 0
@@ -64,7 +75,9 @@ compteur -= 5
 print(compteur)   -- 15
 ```
 
-Échanger deux valeurs avec une variable temporaire
+## Échanger deux valeurs
+
+On utilise une variable temporaire.
 
 ```qlang
 let a = 1
@@ -86,11 +99,11 @@ end
 print("dehors : {x}")  -- 1
 ```
 
-## Références : tableaux et structures sont PARTAGÉS, pas copiés
+## Références : tableaux et structures sont partagés, pas copiés
 
 ```qlang
 let t1 = [1, 2, 3]
-let t2 = t1          -- t2 désigne LE MÊME tableau
+let t2 = t1          -- t2 désigne le MÊME tableau
 t2[0] = 99
 print(t1)            -- [99, 2, 3]  surprise !
 ```
@@ -104,7 +117,7 @@ n2 = 6
 print(n1)            -- 5
 ```
 
-Un `const` fixe le NOM, pas le contenu d'un tableau.
+Un `const` fixe le **nom**, pas le contenu d'un tableau.
 
 ```qlang
 const liste = [1]
@@ -114,7 +127,7 @@ print(liste)
 
 ## À retenir
 
-- let = variable modifiable, const = nom figé.
+- `let` = variable modifiable, `const` = nom figé.
 - Le type d'une variable ne change jamais.
 - Les tableaux se partagent (référence), les nombres se copient.
-- x += 1, x -= 1, x *= 2 sont des raccourcis.
+- `x += 1`, `x -= 1`, `x *= 2` sont des raccourcis.

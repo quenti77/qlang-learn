@@ -4,7 +4,7 @@ title: "Opérateurs"
 
 # Opérateurs
 
-Arithmétique
+## Arithmétique
 
 ```qlang
 print(7 + 2)       -- 9
@@ -19,14 +19,16 @@ print(-7 div 2)    -- -3   (on tronque vers zéro)
 print(5.5 mod 2)   -- 1.5
 ```
 
-int et float se mélangent
+## Mélanger `int` et `float`
 
 ```qlang
 print(1 + 2.5)     -- 3.5
 print(1 == 1.0)    -- true
 ```
 
-Priorité : comme en maths, * avant +. Les parenthèses forcent l'ordre.
+## Priorité
+
+Comme en maths, `*` passe avant `+`. Les parenthèses forcent l'ordre.
 
 ```qlang
 print(2 + 3 * 4)   -- 14
@@ -35,14 +37,16 @@ print(2 ** 3 ** 2) -- 512 (2 ** 9) : la puissance s'évalue de droite à gauche
 print(-2 ** 2)     -- -4 : c'est -(2 ** 2)
 ```
 
-Astuce : "mod" sert à tester pair/impair, multiple, etc.
+Astuce : `mod` sert à tester pair/impair, multiple, etc.
 
 ```qlang
 print(10 mod 2 == 0)    -- true : 10 est pair
 print(15 mod 5 == 0)    -- true : 15 est multiple de 5
 ```
 
-Comparaisons : donnent un bool
+## Comparaisons
+
+Elles donnent un `bool`.
 
 ```qlang
 print(3 < 5)
@@ -55,7 +59,7 @@ print("a" < "b")        -- ordre alphabétique
 print("abc" == "abc")
 ```
 
-Logique : and, or, not
+## Logique : `and`, `or`, `not`
 
 ```qlang
 print(true and false)   -- false
@@ -65,14 +69,16 @@ let age = 20
 print(age >= 18 and age < 65)   -- true
 ```
 
-`and` / `or` sont "paresseux" : si le côté gauche suffit, le droit
-n'est jamais calculé. Ici 1/0 serait une erreur, mais n'est pas évalué :
+`and` et `or` sont « paresseux » : si le côté gauche suffit, le droit n'est jamais
+calculé. Ici `1 div 0` serait une erreur, mais il n'est pas évalué :
 
 ```qlang
 print(false and (1 div 0 == 0))   -- false, pas d'erreur
 ```
 
-Intervalles : a..b (b exclu) et a..=b (b inclus), surtout utiles avec `for`
+## Intervalles
+
+`a..b` exclut `b` et `a..=b` l'inclut. Ils servent surtout avec `for`.
 
 ```qlang
 for i in 0..3 do write("{i} ") end
@@ -81,7 +87,7 @@ for i in 0..=3 do write("{i} ") end
 print("")
 ```
 
-Conversions et fonctions numériques
+## Fonctions numériques
 
 ```qlang
 print(10.abs())          -- 10
@@ -97,20 +103,22 @@ print(float.PI)
 print(int.MAX)
 ```
 
-Attention aux flottants : les ordinateurs sont inexacts avec les décimales
+## Attention aux flottants
+
+Les ordinateurs sont inexacts avec les décimales.
 
 ```qlang
 print(0.1 + 0.2)         -- 0.30000000000000004 ! (ce n'est pas un bug de qlang)
 ```
 
-Débordement : un int ne dépasse pas 64 bits. Dépasser = erreur d'exécution
-(décommente pour voir) :
+## Débordement
 
-`print(int.MAX + 1)`
+Un `int` ne dépasse pas 64 bits : dépasser est une erreur d'exécution. Essaie
+`print(int.MAX + 1)` dans l'exemple précédent.
 
 ## À retenir
 
 - `/` donne un float, `div` un entier, `mod` le reste.
-- and / or / not combinent des booléens.
-- Les comparaisons ne se chaînent pas : a < b < c est interdit,
-  écris  a < b and b < c.
+- `and`, `or`, `not` combinent des booléens.
+- Les comparaisons ne se chaînent pas : `a < b < c` est interdit, écris
+  `a < b and b < c`.

@@ -4,8 +4,10 @@ title: "Fonctions avancées — fermetures (closures)"
 
 # Fonctions avancées — fermetures (closures)
 
-Une fonction anonyme se SOUVIENT des variables autour d'elle, même après que
-la fonction qui l'a créée soit terminée.
+Une fonction anonyme **se souvient** des variables autour d'elle, même après que la
+fonction qui l'a créée soit terminée. On appelle ça une *fermeture* (*closure*).
+
+## Un compteur
 
 ```qlang
 fun creer_compteur() -> fun() -> int
@@ -24,7 +26,7 @@ print(c1())    -- 3
 print(c2())    -- 1
 ```
 
-Une usine à fonctions
+## Une usine à fonctions
 
 ```qlang
 fun additionneur(k: int) -> fun(int) -> int
@@ -38,7 +40,9 @@ print(plus5(1))
 print(plus100(1))
 ```
 
-Composer deux fonctions : (f ∘ g)(x) = f(g(x))
+## Composer deux fonctions
+
+`(f ∘ g)(x) = f(g(x))`
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -59,7 +63,7 @@ let double_puis_plus5 = composer(plus5, fun(x: int) -> int x * 2 end)
 print(double_puis_plus5(10))     -- 25
 ```
 
-Tableau de fonctions
+## Un tableau de fonctions
 
 ```qlang
 let operations: array<fun(int, int) -> int> = [
@@ -73,7 +77,9 @@ end
 print("")
 ```
 
-Dictionnaire de fonctions (une "table de dispatch")
+## Un dictionnaire de fonctions
+
+On l'appelle une « table de dispatch ».
 
 ```qlang
 let calc: map<string, fun(int, int) -> int> = {
@@ -84,7 +90,7 @@ let f = calc["*"]
 if f != none then print(f(7, 6)) end
 ```
 
-Mémoïsation générique : une fermeture avec un cache
+## Une mémoïsation : une fermeture avec un cache
 
 ```qlang
 fun memoiser(f: fun(int) -> int) -> fun(int) -> int
@@ -106,7 +112,9 @@ print(rapide(9))
 print(rapide(9))    -- pas de nouveau calcul
 ```
 
-Fonction d'ordre supérieur : appeler n fois
+## Une fonction d'ordre supérieur
+
+Appeler une action `n` fois :
 
 ```qlang
 fun repeter(n: int, action: fun(int))
@@ -119,5 +127,5 @@ print(total)
 
 ## À retenir
 
-- Une fermeture capture ET peut modifier les variables englobantes.
-- Utile pour : compteurs, usines de fonctions, caches, callbacks.
+- Une fermeture capture les variables englobantes **et** peut les modifier.
+- Utile pour : les compteurs, les usines de fonctions, les caches, les *callbacks*.

@@ -4,11 +4,13 @@ title: "Valeurs et types"
 
 # Valeurs et types
 
-Toute valeur a un TYPE : ce qu'elle est (un nombre entier, du texte...).
-qlang vérifie les types AVANT de lancer le programme. Si tu mélanges des
+Toute valeur a un **type** : ce qu'elle est (un nombre entier, du texte…).
+qlang vérifie les types **avant** de lancer le programme. Si tu mélanges des
 choses incompatibles, il te le dit tout de suite, avec la ligne exacte.
 
-int : nombre entier (64 bits)
+## Les nombres entiers : `int`
+
+Un `int` est un nombre entier (64 bits).
 
 ```qlang
 print(42)
@@ -18,7 +20,9 @@ print(0xFF)           -- hexadécimal (base 16)  -> 255
 print(0b1010)         -- binaire (base 2)       -> 10
 ```
 
-float : nombre à virgule (on écrit un point)
+## Les nombres à virgule : `float`
+
+Un `float` est un nombre à virgule : on écrit un point, pas une virgule.
 
 ```qlang
 print(3.14)
@@ -26,21 +30,27 @@ print(2.5e3)          -- notation scientifique : 2.5 x 10^3 = 2500.0
 print(1.0)            -- 1.0 est un float, 1 est un int : ce sont deux types !
 ```
 
-bool : vrai ou faux (deux valeurs seulement)
+## Les booléens : `bool`
+
+Un `bool` vaut `true` (vrai) ou `false` (faux), et rien d'autre.
 
 ```qlang
 print(true)
 print(false)
 ```
 
-string : du texte
+## Le texte : `string`
+
+Une `string` est un morceau de texte.
 
 ```qlang
 print("bonjour")
 print("")             -- la chaîne vide existe aussi
 ```
 
-none : "rien du tout" (on y revient au cours 11)
+## Rien du tout : `none`
+
+`none` veut dire « pas de valeur » (on y revient au chapitre 11).
 
 ```qlang
 print(none)
@@ -57,8 +67,8 @@ print("Une accolade : \{ ouverte")
 
 ## Conversions : changer de type avec `as`
 
-Pas de conversion automatique int -> float dans une variable :
-on le demande explicitement.
+Il n'y a pas de conversion automatique d'un `int` en `float` : on la demande
+explicitement.
 
 ```qlang
 print(7 as float)         -- 7.0
@@ -67,8 +77,8 @@ print(42 as string)       -- "42" (du texte, plus un nombre)
 print(true as string)     -- "true"
 ```
 
-Convertir du texte en nombre peut ÉCHOUER ("abc" n'est pas un nombre).
-Donc le résultat est "un int OU none" (on note int?).
+Convertir du texte en nombre peut **échouer** (`"abc"` n'est pas un nombre).
+Le résultat est donc « un `int` **ou** `none` », ce qu'on note `int?`.
 
 ```qlang
 print(int.parse("123"))   -- 123
@@ -76,7 +86,9 @@ print(int.parse("abc"))   -- none
 print(float.parse("2.5")) -- 2.5
 ```
 
-## Les tableaux et dictionnaires (détaillés aux cours 09 et 10)
+## Les tableaux et les dictionnaires
+
+Ils sont détaillés aux chapitres 9 et 10.
 
 ```qlang
 print([1, 2, 3])
@@ -85,13 +97,13 @@ print({ "a": 1, "b": 2 })
 
 ## À retenir
 
-- Types de base : int, float, bool, string.
-- 1 (int) et 1.0 (float) sont des types différents.
-- "{...}" insère une valeur dans un texte.
+- Types de base : `int`, `float`, `bool`, `string`.
+- `1` (`int`) et `1.0` (`float`) sont des types différents.
+- `"{...}"` insère une valeur dans un texte.
 - `x as type` convertit quand la conversion réussit toujours.
 - `int.parse(texte)` renvoie `none` si ça échoue.
 
 ## À essayer
 
-- print(10 as string + "!")   puis   print(10 + "!")  (lis l'erreur)
-- print(int.parse("12") )  puis avec "12.5"
+- Exécute `print(10 as string + "!")`, puis `print(10 + "!")` et lis l'erreur.
+- Exécute `print(int.parse("12"))`, puis essaie avec `"12.5"`.

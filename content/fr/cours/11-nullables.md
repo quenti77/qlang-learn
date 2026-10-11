@@ -4,10 +4,10 @@ title: "None et les types nullables"
 
 # None et les types nullables
 
-Parfois une valeur peut ne pas exister : on cherche un élément qui n'est pas
-là, on lit un nombre dans un texte invalide... qlang l'exprime dans le TYPE :
-`int?` signifie "un int, OU none".
-Le compilateur t'oblige à gérer le cas "rien" : impossible d'oublier !
+Parfois une valeur peut ne pas exister : on cherche un élément qui n'est pas là, on lit un
+nombre dans un texte invalide… qlang l'exprime dans le **type** : `int?` signifie « un
+`int`, **ou** `none` ». Le compilateur t'oblige à gérer le cas « rien » : impossible
+d'oublier !
 
 ```qlang
 let a: int = 5
@@ -18,11 +18,11 @@ print(c)
 print(d)
 ```
 
-Ceci est refusé tant qu'on n'a pas vérifié :
+`print(d + 1)` est refusé tant qu'on n'a pas vérifié : `d` peut être `none`.
 
-`print(d + 1)          -- erreur : d peut être none`
+## Après un test
 
-Après un test, le compilateur SAIT que la valeur est présente
+Après un test, le compilateur **sait** que la valeur est présente.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -33,7 +33,9 @@ if d != none then
 end
 ```
 
-Sortie anticipée : après le if, la valeur est forcément présente
+## Sortie anticipée
+
+Après le `if`, la valeur est forcément présente.
 
 ```qlang
 fun double_ou_zero(x: int?) -> int
@@ -46,14 +48,16 @@ print(double_ou_zero(21))
 print(double_ou_zero(none))
 ```
 
-Avec and : à droite de `and`, la vérification est connue
+## Avec `and`
+
+À droite de `and`, la vérification est connue.
 
 ```qlang
 let age: int? = 30
 print(age != none and age > 18)
 ```
 
-Où rencontre-t-on des nullables ?
+## Où rencontre-t-on des nullables ?
 
 ```qlang
 print(int.parse("12"))          -- int?
@@ -65,7 +69,7 @@ let m = { "a": 1 }
 print(m["z"])                   -- none
 ```
 
-Un exemple utile : saisie sécurisée
+## Un exemple utile : une saisie sécurisée
 
 ```qlang
 fun lire_age(texte: string) -> string
@@ -79,8 +83,10 @@ print(lire_age("abc"))
 print(lire_age("-3"))
 ```
 
-Limite : le test fonctionne sur des VARIABLES, pas sur obj.champ
-ni sur un appel. On copie d'abord dans une variable :
+## Une limite
+
+Le test fonctionne sur des **variables**, pas sur `obj.champ` ni sur un appel. On copie
+d'abord dans une variable :
 
 ```qlang
 let resultat = int.parse("5")
@@ -89,13 +95,12 @@ if resultat != none then
 end
 ```
 
-Un champ ou une méthode sur une valeur nullable : erreur de compilation.
-let s: string? = "abc"
-
-`print(s.len())          -- refusé ! vérifie d'abord s != none`
+Appeler une méthode ou lire un champ sur une valeur nullable est une erreur de
+compilation : avec `let s: string? = "abc"`, `print(s.len())` est refusé. Vérifie
+d'abord `s != none`.
 
 ## À retenir
 
-- T? = T ou none. Le compilateur oblige à tester avant d'utiliser.
-- `if x == none then return ... end` puis x est utilisable.
+- `T?` = `T` ou `none`. Le compilateur oblige à tester avant d'utiliser.
+- `if x == none then return … end`, puis `x` est utilisable.
 - Beaucoup d'opérations qui peuvent échouer renvoient un nullable.

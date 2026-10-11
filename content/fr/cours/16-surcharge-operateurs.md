@@ -4,8 +4,11 @@ title: "Surcharge d'opérateurs et conversions"
 
 # Surcharge d'opérateurs et conversions
 
-Dans qlang, `a + b` est du sucre pour `a.add(b)`. En implémentant les traits
-des opérateurs, tes propres types peuvent s'utiliser avec + - * == < [] as...
+Dans qlang, `a + b` est du sucre pour `a.add(b)`. En implémentant les traits des
+opérateurs, tes propres types peuvent s'utiliser avec `+`, `-`, `*`, `==`, `<`, `[]`,
+`as`…
+
+## Les opérateurs arithmétiques et `==`
 
 ```qlang
 struct Vec2
@@ -70,7 +73,10 @@ somme += w                           -- += utilise Add
 print(somme)
 ```
 
-Ord : pour < <= > >=, la méthode cmp renvoie négatif / zéro / positif
+## Comparer avec `Ord`
+
+Pour `<`, `<=`, `>` et `>=`, la méthode `cmp` renvoie un nombre négatif, zéro ou positif. Avec
+`Ord`, `sort`, `min` et `max` fonctionnent aussi sur tes types.
 
 ```qlang
 struct Version
@@ -99,7 +105,9 @@ print(versions)
 print(versions.max())
 ```
 
-Indexation : v[i], v[i] = x, v[] = x
+## Indexation
+
+`v[i]`, `v[i] = x` et `v[] = x` passent par les traits `Index`, `IndexSet` et `Push`.
 
 ```qlang
 struct Pile
@@ -127,8 +135,21 @@ print(pile[0] + pile[2])
 print(pile.items)
 ```
 
-Tableau récapitulatif
-  + Add  add   |  - Sub  sub    |  * Mul  mul     |  / Div  divide
-  div IntDiv int_div  |  mod/% Mod modulo  |  ** Pow pow  |  -x Neg neg
-  == != Eq eq  |  < <= > >= Ord cmp
-  a[i] Index  |  a[i]=v IndexSet  |  a[]=v Push  |  x as T  As<T>
+## Récapitulatif
+
+| Écriture | Trait | Méthode |
+| --- | --- | --- |
+| `a + b` | `Add` | `add` |
+| `a - b` | `Sub` | `sub` |
+| `a * b` | `Mul` | `mul` |
+| `a / b` | `Div` | `divide` |
+| `a div b` | `IntDiv` | `int_div` |
+| `a mod b`, `a % b` | `Mod` | `modulo` |
+| `a ** b` | `Pow` | `pow` |
+| `-a` | `Neg` | `neg` |
+| `a == b`, `a != b` | `Eq` | `eq` |
+| `<`, `<=`, `>`, `>=` | `Ord` | `cmp` |
+| `a[i]` | `Index` | `index` |
+| `a[i] = v` | `IndexSet` | `set_index` |
+| `a[] = v` | `Push` | `push` |
+| `x as T` | `As<T>` | `convert` |

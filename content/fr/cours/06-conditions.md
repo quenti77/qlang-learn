@@ -4,14 +4,16 @@ title: "Les conditions"
 
 # Les conditions
 
-Un programme doit pouvoir CHOISIR : faire ceci SI quelque chose est vrai,
-sinon faire cela.
+Un programme doit pouvoir **choisir** : faire ceci *si* quelque chose est vrai, sinon
+faire cela.
+
+Dans les exemples de ce chapitre, on utilise une température :
 
 ```qlang
 let temperature = 25
 ```
 
-if ... then ... end
+## `if` … `then` … `end`
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -22,7 +24,7 @@ if temperature > 20 then
 end
 ```
 
-else : sinon
+## `else` : sinon
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -35,7 +37,9 @@ else
 end
 ```
 
-elseif : plusieurs cas, le premier qui est vrai gagne
+## `elseif` : plusieurs cas
+
+Le premier qui est vrai gagne.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -52,7 +56,9 @@ else
 end
 ```
 
-Tout tient sur une ligne si on veut
+## Sur une seule ligne
+
+Tout peut tenir sur une ligne.
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -61,10 +67,10 @@ let temperature = 25
 if temperature == 25 then print("pile 25") end
 ```
 
-La condition DOIT être un bool. Pas de "vrai/faux implicite" :
-`if 1 then` ou `if "texte" then` sont des erreurs. C'est voulu : moins de pièges.
+La condition **doit** être un `bool`. Il n'y a pas de « vrai/faux implicite » : `if 1 then`
+ou `if "texte" then` sont des erreurs. C'est voulu : moins de pièges.
 
-Combiner des conditions
+## Combiner des conditions
 
 ```qlang
 let age = 17
@@ -78,7 +84,9 @@ if not (age >= 18) then
 end
 ```
 
-if est une EXPRESSION : il produit une valeur (else obligatoire)
+## `if` comme expression
+
+`if` produit une valeur (le `else` est alors obligatoire).
 
 ```qlang
 -- (défini plus haut dans ce chapitre)
@@ -88,7 +96,7 @@ let statut = if age >= 18 then "majeur" else "mineur" end
 print(statut)
 ```
 
-Pratique pour un maximum, une valeur absolue...
+C'est pratique pour un maximum, une valeur absolue…
 
 ```qlang
 let a = 8
@@ -97,7 +105,7 @@ let plus_grand = if a > b then a else b end
 print("max = {plus_grand}")
 ```
 
-Conditions imbriquées
+## Conditions imbriquées
 
 ```qlang
 let note = 14
@@ -112,7 +120,7 @@ else
 end
 ```
 
-Exemple classique : année bissextile
+## Exemple classique : l'année bissextile
 
 ```qlang
 fun est_bissextile(annee: int) -> bool
@@ -123,7 +131,7 @@ print(est_bissextile(1900))   -- false
 print(est_bissextile(2000))   -- true
 ```
 
-Comparer des chaînes, des booléens
+## Comparer des chaînes
 
 ```qlang
 let mot_de_passe = "secret"
@@ -134,6 +142,6 @@ end
 
 ## À retenir
 
-- if / elseif / else / end, un seul `end` pour toute la chaîne.
-- La condition est toujours un bool.
-- `if` peut servir de valeur : let x = if c then 1 else 2 end
+- `if` / `elseif` / `else` / `end` : un seul `end` pour toute la chaîne.
+- La condition est toujours un `bool`.
+- `if` peut servir de valeur : `let x = if c then 1 else 2 end`.

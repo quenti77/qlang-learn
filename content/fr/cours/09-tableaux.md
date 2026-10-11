@@ -4,8 +4,10 @@ title: "Les tableaux"
 
 # Les tableaux
 
-Un tableau (array) range plusieurs valeurs DU MÊME TYPE dans l'ordre.
-Type : array<int>, array<string>, array<array<int>>...
+Un tableau (*array*) range plusieurs valeurs **du même type**, dans l'ordre. Son type s'écrit
+`array<int>`, `array<string>`, `array<array<int>>`…
+
+## Lire et modifier
 
 ```qlang
 let notes = [12, 15, 9, 18]
@@ -15,12 +17,19 @@ print(notes[0])           -- 12 : le premier est à l'indice 0
 print(notes[3])           -- 18 : le dernier est à len - 1
 notes[1] = 16             -- modifier un élément
 print(notes)
+```
 
--- Un tableau vide doit avoir un type écrit
+Un tableau vide doit avoir un type écrit :
+
+```qlang
 let vide: array<string> = []
 print(vide.is_empty())
+```
 
--- Ajouter / retirer
+## Ajouter et retirer
+
+```qlang
+let notes = [12, 16, 9, 18]
 notes.push(20)            -- ajoute à la fin
 notes[] = 7               -- idem (autre écriture)
 print(notes)
@@ -29,12 +38,14 @@ notes.insert(0, 1)        -- insère 1 à l'indice 0
 print(notes)
 print(notes.remove(0))    -- retire l'élément d'indice 0 et le renvoie
 print(notes)
+```
 
--- Questions
+## Questions et statistiques
+
+```qlang
+let notes = [12, 16, 9, 18, 20]
 print(notes.contains(18))
-print(notes.index_of(18)) -- indice ou none
-
--- Statistiques
+print(notes.index_of(18)) -- l'indice, ou none
 print(notes.min())
 print(notes.max())
 print(notes.sum())
@@ -42,7 +53,9 @@ let moyenne = notes.sum() / notes.len()   -- int / int donne un float
 print("moyenne = {moyenne}")
 ```
 
-Trier et inverser (SUR PLACE : le tableau lui-même est modifié)
+## Trier et inverser
+
+Ces opérations se font **sur place** : le tableau lui-même est modifié.
 
 ```qlang
 let desordre = [5, 2, 9, 1, 7]
@@ -55,7 +68,7 @@ mots.sort()
 print(mots)
 ```
 
-slice(debut, fin) : une COPIE d'une partie
+## `slice(début, fin)` : une copie d'une partie
 
 ```qlang
 let tout = [10, 20, 30, 40, 50]
@@ -65,10 +78,9 @@ copie[0] = 0
 print(tout)               -- inchangé
 ```
 
-Parcourir
+## Parcourir
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 let tout = [10, 20, 30, 40, 50]
 
 for x in tout do write("{x} ") end
@@ -81,14 +93,14 @@ for i, x in tout do write("{i}={x} ") end
 print("")
 ```
 
-Texte <-> tableau
+## Texte et tableau
 
 ```qlang
 print(["a", "b", "c"].join("-"))
 print("a-b-c".split("-"))
 ```
 
-Tableaux de tableaux = grille / matrice
+## Tableaux de tableaux : une grille
 
 ```qlang
 let grille: array<array<int>> = [
@@ -107,7 +119,7 @@ for i in 0..3 do diag += grille[i][i] end
 print("diagonale : {diag}")
 ```
 
-Créer une grille remplie de zéros
+Une grille remplie de zéros :
 
 ```qlang
 let n = 3
@@ -121,13 +133,21 @@ zeros[1][1] = 5
 print(zeros)
 ```
 
-PIÈGE : un indice hors limites est une erreur d'exécution.
+## Le piège : les indices hors limites
 
-`print(tout[10])   -- décommente pour voir R-erreur`
+Un indice hors des limites est une erreur d'exécution. Essaie :
 
-Toujours vérifier : if i >= 0 and i < xs.len() then ...
+<!-- expect-error -->
+```qlang
+let tout = [10, 20, 30]
+print(tout[10])
+```
 
-Égalité : deux tableaux sont égaux si tous leurs éléments le sont
+Vérifie toujours avant : `if i >= 0 and i < xs.len() then …`.
+
+## Égalité
+
+Deux tableaux sont égaux si tous leurs éléments le sont.
 
 ```qlang
 print([1, 2] == [1, 2])
@@ -136,7 +156,7 @@ print([1, 2] == [2, 1])
 
 ## À retenir
 
-- Indices de 0 à len-1.
-- push/pop/insert/remove/sort/reverse modifient SUR PLACE ;
-  slice copie.
+- Les indices vont de 0 à `len() - 1`.
+- `push`, `pop`, `insert`, `remove`, `sort`, `reverse` modifient **sur place** ;
+  `slice` copie.
 - Un tableau est une référence : deux variables peuvent le partager.

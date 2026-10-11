@@ -4,9 +4,11 @@ title: "Les dictionnaires"
 
 # Les dictionnaires
 
-Un dictionnaire (map<K, V>) associe une CLÉ à une VALEUR, comme un annuaire :
-on cherche par nom, pas par position.
-Les clés : int, string, bool ou enum. L'ordre d'insertion est conservé.
+Un dictionnaire (`map<K, V>`) associe une **clé** à une **valeur**, comme un annuaire : on
+cherche par nom, pas par position. Les clés peuvent être des `int`, des `string`, des `bool`
+ou des `enum`. L'ordre d'insertion est conservé.
+
+## Créer, lire, modifier
 
 ```qlang
 let ages = { "ana": 31, "bob": 27 }
@@ -15,8 +17,14 @@ print(ages)
 ages["cleo"] = 45            -- ajouter
 ages["bob"] = 28             -- remplacer
 print(ages["ana"])           -- 31
+```
 
--- Lire une clé ABSENTE donne none : le type est donc int?
+## Une clé absente
+
+Lire une clé **absente** donne `none` : le type de `ages["ana"]` est donc `int?`.
+
+```qlang
+let ages = { "ana": 31, "bob": 27 }
 print(ages["zed"])           -- none
 
 -- Il faut vérifier avant d'utiliser
@@ -27,22 +35,32 @@ end
 
 -- Ou donner une valeur par défaut avec get
 print(ages.get("zed", 0))    -- 0
+```
 
--- Questions et nettoyage
+## Questions et nettoyage
+
+```qlang
+let ages = { "ana": 31, "bob": 27 }
 print(ages.has("ana"))
 print(ages.len())
 print(ages.remove("ana"))    -- renvoie l'ancienne valeur
 print(ages.has("ana"))
 print(ages.keys())
 print(ages.values())
+```
 
--- Parcours : clé ET valeur
+## Parcourir : la clé et la valeur
+
+```qlang
+let ages = { "ana": 31, "bob": 27 }
 for nom, age in ages do
   print("{nom} a {age} ans")
 end
 ```
 
-Dictionnaire vide : type obligatoire
+## Un dictionnaire vide
+
+Il faut écrire son type.
 
 ```qlang
 let stock: map<string, int> = {}
@@ -76,7 +94,9 @@ end
 print(par_taille)
 ```
 
-## Cas d'usage 3 : mémoïsation (se souvenir d'un résultat déjà calculé)
+## Cas d'usage 3 : mémoïsation
+
+Se souvenir d'un résultat déjà calculé.
 
 ```qlang
 let memo: map<int, int> = {}
@@ -91,7 +111,7 @@ end
 print(fib(80))     -- instantané grâce au cache
 ```
 
-Dictionnaires imbriqués
+## Dictionnaires imbriqués
 
 ```qlang
 let annuaire: map<string, map<string, string>> = {
@@ -104,7 +124,9 @@ if ada != none then
 end
 ```
 
-Égalité : indépendante de l'ordre
+## Égalité
+
+Elle ne dépend pas de l'ordre.
 
 ```qlang
 print({ "a": 1, "b": 2 } == { "b": 2, "a": 1 })
@@ -112,6 +134,6 @@ print({ "a": 1, "b": 2 } == { "b": 2, "a": 1 })
 
 ## À retenir
 
-- d[clé] renvoie V? (none si absent) ; d.get(clé, défaut) renvoie V.
-- for k, v in d parcourt dans l'ordre d'insertion.
+- `d[clé]` renvoie `V?` (`none` si la clé est absente) ; `d.get(clé, défaut)` renvoie `V`.
+- `for k, v in d` parcourt dans l'ordre d'insertion.
 - Parfait pour compter, regrouper, indexer, mettre en cache.

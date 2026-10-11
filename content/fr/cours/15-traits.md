@@ -4,8 +4,13 @@ title: "Les traits"
 
 # Les traits
 
-Un trait est un CONTRAT : une liste de méthodes qu'un type promet de fournir.
-Des types sans lien entre eux peuvent respecter le même contrat.
+Un trait est un **contrat** : une liste de méthodes qu'un type promet de fournir. Des types
+sans lien entre eux peuvent respecter le même contrat.
+
+## Déclarer un trait et l'implémenter
+
+Le trait ne contient que des signatures. `impl Trait for Type` prouve que le type respecte
+le contrat.
 
 ```qlang
 trait Forme
@@ -15,10 +20,6 @@ end
 
 struct Cercle
   public r: float
-end
-struct Rectangle
-  public l: float
-  public h: float
 end
 
 impl Forme for Cercle
@@ -30,20 +31,16 @@ impl Forme for Cercle
   end
 end
 
-impl Forme for Rectangle
-  public fun aire(self) -> float
-    self.l * self.h
-  end
-  public fun nom(self) -> string
-    "rectangle"
-  end
-end
+let c = Cercle { r: 2.0 }
+print("{c.nom()} d'aire {c.aire()}")
 ```
 
-Un trait sert de type : on traite toutes les formes pareil
+## Un trait sert de type
+
+On peut traiter toutes les formes de la même façon : un trait s'utilise comme type de
+paramètre, de variable ou d'élément de tableau.
 
 ```qlang
--- (défini plus haut dans ce chapitre)
 trait Forme
   fun aire(self) -> float
   fun nom(self) -> string
@@ -95,7 +92,9 @@ end
 print(plus_grande(formes).nom())
 ```
 
-On peut implémenter un trait pour des types existants (int, string...)
+## Implémenter un trait pour un type existant
+
+On peut le faire pour `int`, `string`…
 
 ```qlang
 trait Decrivable
@@ -117,7 +116,7 @@ print("salut".decrire())
 
 ## À retenir
 
-- trait = signatures seulement ; impl Trait for Type = la preuve que le type
-  respecte le contrat.
+- `trait` = des signatures seulement ; `impl Trait for Type` = la preuve que le type respecte
+  le contrat.
 - Un trait est utilisable comme type de paramètre ou d'élément de tableau.
-- Limites actuelles : pas de méthode par défaut dans un trait.
+- Limite actuelle : pas de méthode par défaut dans un trait.
