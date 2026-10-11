@@ -11,6 +11,9 @@ npm install
 QLANG_REPO=../qlang npm run dev     # use a local build of qlang (see below)
 ```
 
+The site is published on GitHub Pages (https://quenti77.github.io/qlang-learn/) by `.github/workflows/pages.yml`
+when `main` changes. To use a newer qlang, change `QLANG_VERSION` (a release that publishes `qlang.wasm`).
+
 `npm run sync` puts `qlang.wasm` and `qlang.mjs` in place: from a local checkout of qlang
 (`QLANG_REPO=../qlang`, after `cargo build --profile wasm --target wasm32-unknown-unknown -p qlang-wasm`
 there), or, without it, from the release named in `QLANG_VERSION`.
