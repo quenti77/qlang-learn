@@ -46,6 +46,7 @@ print("Line 1\nLine 2")
 qlang errors tell you the line and column of the problem. Run this one, where the closing quote
 is missing:
 
+<!-- expect-error -->
 ```qlang
 print("Hello)
 ```

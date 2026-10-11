@@ -10,6 +10,27 @@ function describe(d) {
   return `${where}${d.code}: ${d.message}${notes}`;
 }
 
+// Files that the examples of the page import: ```qlang-module blocks whose first line is `-- file: path`.
+const modules = {};
+
+function moduleWidget(block) {
+  const [first, ...rest] = block.textContent.replace(/\n$/, '').split('\n');
+  const path = first.replace(/^--\s*file:\s*/, '').trim();
+  const source = rest.join('\n');
+  modules[path] = source;
+  const root = document.createElement('div');
+  root.className = 'qlang-widget module';
+  root.innerHTML = `
+    <div class="head"><span class="tag" data-testid="module-name"></span></div>
+    <textarea data-testid="module-code" spellcheck="false" readonly aria-label=""></textarea>`;
+  root.querySelector('.tag').textContent = path;
+  const area = root.querySelector('textarea');
+  area.setAttribute('aria-label', path);
+  area.value = source;
+  area.rows = Math.max(2, source.split('\n').length);
+  block.closest('pre').replaceWith(root);
+}
+
 function widget(block) {
   const original = block.textContent.replace(/\n$/, '');
   const root = document.createElement('div');
@@ -49,7 +70,7 @@ function widget(block) {
     runButton.disabled = true;
     runButton.textContent = text('running');
     const lines = stdin.value === '' ? [] : stdin.value.split('\n');
-    const result = await run({ files: { 'main.q': code.value }, input: lines });
+    const result = await run({ files: { ...modules, 'main.q': code.value }, input: lines });
     runButton.disabled = false;
     runButton.textContent = text('run');
     if (result.stopped) {
@@ -79,5 +100,6 @@ function widget(block) {
   block.closest('pre').replaceWith(root);
 }
 
+for (const block of document.querySelectorAll('pre > code.language-qlang-module')) moduleWidget(block);
 for (const block of document.querySelectorAll('pre > code.language-qlang')) widget(block);
 document.documentElement.dataset.ready = 'true';

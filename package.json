@@ -10,7 +10,8 @@
     "build": "npm run sync && astro build",
     "preview": "astro preview",
     "test:e2e": "playwright test",
-    "check-content": "node scripts/check-content.mjs"
+    "check-content": "node scripts/check-content.mjs",
+    "verify-lessons": "node scripts/verify-lessons.mjs"
   },
   "dependencies": {
     "@playwright/test": "^1.64.0",

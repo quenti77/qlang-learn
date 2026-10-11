@@ -113,3 +113,4 @@ nav.pager a:hover { border-color: var(--accent); }
 .qlang-widget output::before { content: attr(data-label); display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.55; margin-bottom: 0.25rem; font-family: ui-sans-serif, system-ui, sans-serif; }
 .qlang-widget .error { color: var(--err); }
 .qlang-widget .muted { opacity: 0.6; }
+.qlang-widget.module textarea { background: var(--code-bg); color: var(--muted); cursor: default; }

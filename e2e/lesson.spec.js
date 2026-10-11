@@ -141,3 +141,26 @@ test('lesson pages have previous and next links that exist', async ({ page }) =>
     expect(res.ok(), href).toBe(true);
   }
 });
+
+test('a lesson can import files shown on the page', async ({ page }) => {
+  await page.goto('/fr/cours/20-modules/');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await expect(page.getByTestId('module-name')).toHaveText('lib/maths.q');
+  const run = page.locator('.qlang-widget').nth(1);
+  await run.getByTestId('run').click();
+  await expect(run.getByTestId('output')).toContainText('[maths.q chargé]');
+  await expect(run.getByTestId('output')).toContainText('5');
+});
+
+test('every lesson page runs its first example', async ({ page, request }) => {
+  const home = await (await request.get('/fr/')).text();
+  const links = [...home.matchAll(/href="(\/fr\/cours\/[^"]+)"/g)].map((m) => m[1]);
+  expect(links.length).toBeGreaterThanOrEqual(28);
+  for (const href of [...new Set(links)]) {
+    await page.goto(href);
+    await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+    const first = page.locator('.qlang-widget:not(.module)').first();
+    await first.getByTestId('run').click();
+    await expect(first.getByTestId('output'), href).not.toBeEmpty();
+  }
+});

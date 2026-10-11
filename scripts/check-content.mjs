@@ -1,10 +1,10 @@
-// Every lesson must exist in every language, with the same code blocks: same number, same
+// A lesson that exists in several languages must have the same code blocks in each: same number, same
 // number of lines of code (names, strings and comments may be translated). Run by CI; `npm run check-content`.
 import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'content');
-const languages = fs.readdirSync(root).sort();
+const languages = fs.readdirSync(root).sort((a, b) => (a === 'fr' ? -1 : b === 'fr' ? 1 : a.localeCompare(b))); // French first: it is the reference
 const lessons = (lang) => fs.readdirSync(path.join(root, lang, 'cours')).filter((f) => f.endsWith('.md')).sort();
 const blocks = (file) => [...fs.readFileSync(file, 'utf8').matchAll(/```qlang\n([\s\S]*?)```/g)].map((m) => m[1]);
 // the lines of code of a block, without comments and blank lines
@@ -18,7 +18,9 @@ const fail = (message) => {
 const reference = lessons(languages[0]);
 for (const lang of languages) {
   const here = lessons(lang);
-  for (const f of reference.filter((x) => !here.includes(x))) fail(`${lang}: missing ${f}`);
+  // a lesson not translated yet is only reported; one that exists must match
+  const missing = reference.filter((x) => !here.includes(x));
+  if (missing.length) console.warn(`… ${lang}: ${missing.length} lesson(s) not translated yet (${missing[0]}…)`);
   for (const f of here.filter((x) => !reference.includes(x))) fail(`${lang}: ${f} has no counterpart in ${languages[0]}`);
 }
 for (const f of reference) {

@@ -31,6 +31,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check-content
+      - run: npm run sync
+        env:
+          QLANG_REPO: qlang
+      - run: npm run verify-lessons
       - run: npx playwright install --with-deps chromium firefox
       - run: npx playwright test
         env:

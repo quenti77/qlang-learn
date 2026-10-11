@@ -46,6 +46,7 @@ print("Ligne 1\nLigne 2")
 Les erreurs de qlang indiquent la ligne et la colonne du problème. Essaie d'exécuter ceci, où le
 guillemet fermant est oublié :
 
+<!-- expect-error -->
 ```qlang
 print("Bonjour)
 ```
