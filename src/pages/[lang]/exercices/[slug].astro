@@ -1,0 +1,30 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { languages, t } from '../../../i18n/index.js';
+import { exerciseSeries } from '../../../content.js';
+
+export function getStaticPaths() {
+  return languages.flatMap((lang) => exerciseSeries(lang).map((s) => ({ params: { lang, slug: s.slug } })));
+}
+const { lang, slug } = Astro.params;
+const all = exerciseSeries(lang);
+const index = all.findIndex((s) => s.slug === slug);
+const series = all[index];
+const previous = all[index - 1];
+const next = all[index + 1];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const { Content } = series;
+---
+<Base lang={lang} title={series.title} slug={slug} section="exercices">
+  <div class="layout single">
+    <div>
+      <article data-series={slug}>
+        <Content />
+      </article>
+      <nav class="pager" aria-label="Navigation">
+        {previous ? <a href={`${base}/${lang}/exercices/${previous.slug}/`}>← {previous.title}</a> : <a href={`${base}/${lang}/exercices/`}>← {t(lang, 'exercises.title')}</a>}
+        {next ? <a href={`${base}/${lang}/exercices/${next.slug}/`}>{next.title} →</a> : <span />}
+      </nav>
+    </div>
+  </div>
+</Base>

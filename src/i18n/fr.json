@@ -17,5 +17,22 @@
   "stopped.crash": "Le moteur qlang a rencontré un problème et a été relancé. Recommence.",
   "loading": "Chargement de qlang…",
   "previous": "Chapitre précédent",
-  "next": "Chapitre suivant"
+  "next": "Chapitre suivant",
+  "nav.lessons": "Cours",
+  "nav.exercises": "Exercices",
+  "exercises.intro": "Complète le code de chaque exercice, puis clique sur « Vérifier » : les tests s'exécutent après ton code. Ta progression est enregistrée dans ce navigateur.",
+  "exercises.none": "Les exercices ne sont pas encore disponibles dans cette langue.",
+  "exercises.title": "Exercices",
+  "exercise.check": "Vérifier",
+  "exercise.checking": "Vérification…",
+  "exercise.done": "Réussi ✓",
+  "exercise.todo": "À faire",
+  "exercise.passed": "Bravo, tous les tests passent !",
+  "exercise.failed": "Test échoué",
+  "exercise.tests": "Tests (exécutés après ton code)",
+  "exercise.solution.show": "Voir la solution",
+  "exercise.solution.hide": "Masquer la solution",
+  "exercise.solution.title": "Solution",
+  "progress.reset": "Effacer ma progression",
+  "progress.confirm": "Effacer toute ta progression dans ce navigateur ?"
 }

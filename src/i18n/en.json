@@ -17,5 +17,22 @@
   "stopped.crash": "The qlang engine had a problem and was restarted. Try again.",
   "loading": "Loading qlang…",
   "previous": "Previous lesson",
-  "next": "Next lesson"
+  "next": "Next lesson",
+  "nav.lessons": "Lessons",
+  "nav.exercises": "Exercises",
+  "exercises.intro": "Complete the code of each exercise, then click \"Check\": the tests run after your code. Your progress is saved in this browser.",
+  "exercises.none": "The exercises are not available in this language yet.",
+  "exercises.title": "Exercises",
+  "exercise.check": "Check",
+  "exercise.checking": "Checking…",
+  "exercise.done": "Done ✓",
+  "exercise.todo": "To do",
+  "exercise.passed": "Well done, all the tests pass!",
+  "exercise.failed": "Test failed",
+  "exercise.tests": "Tests (run after your code)",
+  "exercise.solution.show": "Show the solution",
+  "exercise.solution.hide": "Hide the solution",
+  "exercise.solution.title": "Solution",
+  "progress.reset": "Erase my progress",
+  "progress.confirm": "Erase all your progress in this browser?"
 }

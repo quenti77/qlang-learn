@@ -37,5 +37,30 @@ for (const lang of fs.readdirSync(content)) {
     }
   }
 }
+// exercises: the solution passes the tests; the starter code compiles but fails them
+let exercises = 0;
+for (const lang of fs.readdirSync(content)) {
+  const dir = path.join(content, lang, 'exercices');
+  if (!fs.existsSync(dir)) continue;
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort()) {
+    const text = fs.readFileSync(path.join(dir, file), 'utf8');
+    const re = /```qlang-exercise\n([\s\S]*?)```\s*```qlang-tests\n([\s\S]*?)```\s*```qlang-solution\n([\s\S]*?)```/g;
+    for (const [, starter, tests, solution] of text.matchAll(re)) {
+      exercises++;
+      const attempt = (code) => qlang.handle({ files: { 'main.q': code + '\n' + tests }, input: [], limits: { max_steps: 20_000_000, max_depth: 250 } });
+      const good = attempt(solution);
+      const bad = attempt(starter);
+      const first = tests.split('\n')[0];
+      if (!good.ok) {
+        problems++;
+        console.error(`✗ ${lang}/exercices/${file}: the solution fails its tests (${good.diagnostics[0]?.message}) near ${first}`);
+      }
+      if (bad.ok || bad.phase === 'compile') {
+        problems++;
+        console.error(`✗ ${lang}/exercices/${file}: the starter code ${bad.ok ? 'passes' : 'does not compile'} near ${first}`);
+      }
+    }
+  }
+}
 if (problems) process.exit(1);
-console.log(`lessons ok: ${blocks} blocks run`);
+console.log(`lessons ok: ${blocks} blocks run, ${exercises} exercises checked`);

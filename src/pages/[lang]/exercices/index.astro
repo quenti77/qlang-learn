@@ -1,0 +1,28 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { languages, t } from '../../../i18n/index.js';
+import { exerciseSeries } from '../../../content.js';
+
+export function getStaticPaths() {
+  return languages.map((lang) => ({ params: { lang } }));
+}
+const { lang } = Astro.params;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const all = exerciseSeries(lang);
+---
+<Base lang={lang} title={t(lang, 'exercises.title')} section="exercices">
+  <section class="home-lessons" style="padding-top: 2rem">
+    <h1>{t(lang, 'exercises.title')}</h1>
+    {all.length === 0 ? <p>{t(lang, 'exercises.none')}</p> : (
+      <>
+        <p>{t(lang, 'exercises.intro')}</p>
+        <ol class="lesson-list">
+          {all.map((s) => (
+            <li><a href={`${base}/${lang}/exercices/${s.slug}/`}><span class="n">{s.slug.slice(0, 2)}</span><span>{s.title}</span><span class="series-count" data-progress-series={s.slug} data-total={s.count}>0/{s.count}</span></a></li>
+          ))}
+        </ol>
+        <p><button type="button" class="link-button" data-testid="reset-progress">{t(lang, 'progress.reset')}</button></p>
+      </>
+    )}
+  </section>
+</Base>
