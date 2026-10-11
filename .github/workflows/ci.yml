@@ -25,6 +25,7 @@ jobs:
           workspaces: qlang
       - run: cargo build --profile wasm --target wasm32-unknown-unknown -p qlang-wasm
         working-directory: qlang
+      - run: find . -name 'qlang_wasm.wasm' -not -path './node_modules/*'
       - uses: actions/setup-node@v4
         with:
           node-version: 22
