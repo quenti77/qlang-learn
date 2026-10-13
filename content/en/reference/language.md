@@ -1395,8 +1395,40 @@ end
 print(Post { title: "Hello", views: 42 }.to_json())  -- {"title":"Hello","views":42}
 ```
 
-`json_array(items)` does the same for an array. `int`, `float`, `bool` and
-`string` already implement `ToJson`.
+`json_array(items)` does the same for an array. `int`, `float`, `bool`,
+`string`, `uuid`, `ulid` and `datetime` already implement `ToJson`; so does
+`array<T>`, as soon as `T` does, so an `array<Post>` serializes as it is as
+the value of a `json_object`, with no need to call `json_array` by hand:
+
+```
+struct Post
+  public title: string
+  public comments: array<Comment>
+end
+
+impl ToJson for Post
+  public fun to_json(self) -> string
+    json_object({ "title": self.title, "comments": self.comments })
+  end
+end
+```
+
+**Composing with inheritance.** `to_json` returns already-closed text
+(`"{...}"`), so a substructure that adds fields does not need to repeat the
+parent's: `json_merge` combines two already-serialized JSON objects, and
+`super.to_json()` gives the parent's.
+
+```
+struct AdminEntity extends UserEntity
+  public role: string
+end
+
+impl ToJson for AdminEntity
+  public fun to_json(self) -> string
+    json_merge(super.to_json(), json_object({ "role": self.role }))
+  end
+end
+```
 
 **Decoding.** `Json.parse(text)` returns a `Result<Json, Error>`: a tree of
 JSON values (string, number, bool, `null`, array, object), read with
