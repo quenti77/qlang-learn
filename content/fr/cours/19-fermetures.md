@@ -1,8 +1,8 @@
 ---
-title: "Fonctions avancées — fermetures (closures)"
+title: "Fonctions avancées : fermetures (closures)"
 ---
 
-# Fonctions avancées — fermetures (closures)
+# Fonctions avancées : fermetures (closures)
 
 Une fonction anonyme **se souvient** des variables autour d'elle, même après que la
 fonction qui l'a créée soit terminée. On appelle ça une *fermeture* (*closure*).

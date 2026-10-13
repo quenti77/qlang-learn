@@ -1,8 +1,8 @@
 ---
-title: "Advanced functions — closures"
+title: "Advanced functions: closures"
 ---
 
-# Advanced functions — closures
+# Advanced functions: closures
 
 An anonymous function **remembers** the variables around it, even after the function that
 created it has finished. This is called a *closure*.

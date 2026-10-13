@@ -1,8 +1,8 @@
 ---
-title: "Algorithmes — nombres et textes"
+title: "Algorithmes : nombres et textes"
 ---
 
-# Algorithmes — nombres et textes
+# Algorithmes : nombres et textes
 
 ## Les nombres premiers
 

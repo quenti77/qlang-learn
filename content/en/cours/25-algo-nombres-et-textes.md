@@ -1,8 +1,8 @@
 ---
-title: "Algorithms — numbers and texts"
+title: "Algorithms: numbers and texts"
 ---
 
-# Algorithms — numbers and texts
+# Algorithms: numbers and texts
 
 ## Prime numbers
 

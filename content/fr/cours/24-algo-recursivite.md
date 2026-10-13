@@ -1,8 +1,8 @@
 ---
-title: "Algorithmes — récursivité et diviser pour régner"
+title: "Algorithmes : récursivité et diviser pour régner"
 ---
 
-# Algorithmes — récursivité et diviser pour régner
+# Algorithmes : récursivité et diviser pour régner
 
 La récursivité résout un problème en le ramenant à un problème plus petit, jusqu'à un cas
 de base.

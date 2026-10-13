@@ -1,8 +1,8 @@
 ---
-title: "Algorithms — searching and sorting"
+title: "Algorithms: searching and sorting"
 ---
 
-# Algorithms — searching and sorting
+# Algorithms: searching and sorting
 
 An algorithm is a precise method for solving a problem. We compare algorithms by their
 **cost**: how many steps for `n` elements?

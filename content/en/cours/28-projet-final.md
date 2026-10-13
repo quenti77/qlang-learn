@@ -1,8 +1,8 @@
 ---
-title: "Final project — a task manager"
+title: "Final project: a task manager"
 ---
 
-# Final project — a task manager
+# Final project: a task manager
 
 We put together everything we have seen: `struct`, `enum`, traits, `map`, sorting, `match`,
 operator overloading, closures and tests.

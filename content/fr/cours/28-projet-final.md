@@ -1,8 +1,8 @@
 ---
-title: "Projet final — gestionnaire de tâches"
+title: "Projet final : gestionnaire de tâches"
 ---
 
-# Projet final — gestionnaire de tâches
+# Projet final : gestionnaire de tâches
 
 On assemble tout ce qu'on a vu : `struct`, `enum`, trait, `map`, tri, `match`, surcharge
 d'opérateurs, fermetures et tests.

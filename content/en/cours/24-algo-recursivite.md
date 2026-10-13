@@ -1,8 +1,8 @@
 ---
-title: "Algorithms — recursion and divide and conquer"
+title: "Algorithms: recursion and divide and conquer"
 ---
 
-# Algorithms — recursion and divide and conquer
+# Algorithms: recursion and divide and conquer
 
 Recursion solves a problem by reducing it to a smaller problem, down to a base case.
 

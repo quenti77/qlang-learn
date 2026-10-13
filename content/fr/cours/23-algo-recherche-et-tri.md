@@ -1,8 +1,8 @@
 ---
-title: "Algorithmes — recherche et tri"
+title: "Algorithmes : recherche et tri"
 ---
 
-# Algorithmes — recherche et tri
+# Algorithmes : recherche et tri
 
 Un algorithme est une méthode précise pour résoudre un problème. On compare les algorithmes
 par leur **coût** : combien d'étapes pour `n` éléments ?
