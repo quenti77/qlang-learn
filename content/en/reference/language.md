@@ -675,6 +675,52 @@ impl Point
 end
 ```
 
+### The name of the type: `.class`
+
+`Point.class` gives the name of a structure or an enumeration, as text, at
+compile time:
+
+```
+print(Point.class) --> "Point"
+```
+
+`value.class()` gives the same name, but at run time, from a concrete
+value. It is especially useful when the static type of `value` does not
+tell the whole story: a generic parameter bound by a trait (`T: Nameable`),
+or a variable typed by a trait, can hide different concrete types depending
+on the call:
+
+```
+trait Nameable
+  fun name(self) -> string
+end
+
+struct Dog
+  public n: string
+end
+
+impl Nameable for Dog
+  public fun name(self) -> string
+    self.n
+  end
+end
+
+struct Holder<T: Nameable>
+  public item: T
+end
+
+impl<T: Nameable> Holder<T>
+  public fun describe(self) -> string
+    "{self.item.class()}: {self.item.name()}"
+  end
+end
+
+print(Holder<Dog> { item: Dog { n: "Rex" } }.describe()) --> "Dog: Rex"
+```
+
+If a type defines its own `class` method, that one is called instead:
+`.class()` is a default behavior, not a reserved word.
+
 ---
 
 ## 10. Traits and operator overloading
@@ -878,17 +924,30 @@ Without a bound, you cannot use `+` on a `T`. The basic types respect the operat
 
 ### Inference
 
-Types are deduced from the arguments when possible. Otherwise you write them explicitly:
+Types are deduced from the arguments when possible. What is left undetermined after
+the arguments is then deduced from the **expected type**: that of an annotated `let`,
+or the declared return type of the current function (for a `return` or the last
+expression of the body):
 
 ```
 let a = sum(1, 2)
 let b = sum<float>(1.0, 2.0)
 let c: array<array<int>> = [[1], [2, 3]]
 let d = Box<int>.new(1)
+
+fun empty<T>() -> array<T>
+  []
+end
+
+let e: array<int> = empty()        -- T comes from the expected type, not an argument
+
+fun get() -> Result<int, Error>
+  Result.ok(1)                     -- T and E come from the return type of `get`
+end
 ```
 
-If a type cannot be deduced (`let xs = []`), the compiler asks for it:
-`let xs: array<int> = []`.
+If nothing lets a type be deduced (neither the arguments nor the context), the
+compiler asks for it explicitly: `let xs: array<int> = []`.
 
 ---
 
@@ -1231,6 +1290,247 @@ end
   last day (31 January + 1 month = 28 or 29 February).
 - **Errors**: `datetime.of(2026, 2, 29)` (a date that does not exist) is an `R064` error;
   going outside the years 1 to 9999 (`add_days`…) is an `R065` error.
+
+### Regular expressions
+
+The `regex` namespace offers the usual regular expression operations, from two
+strings (`text`, `pattern`):
+
+```
+print(regex.matches("hello world", "wor.d"))          --> true
+print(regex.find("hello world", "w\\w+"))             --> "world"
+print(regex.find_all("a1 b2 c3", "\\d"))               --> ["1", "2", "3"]
+print(regex.replace("a1 b2", "\\d", "#"))              --> "a# b2"
+print(regex.replace_all("a1 b2", "\\d", "#"))          --> "a# b#"
+print(regex.split("a,b,,c", ","))                     --> ["a", "b", "", "c"]
+```
+
+A qlang string only allows the escapes `\n \t \r \0 \\ \" \{ \}`: a `\d` or
+`\w` from the regex syntax must be written `\\d`, `\\w`... in the pattern
+text (a single literal `\` in the string).
+
+`regex.captures(text, pattern)` gives the groups of the first match
+(`array<string?>?`): index 0 is the whole match, 1 and up the `(...)`
+groups. `none` if `pattern` does not match at all; a group that did not
+participate (inside a `?` or a branch not taken) is `none` too.
+
+```
+let caps = regex.captures("2026-10-13", "(\\d+)-(\\d+)-(\\d+)")
+if caps != none then
+  print(caps[1])  --> "2026"
+end
+```
+
+An invalid regular expression syntax is an `R070` error: it is a programming
+mistake (like a date that does not exist), not a condition to recover from
+with `Result`.
+
+### Prelude: `Result` and `Error`
+
+Two types are available in every file, **without an `import`**:
+
+```
+struct Error
+  public message: string
+end
+
+struct Result<T, E>
+  -- data and err are private: access them with the methods below
+end
+```
+
+`Result<T, E>` represents either a value (`ok`) or an error (`err`):
+
+```
+fun divide(a: int, b: int) -> Result<int, Error>
+  if b == 0 then
+    return Err(Error { message: "division by zero" })
+  end
+  Ok(a div b)
+end
+
+let r = divide(10, 0)
+if r.is_err() then
+  print(r.unwrap_err().message)
+else
+  print(r.unwrap())
+end
+```
+
+- `Ok(value)` and `Err(error)` build the result; `T` and `E` are deduced from
+  context (here, the return type of `divide`). When nothing lets them be
+  deduced, write them explicitly on the type: `Result<int, Error>.ok(value)`
+  / `Result<int, Error>.err(error)` (no `?` propagation sugar: you unwrap by
+  hand).
+- `is_ok()`, `is_err()`: know which of the two cases you have.
+- `unwrap()`, `unwrap_err()`: read the value or the error, or stop the
+  program (`panic`) if you picked the wrong case.
+- `Result`/`Error` are ordinary declarations: a structure `Error` (or
+  `Result`) that you write yourself in your own file **shadows** the
+  prelude's, exactly like a local variable shadows a variable of wider
+  scope.
+
+### Prelude: JSON
+
+**Encoding.** The `ToJson` trait describes a type that knows how to turn
+itself into JSON text:
+
+```
+trait ToJson
+  fun to_json(self) -> string
+end
+```
+
+A structure implements it by listing the fields it wants to expose with
+`json_object` (the values are themselves serialized through their own
+`to_json()`: `int`, `float`, `bool`, `string`, or any nested `ToJson`):
+
+```
+impl ToJson for Post
+  public fun to_json(self) -> string
+    json_object({ "title": self.title, "views": self.views })
+  end
+end
+
+print(Post { title: "Hello", views: 42 }.to_json())  -- {"title":"Hello","views":42}
+```
+
+`json_array(items)` does the same for an array. `int`, `float`, `bool` and
+`string` already implement `ToJson`.
+
+**Decoding.** `Json.parse(text)` returns a `Result<Json, Error>`: a tree of
+JSON values (string, number, bool, `null`, array, object), read with
+`is_string()`/`as_string()` (and the `number`, `bool`, `array`, `object`
+equivalents), `get(key)` (on an object, returns a `Json?`) and `at(index)`
+(on an array):
+
+```
+let r = Json.parse("\{\"name\": \"Zoe\"\}")
+if r.is_err() then
+  print(r.unwrap_err().message)
+else
+  let j = r.unwrap()
+  let name = j.get("name")
+  if name != none then
+    print(name.as_string())
+  end
+end
+```
+
+There is **no automatic conversion** between a decoded `Json` and a
+user-defined structure (qlang has no reflection or `derive` macros): to
+rebuild a `Post` from a `Json`, write your own static method that reads the
+fields one by one, for example `Post.from_json(json: Json) -> Result<Post,
+Error>` (a convention, not an interface the language imposes, like `new`).
+
+### Prelude: `http`
+
+`http.send(req)` sends an HTTP request and waits for the response. `Request`
+and `Response` are provided by the prelude (no need to declare them):
+
+```
+struct Request
+  public method: string
+  public url: string
+  public headers: map<string, string> = {}
+  public body: string? = none
+end
+
+struct Response
+  public status: int
+  public body: string
+end
+```
+
+Needs network access on the host side: a host that does not offer it (a
+sandbox, for example) fails the check before the program even runs.
+
+```
+let req = Request { method: "GET", url: "https://example.com" }
+let r = http.send(req)
+if r.is_err() then
+  print(r.unwrap_err().message)
+else
+  print(r.unwrap().status)
+end
+```
+
+A connection error (DNS, timeout, connection refused...) gives a
+`Result::err`, never a program crash: the network is inherently unreliable,
+so always recoverable, like `int.parse` or `Json.parse`. `headers` and
+`body` have a default value, so a simple `GET` request only needs `method`
+and `url`.
+
+```
+let res = http.send(Request {
+  method: "POST",
+  url: "https://example.com/items",
+  headers: { "Content-Type": "application/json" },
+  body: "\{\"name\": \"Rex\"\}",
+})
+```
+
+### Prelude: `Db`
+
+`Db.connect(url)` opens a database connection; the URL's scheme picks the
+driver: `sqlite://path/to/file.db`, or
+`postgres://user:password@host/database`. For Postgres over TLS, add
+`?sslmode=require` (or `prefer`/`verify-ca`/`verify-full`, they are treated
+the same here): `postgres://user:pass@host/database?sslmode=require`. The
+server's certificate is always verified against the public authorities
+(Mozilla); a self-signed certificate or a private authority are not
+accepted without host-side configuration.
+
+```
+let c = Db.connect("sqlite://data.db")
+if c.is_err() then
+  print(c.unwrap_err().message)
+else
+  let db = c.unwrap()
+  let r = db.execute("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, name TEXT)", [])
+  db.execute("INSERT INTO people (name) VALUES (?)", [Json.string("Rex")])
+
+  let rows = db.query("SELECT id, name FROM people", [])
+  if rows.is_ok() then
+    for row in rows.unwrap() do
+      print(row.get("name", Json.null()).as_string())
+    end
+  end
+  db.close()
+end
+```
+
+- **`query(sql, params)`** returns `Result<array<map<string, Json>>, Error>`: one row
+  per result, each column becoming a `Json` value (so `row.get("col", ...)` or
+  `row["col"]`, then `as_string()`/`as_number()`/`as_bool()`).
+- **`execute(sql, params)`** (for `INSERT`/`UPDATE`/`DELETE`/DDL) returns
+  `Result<int, Error>`: the number of rows affected.
+- **`params`** is an `array<Json>` (`Json.string(...)`, `Json.number(...)`...): these
+  values replace the `?` in `sql`, in order. The question mark `?` is always the
+  syntax to write, whichever engine is used; towards Postgres, qlang rewrites it
+  itself into `$1, $2...`.
+- **`close()`** closes the connection; `Result<bool, Error>`.
+- **`begin()`**, **`commit()`** and **`rollback()`**: a transaction (`Result<bool,
+  Error>`). The statements between `begin()` and `commit()`/`rollback()` are grouped;
+  `rollback()` undoes everything done since `begin()`.
+
+```
+db.begin()
+db.execute("UPDATE accounts SET balance = balance - 100 WHERE id = ?", [Json.number(1.0)])
+db.execute("UPDATE accounts SET balance = balance + 100 WHERE id = ?", [Json.number(2.0)])
+let ok = db.commit()
+if ok.is_err() then
+  db.rollback()
+end
+```
+
+- A connection or query error (invalid SQL, missing table...) gives a
+  `Result::err`, never a program crash, same as `http.send`.
+- Needs database access on the host side, same as `http`.
+- **Current limits**: on the Postgres side, only the common scalar types (`bool`,
+  integers, floats, text) are properly converted, others (date, uuid, json,
+  array...) fall back to text if possible, otherwise `none`; no SQLite BLOB
+  (becomes `none`); no connection pool nor cached prepared statements.
 
 ## 15. Line endings
 
