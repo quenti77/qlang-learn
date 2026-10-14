@@ -1571,13 +1571,21 @@ struct Request
   public url: string
   public headers: map<string, string> = {}
   public body: string? = none
+  public path: string = ""
+  public query: map<string, string> = {}
+  public params: map<string, string> = {}
 end
 
 struct Response
   public status: int
+  public headers: map<string, string> = {}
   public body: string
 end
 ```
+
+`path`, `query` and `params` are only used for a **received** request (see
+[Answering HTTP requests](#answering-http-requests)); the `headers` of a `Response` give the
+headers received (names in lower case).
 
 Needs network access on the host side: a host that does not offer it (a
 sandbox, for example) fails the check before the program even runs.
@@ -1606,6 +1614,136 @@ let res = http.send(Request {
   body: "\{\"name\": \"Rex\"\}",
 })
 ```
+
+### Answering HTTP requests
+
+A program can also **serve** requests: `qlang serve app.q` listens on a port (8080 by default,
+on `127.0.0.1`), runs the file **once**, then calls its `handle` function for every request it
+receives.
+
+```
+let visits = 0
+
+fun handle(req: Request) -> Response
+  visits += 1
+  match req.path
+    case "/hello" then
+      let name = req.query.get("name", "you")
+      Response.text("Hello {name}!")
+    case "/visits" then
+      Response.json("\{\"visits\": {visits}\}")
+    else
+      Response.not_found()
+  end
+end
+```
+
+```
+qlang serve app.q --port 8080
+curl "http://127.0.0.1:8080/hello?name=Ada"
+```
+
+- **The function** is called exactly `handle`, takes a `Request` and returns a `Response`: the
+  check controls this before starting.
+- **The request**:
+  - `method` (`"GET"`, `"POST"`...);
+  - `url`, the target as it was received (`/items?id=3`), not decoded;
+  - `path`, the **decoded** path (`/items`), and `query`, the **decoded** parameters (`id` is
+    `"3"`; if a name is repeated, the last value wins);
+  - `headers`, whose names are in **lower case**, and `req.header("User-Agent")`, which looks
+    up a header ignoring the case (`string?`);
+  - `body`, the body (`none` if there is none).
+- **The response**: `status` (from 100 to 599), `body`, and optional `headers`. Shortcuts:
+
+  | Call                         | Result                                                      |
+  | ---------------------------- | ----------------------------------------------------------- |
+  | `Response.text(body)`        | status 200, `text/plain; charset=utf-8`                     |
+  | `Response.html(body)`        | status 200, `text/html; charset=utf-8`                      |
+  | `Response.json(text)`        | status 200, `application/json` (you provide the JSON text)  |
+  | `Response.redirect(url)`     | status 302 to `url`                                         |
+  | `Response.not_found()`       | status 404                                                  |
+  | `r.with_status(201)`         | the same response with another status                       |
+  | `r.with_header("X-Id", "7")` | the same response with one more header                      |
+
+  Without a `Content-Type`, the server adds `text/plain; charset=utf-8`. Headers that contain a
+  line break are ignored, and `Content-Length` and `Connection` are handled by the server.
+- **State**: the code of the file runs only once, so `visits` remembers its value from one
+  request to the next, as in a Node server. With a single interpreter (the default), requests
+  are handled **one at a time**: variables never change while `handle` runs.
+- **Errors**: a `panic`, a run-time error or a loop that is too long (step limit, `--max-steps`,
+  **per request**) give a `500 Internal Server Error` response **with no detail** for the
+  client; the detail is written in the server's log (the error output), and the server carries
+  on. A request that waits more than 30 seconds gets `504`.
+- **Capabilities**: the program runs as with `qlang run`: `print`, files, environment
+  variables, `http.send`, `Db`, `import` work (`--root` limits files and imports to a folder).
+  `--seed N` fixes the randomness.
+
+#### The router
+
+When there are several pages, a `Router` avoids a big `match` on the path: you declare the
+routes, then `handle` hands it the request.
+
+```
+let router = Router.new()
+
+router.get("/", fun(req: Request) -> Response
+  Response.text("Home")
+end)
+
+router.get("/items/:id", fun(req: Request) -> Response
+  let id = req.params.get("id", "?")
+  Response.text("Item {id}")
+end)
+
+router.post("/items", fun(req: Request) -> Response
+  Response.text("created").with_status(201)
+end)
+
+fun handle(req: Request) -> Response
+  router.handle(req)
+end
+```
+
+- **Declaring**: `router.get(path, function)`, `post`, `put`, `delete`, or
+  `router.add("PATCH", path, function)` for another method. Each call returns the router, so
+  they can be chained.
+- **The path** is a sequence of segments separated by `/`: a word must be identical, `:name`
+  accepts any **non-empty** segment and puts it in `req.params` (`req.params.get("id", "")`),
+  and a final `*` accepts the rest of the path (`req.params["*"]`). `/items/:id` accepts
+  `/items/3`, not `/items/` nor `/items/3/x`. The first route that matches wins.
+- **No match**: a known path with another method gives `405` with an `Allow` header
+  (`GET, DELETE`); any other path gives `404`, or the function given to
+  `router.fallback(function)`.
+- **`Router.matches(pattern, path)`** returns the parameters (a `map<string, string>?`) if the
+  path matches the pattern, otherwise `none`: handy to check a pattern without a server.
+
+Options of `qlang serve app.q`:
+
+| Option             | Role                                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `--port N`         | the port (8080 by default)                                                              |
+| `--bind ADDRESS`   | the address to listen on (`127.0.0.1` by default: this machine only)                    |
+| `--max-steps N`    | the number of evaluation steps **per request**                                          |
+| `--static FOLDER`  | serves the files of this folder as they are, **before** calling the program             |
+| `--workers N`      | N interpreters (from 1 to 64) that answer in parallel                                   |
+| `--root FOLDER`    | limits `import` and `fs` to this folder                                                 |
+| `--seed N`         | fixes the randomness (each worker takes `N` plus its number)                            |
+
+- **Static files** (`--static public`): for `GET` and `HEAD`, if the path designates a file of
+  the folder (or `index.html` for a folder), it is served with its type (`.html`, `.css`,
+  `.js`, `.json`, `.svg`, `.png`...), without going through the program. A path that leaves the
+  folder (`..`, a symbolic link to the outside) is never served. Everything else goes to the
+  program.
+- **Several workers** (`--workers 4`): each worker runs the file **separately**, with its own
+  variables, and takes requests from a shared queue: a slow request no longer blocks the
+  others. What must be shared (a counter, data) goes in a database or in files, not in a
+  variable.
+- **Stopping**: Ctrl-C or a `TERM` signal stops the server cleanly: requests already accepted
+  get their answer (5 seconds at most), new ones get `503`.
+- **The server** is minimal: HTTP/1.1 with no TLS nor persistent connections, at most 16
+  simultaneous connections, body limited to 1 MB, no chunked requests
+  (`Transfer-Encoding: chunked`). Like `qlang serve` for the JSON protocol, **put it behind a
+  reverse proxy** and do not expose it directly to the Internet.
 
 ### Prelude: `Db`
 
