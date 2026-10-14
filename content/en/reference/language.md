@@ -498,6 +498,24 @@ fun first_positive(xs: array<int>) -> int?
 end
 ```
 
+### Named arguments
+
+A call can name its arguments with `name: value`, in any order:
+
+```
+fun greet(greeting: string, name: string) -> string
+  greeting + " " + name
+end
+
+print(greet(name: "ana", greeting: "hi"))   -- hi ana
+print(greet("hi", name: "ana"))             -- mixing positional and named
+```
+
+Positional arguments must come before named ones, each parameter can only be
+filled once, and every parameter must be given. Named arguments only work for
+calling a function or method declared in qlang code (not native built-ins
+such as `print` or `.sort()`).
+
 ### Anonymous functions
 
 ```
@@ -748,9 +766,39 @@ impl Shape for Circle
 end
 ```
 
-An implementation must define all the methods of the trait, with the same types. For now, a
-trait can neither have a default method nor require another trait. A trait can be
-implemented for any type, including `int`, `string` or `array<T>` (`impl Describe for int`).
+An implementation must define all the methods of the trait, with the same types — except
+those that have a **default method** (see below). A trait can be implemented for any type,
+including `int`, `string` or `array<T>` (`impl Describe for int`).
+
+### Default method
+
+A trait signature can have a body: an implementation that doesn't redefine the method then
+uses that default body.
+
+```
+trait Greeter
+  fun name(self) -> string
+
+  fun greet(self) -> string
+    "Hello, " + self.name() + "!"
+  end
+end
+
+struct Dog
+end
+
+impl Greeter for Dog
+  public fun name(self) -> string
+    "Rex"
+  end
+  -- no `greet`: uses the default behavior
+end
+
+print(Dog { }.greet())   -- Hello, Rex!
+```
+
+Inside the default body, `self` has the type of the trait itself: it can call the trait's
+other methods (abstract or default), but it cannot access fields.
 
 ### A trait as a type
 
@@ -1111,9 +1159,9 @@ global names (`PI`, `min`…) that you might want to use yourself.
 
 ### Dictionaries
 
-A dictionary (`map<K, V>`) associates values with **keys**. Keys are `int`s, `string`s,
-`bool`s or values of an enumeration: types that are compared by value. Keys keep their
-**insertion order**.
+A dictionary (`map<K, V>`) associates values with **keys**. Keys are `int`s, `float`s,
+`string`s, `bool`s or values of an enumeration: types that are compared by value. Keys keep
+their **insertion order**.
 
 ```
 let ages = { "ana": 31, "bob": 27 }
@@ -1163,10 +1211,11 @@ end
 - **Sharing**: like arrays, a dictionary is a shared reference.
 - Dictionaries are shown as `{"ana": 31, "bob": 27}`. Two dictionaries are equal (`==`) if
   they have the same keys with equal values, whatever the insertion order.
-- **Why no `float`, array or structure keys?** A key must always designate the same entry. An
+- **Why no array or structure keys?** A key must always designate the same entry, but an
   array or a structure is a shared reference that can be modified after being stored
-  (`k[0] = 99`), and a `float` is not exact (`0.1 + 0.2 != 0.3`). For coordinates, use a
-  string (`m["{x},{y}"]`) or nested dictionaries.
+  (`k[0] = 99`). For coordinates, use a string (`m["{x},{y}"]`) or nested dictionaries. A
+  `float` is allowed as a key, though: it is compared by its bits (`0.0` and `-0.0` count as
+  the same key).
 - An empty literal `{}` needs a type annotation: `let m = {}` is an error. A literal can
   span several lines and end with a comma.
 - `map` names the type in annotations (`map<string, int>`), but can still be used as the name
@@ -1698,14 +1747,13 @@ The source code itself cannot exceed 200 levels of nesting.
 ## 21. Open points
 
 - **Standard library:** it is deliberately small (see section 14) and will grow with use.
-- **Dictionaries:** no keys of type `float`, array or structure (see above), and no `<`
-  comparison.
+- **Dictionaries:** no keys of type array or structure (see above), and no `<` comparison.
 - **Smallest integer:** `-9223372036854775808` cannot be written as a literal (the unsigned
   digits exceed 64 bits).
 - **Identifiers:** ASCII only (`a-z`, `A-Z`, `0-9`, `_`), whereas strings and comments accept
   all Unicode characters.
-- **Named arguments** (`f(a: 1)`): not planned.
-- **Default methods in traits** and traits that require others: not planned for now.
+- **Traits that require others** (a trait that assumes another is also implemented): not
+  planned for now.
 - **Generic anonymous functions:** not planned.
 - **Format of documentation comments:** the text is free for now. To be planned, depending on
   use: a light format such as `@param` / `@return`, and a documentation page generated from
