@@ -81,7 +81,7 @@ test('the documentation exists in English, and the switch keeps the page', async
 test('the English documentation links between its pages', async ({ page }) => {
   await page.goto('/en/docs/12-values-and-types/');
   await page.getByRole('link', { name: 'section 14' }).click();
-  await expect(page).toHaveURL(/\/en\/docs\/23-input-output-and-the-standard-library\/#dictionaries$/);
+  await expect(page).toHaveURL(/\/en\/docs\/23-standard-library\/#dictionaries$/);
 });
 
 test('installation and usage pages come from the README, with working links', async ({ page }) => {
