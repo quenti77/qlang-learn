@@ -156,7 +156,7 @@ for (const { slug, title, chapter, group } of pages) {
       const target = anchor && pageOfLanguage(anchor);
       return target ? `](../${target.slug}/${chapterAnchors.has(anchor) ? '' : '#' + anchor})` : `](../${pages.find((p) => p.source === 'language').slug}/)`;
     })
-    .replace(/\]\(((?:(?:docs|crates|editors|scripts)\/|\.\.\/(?!\d\d-))[^)#]*|[A-Z][A-Za-z.]+|qlang\.g4|install\.sh)(#[^)]*)?\)/g, (m, file, hash = '') => `](${REPO}/blob/main/${file.replace(/^\.\.\//, '')}${hash})`);
+    .replace(/\]\(((?:(?:docs|crates|editors|scripts|examples)\/|\.\.\/(?!\d\d-))[^)#]*|[A-Z][A-Za-z.]+|qlang\.g4|install\.sh)(#[^)]*)?\)/g, (m, file, hash = '') => `](${REPO}/blob/main/${file.replace(/^\.\.\//, '')}${hash})`);
   // fences come in pairs: the opening one carries the language, the closing one is bare; code with no
   // language is qlang, shown highlighted but not runnable
   let open = false;
