@@ -1000,7 +1000,7 @@ print(math.add(1, 2))
 
 ---
 
-## 14. Input, output and the standard library
+## 14. Standard library
 
 ### Dependence on the environment
 
@@ -1016,6 +1016,9 @@ the **execution environment** (the terminal, a web server…).
   then a compile-time error ("`read` is not available in this environment"). An environment
   can also provide in advance a list of lines that `read()` consumes; when it is used up,
   `read()` causes an error.
+- `fs.read()`/`fs.write()` (disk) and `env.get()`/`env.args()` (environment variables,
+  arguments) also depend on the environment: see
+  [Prelude: files and environment](#prelude-files-and-environment).
 
 ### Built-in functions
 
@@ -1171,6 +1174,10 @@ end
 
 An index out of bounds (`xs[5]` for 3 elements, a negative index) is a run-time error.
 
+---
+
+## 15. Time, identifiers and regular expressions
+
 ### Time and randomness
 
 The core of the language reads neither the clock nor a random source: like `read`, they come
@@ -1325,6 +1332,8 @@ An invalid regular expression syntax is an `R070` error: it is a programming
 mistake (like a date that does not exist), not a condition to recover from
 with `Result`.
 
+## 16. Prelude: `Result`, `Error` and JSON
+
 ### Prelude: `Result` and `Error`
 
 Two types are available in every file, **without an `import`**:
@@ -1455,6 +1464,8 @@ rebuild a `Post` from a `Json`, write your own static method that reads the
 fields one by one, for example `Post.from_json(json: Json) -> Result<Post,
 Error>` (a convention, not an interface the language imposes, like `new`).
 
+## 17. Prelude: network, databases and the system
+
 ### Prelude: `http`
 
 `http.send(req)` sends an HTTP request and waits for the response. `Request`
@@ -1564,7 +1575,43 @@ end
   array...) fall back to text if possible, otherwise `none`; no SQLite BLOB
   (becomes `none`); no connection pool nor cached prepared statements.
 
-## 15. Line endings
+### Prelude: files and environment
+
+`fs.read(path)` reads a file's whole content, `fs.write(path, content)`
+replaces it entirely (creating it if needed). Both return a `Result`: a
+missing file or a permission error gives a `Result::err`, never a program
+crash.
+
+```
+let r = fs.read("config.json")
+if r.is_err() then
+  print(r.unwrap_err().message)
+else
+  print(r.unwrap())
+end
+
+fs.write("output.txt", "content").unwrap()
+```
+
+`env.get(name)` returns the value of an environment variable, or `none` if
+it is not set (`string?`, not a `Result`: a missing variable is a normal
+situation, not an error). `env.args()` returns the program's own arguments
+(`array<string>`).
+
+```
+let lang = env.get("LANG")
+print(lang != none)
+print(env.args())
+```
+
+Needs disk access (`fs`) or access to the process environment (`env`) on
+the host side: a host that does not offer them (a sandbox, for example)
+fails the check before it even runs, same as `http`/`Db`. With `qlang-cli`,
+the arguments after `--` on the command line are the ones `env.args()`
+returns (`qlang run script.q -- a b`), and `fs` honours `--root` the same
+way imports do.
+
+## 18. Line endings
 
 There is no `;`. **A statement ends at the end of the line.** The line continues on the next
 one in these cases:
@@ -1588,7 +1635,7 @@ parentheses: each statement there fits on its line.
 
 ---
 
-## 16. Reserved keywords
+## 19. Reserved keywords
 
 ```
 let const fun return
@@ -1608,7 +1655,7 @@ names, nor the name of a built-in function (`print`, `write`, `read`, `panic`, `
 
 ---
 
-## 17. Errors and limits
+## 20. Errors and limits
 
 **Errors are data.** Each error has a code, a message, a position (file, line, column) and
 sometimes notes. The prefix of the code tells the stage:
@@ -1648,7 +1695,7 @@ The source code itself cannot exceed 200 levels of nesting.
 
 ---
 
-## 18. Open points
+## 21. Open points
 
 - **Standard library:** it is deliberately small (see section 14) and will grow with use.
 - **Dictionaries:** no keys of type `float`, array or structure (see above), and no `<`
