@@ -1106,6 +1106,30 @@ The library is deliberately small, and will grow with use.
 | `min()`, `max()`      | the smallest / largest element, or `none` if empty (`T?`)        |
 | `sum()`               | sum of an array of numbers (`0` or `0.0` if empty)               |
 | `slice(start, end)`   | new array of the elements from `start` (included) to `end` (excluded) |
+| `map(f)`              | new array of `f(element)` for each element                       |
+| `filter(f)`           | new array of the elements for which `f(element)` is `true`       |
+| `reduce(initial, f)`  | reduces the array to one value, combining `initial` then each element with `f(accumulator, element)` |
+| `any(f)`, `all(f)`    | `bool`: at least one element / every element satisfies `f(element)` |
+| `find(f)`             | first element for which `f(element)` is `true`, or `none`        |
+| `each(f)`             | calls `f(element)` for each element, in order                    |
+| `sort_by(f)`          | sorts the array in place with `f(a, b)` as the comparator (negative if `a` comes first, positive otherwise, `0` if equal) |
+| `unique()`            | new array keeping only the first occurrence of each value        |
+| `flatten()`           | new array that flattens an array of arrays (one level only)      |
+| `first()`, `last()`   | first / last element, or `none` if empty (`T?`)                  |
+| `concat(other)`       | new array with the elements of this array then those of `other`  |
+| `take(n)`, `drop(n)`  | new array of the first `n` elements / without the first `n` elements |
+| `swap(i, j)`          | swaps the elements at indexes `i` and `j`, in place              |
+| `chunk(size)`         | splits into consecutive groups of `size` elements (the last one may be smaller) |
+| `repeat(n)`           | new array with the elements repeated `n` times                   |
+
+```
+let names = ["ana", "bob", "cy"]
+print(names.map(fun(s: string) -> int s.len() end))        -- [3, 3, 2]
+print(names.filter(fun(s: string) -> bool s.len() > 2 end)) -- ["ana", "bob"]
+
+let total = [1, 2, 3, 4].reduce(0, fun(acc: int, x: int) -> int acc + x end)
+print(total) -- 10
+```
 
 `string`:
 
@@ -1129,11 +1153,18 @@ The library is deliberately small, and will grow with use.
 | `code()`                                        | Unicode code of a string of **one** character (`"A".code()` is 65)                                                  |
 | `to_int()`, `to_float()`                        | like `int.parse` / `float.parse`: `int?` / `float?`                                                                 |
 | `substring(start, end)`                         | characters from `start` (included) to `end` (excluded)                                                              |
+| `strip_prefix(p)`, `strip_suffix(p)`            | the string without `p` at the start / at the end, or `none` if it does not start / end with `p`                     |
+| `snake_case()`, `camel_case()`, `kebab_case()`  | copy in `snake_case`, `camelCase` or `kebab-case`                                                                   |
+| `title_case()`                                  | copy with each word capitalised, separated by a space                                                               |
+| `eq_ignore_case(other)`                         | `bool`: equality ignoring upper / lower case                                                                        |
 
 `sort`, `min` and `max` need elements that can be compared: numbers, strings, or a structure
 that implements `Ord`. Otherwise it is a compile-time error. `sum` only accepts arrays of
 `int` or `float`. `slice` copies the elements: modifying the result does not change the
-original array.
+original array. `flatten` needs an array of arrays (`array<array<T>>`); otherwise it is a
+compile-time error. `map`, `filter`, `reduce`, `any`, `all`, `find`, `each` and `sort_by` take
+an [anonymous function](#anonymous-functions): its return type does not need to be written if
+it can be deduced from the context.
 
 Numbers:
 
@@ -1145,6 +1176,8 @@ Numbers:
 | `x.pow(y)`                           | `x ** y` (two `int`s give an `int`, two `float`s a `float`)           |
 | `x.sqrt()`                           | square root, a `float` (error if `x` is negative)                     |
 | `f.floor()`, `f.ceil()`, `f.round()` | roundings of a `float`, which return an `int`                         |
+| `n.to_hex()`, `n.to_oct()`, `n.to_bin()` | (`int`) text in base 16 / 8 / 2 (`255.to_hex()` is `"ff"`)         |
+| `f.to_fixed(decimals)`               | (`float`) text with exactly `decimals` digits after the point (0 to 17) |
 | `float.PI`, `float.E`                | mathematical constants                                                |
 | `int.MAX`, `int.MIN`                 | largest / smallest `int`                                              |
 
@@ -1152,6 +1185,8 @@ Numbers:
 print([3, 1, 2].max())             -- 3
 print(float.PI * 2.0 ** 2)         -- 12.566370614359172
 print(16.sqrt())                   -- 4.0
+print(3.14159.to_fixed(2))         -- "3.14"
+print(255.to_hex())                -- "ff"
 ```
 
 These operations are methods and constants attached to the types, so as not to reserve
@@ -1202,6 +1237,16 @@ end
 | `keys()`              | `array<K>` of the keys, in insertion order               |
 | `values()`            | `array<V>` of the values, in the same order              |
 | `clear()`             | empties the dictionary                                   |
+| `merge(other)`        | new dictionary with the entries of both; `other` wins for a common key |
+| `filter(f)`           | new dictionary keeping only the entries where `f(key, value)` is `true` |
+| `map_values(f)`       | new dictionary with the same keys, each value replaced by `f(key, value)` |
+
+```
+let a = { "x": 1, "y": 2 }
+let b = { "y": 20, "z": 3 }
+print(a.merge(b))                                      -- {"x": 1, "y": 20, "z": 3}
+print(a.filter(fun(k: string, v: int) -> bool v > 1 end)) -- {"y": 2}
+```
 
 - **Walking**: `for name, age in ages do … end` gives the key and the value, in insertion
   order. You can also walk only the keys (`for name in ages.keys() do`). Looping over a
