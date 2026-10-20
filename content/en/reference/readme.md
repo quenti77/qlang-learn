@@ -74,6 +74,66 @@ never an absolute path. `--root folder` limits imports to that folder:
 qlang run app/main.q --root .      # imports stay in the current folder
 ```
 
+### Packages
+
+A project lists its dependencies in its `qlang.toml` and imports them with `@name`:
+
+```toml
+[dependencies]
+text = { git = "https://github.com/x/text", tag = "v1.2.0" }
+utils = { path = "../utils" }
+```
+
+```sh
+qlang add mail --git https://github.com/x/mail --tag v1.0.0   # adds and installs
+qlang install        # fetches the git packages into .qlang/packages (commits of qlang.lock)
+qlang update         # moves tags/branches forward, rewrites qlang.lock
+qlang remove mail
+```
+
+```
+import "@text" as t                  -- the main file of the package
+import send from "@mail/send.q"      -- one of its files
+```
+
+Put `.qlang/` in the `.gitignore` and commit `qlang.lock`. See "Packages" in
+[docs/language.md](docs/language.md) for the details.
+
+### Providing `extern fun`s
+
+An `extern fun` is implemented by a **provider**: any program that speaks JSON, one line per
+message, on its standard input and output. It is started once for the whole run. You declare it
+in a `qlang.toml` placed next to the program (or in a parent folder), or with `--extern`:
+
+```toml
+[externs]
+mail = "python3 mail.py"     # started from the folder of the qlang.toml, without a shell
+```
+
+```sh
+qlang run app.q --extern "python3 mail.py"
+```
+
+The provider answers two messages:
+
+```
+→ {"op":"list"}                                    ← {"externs":["mail_send"]}
+→ {"op":"call","name":"mail_send","args":[…]}      ← {"ok":<value>}  or  {"error":"message"}
+```
+
+Values are JSON: a struct or a map is an object (`int` or `bool` keys are written as text), an
+enumeration the name of its variant, a `Json` its value. A name already provided by `qlang`
+(`sql_*`) or by another provider is refused. Starting the commands of a `qlang.toml` amounts to
+running that file, so `qlang` asks first (like `direnv`): in a terminal it shows the commands
+and asks `[y/N]`, then remembers the answer for that file, that name and that command
+(`trusted-externs` in `~/.config/qlang`, or `$QLANG_CONFIG_DIR`); a modified command asks
+again. Without a terminal (server, CI), nothing starts unless you add `--trust-externs`. The
+commands given with `--extern` are yours and ask nothing. The `--json` modes (editors,
+protocol) do not read a `qlang.toml` and start no provider: a check alone (`check --json`, or
+`"mode": "check"`) therefore assumes all `extern fun`s are provided, as it assumes a keyboard
+and a clock, whereas `run --json` refuses them (`T263`); `qlang serve app.q` starts one per
+worker.
+
 ## Architecture
 
 The language is separate from any interface: the core never reads, writes or touches the disk

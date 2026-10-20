@@ -178,6 +178,10 @@ against `none`, combined with `and`, `or` and `not`. An assignment updates it: a
 again. It does not apply to fields (`obj.field`) nor to call results: copy the value into a
 variable first, then test the variable. Comparing to `none` is always allowed.
 
+A variable that a **function or an anonymous function assigns** (`x = ...` in its body,
+without having declared it there) is never narrowed: a call between the test and the use
+could set it back to `none`. Copy its value into a local variable before testing it.
+
 Calling a method or reading a field on a value that may be `none` is a compile-time error.
 
 ### Conversions
@@ -1046,6 +1050,87 @@ print(math.add(1, 2))
   are. Circular imports are refused.
 - You cannot modify an exported variable from another file.
 
+### Packages
+
+A **package** is a folder of `.q` files that you import by name, with an `@`:
+
+```
+import send from "@mail/send.q"      -- a file of the package
+import "@mail" as m                   -- the main file of the package
+```
+
+The packages of a project are declared in its `qlang.toml`, in the `[dependencies]` section:
+
+```toml
+[dependencies]
+mail  = { path = "../mail" }                                      -- a folder (used in place)
+text  = { git = "https://github.com/x/text", tag = "v1.2.0" }     -- a git repository
+```
+
+A git repository is designated by `tag`, `rev` (a commit) or `branch` (with none of them: the
+default branch). `qlang install` fetches it into `.qlang/packages/<name>` (put it in the
+`.gitignore`) at the commit recorded in `qlang.lock`, which it writes if it does not exist and
+which you commit: everyone gets the same files. `qlang update [name…]` moves the packages to
+what their tag or branch now designates; `qlang add name --git URL --tag T` (or `--path DIR`)
+and `qlang remove name` edit `qlang.toml`, then install. A package fetched by git can only
+depend on other git packages, not on a local folder.
+- The name of a package is made of letters, digits, `_` and `-`. A package has its own
+  `qlang.toml`: `[package] main = "src/mail.q"` designates the file that `import "@mail"`
+  loads (`lib.q` by default), and its own `[dependencies]` are installed with the project,
+  flat: a name designates the same folder everywhere, otherwise it is an error.
+- Inside a package, relative imports (`./helper.q`, `../x.q`) stay **inside the package**; it
+  can import other packages with `@name/...`. Error messages name the files `@mail/send.q`.
+- A file whose name starts with `@` is imported by writing `./@x.q`.
+- Packages are not limited by `--root`: it is the project that chooses them.
+- The VS Code extension follows `@name` imports (it asks `qlang packages`, which only reads
+  the `qlang.toml` files).
+- A project without a `qlang.toml` has no packages; environments without a disk (JSON, HTTP,
+  browser) see them as files of the request named `@mail/send.q`.
+
+### Functions provided by the environment (`extern`)
+
+The language cannot do everything by itself (database, network, disk…): the **runtime
+environment** does it. `extern fun` declares a function that the environment provides, with
+its signature but no body:
+
+```
+extern fun sqlite_open(path: string) -> Result<int, Error>
+extern fun sqlite_close(conn: int) -> Result<bool, Error>
+
+export sqlite_open, sqlite_close
+```
+
+An `extern fun` is used and exported like an ordinary `fun`. It calls the environment under
+the name it is declared with (`sqlite_open` here); two modules that declare the same name
+therefore call the same function.
+
+- **Allowed types** in the signature (arguments and return): `int`, `float`, `bool`,
+  `string`, enumerations, `T?`, `array<T>`, `map<K, V>`, `Json`, and the non-generic,
+  parentless, non-recursive structs whose fields are all allowed. Nothing else (functions,
+  traits, `uuid`, `ulid`, `datetime`, generics): `T260`, `T261` or `T262`.
+- **Values are copied**: the environment never receives a reference to an array or a struct
+  of the program, and what it returns is rebuilt from the signature. A struct becomes a table
+  of its fields, an enumeration the name of its variant, `Json` a JSON value.
+- **Errors**: if the signature returns `Result<T, Error>`, a failure of the environment
+  becomes a `Result::err` (like `http.send` or `Db.connect`). Otherwise it stops the program
+  (`R081`).
+- **Availability**: the environment decides which names it provides. Calling an `extern fun`
+  it does not provide is a compile-time error (`T263`), like `read()` without a keyboard;
+  declaring it without calling it costs nothing. A reply that does not match the signature is
+  a run-time error (`R083`).
+- **The names the standard library uses**: `Db` (`sql_connect`, `sql_query`, `sql_execute`,
+  `sql_close`), `fs` (`fs_read(path) -> Result<string, Error>`,
+  `fs_write(path, content) -> Result<bool, Error>`), `env` (`env_get(name) -> string?`,
+  `env_args() -> array<string>`) and `http` (`http_send(req: Request) -> Result<Response,
+  Error>`) are written in qlang in the prelude, on top of these `extern fun`s. An environment
+  that implements them (a provider, or `Host::call`) replaces the disk, the network or the
+  database of these calls, without the language changing.
+- An `extern fun` is only allowed at the top level of a file, not in a block, and cannot be
+  generic. The `qlang` program provides those of `Db` (SQLite and Postgres), and others coming
+  from external programs declared in a `qlang.toml` or with `--extern` (see the
+  [README](../README.md#providing-extern-funs)); a program that embeds the language provides
+  some with `Host::call` and `Host::has_extern` (see `host.rs`).
+
 ---
 
 ## 14. Standard library
@@ -1801,7 +1886,11 @@ end
 
 - A connection or query error (invalid SQL, missing table...) gives a
   `Result::err`, never a program crash, same as `http.send`.
-- Needs database access on the host side, same as `http`.
+- Needs database access on the host side, same as `http`. `Db` is written in qlang on top of
+  four [`extern fun`s](#functions-provided-by-the-environment-extern) (`sql_connect`,
+  `sql_query`, `sql_execute`, `sql_close`) that the host provides: `qlang` provides them for
+  SQLite and Postgres, and another environment can plug its own database under the same
+  names.
 - **Current limits**: on the Postgres side, only the common scalar types (`bool`,
   integers, floats, text) are properly converted, others (date, uuid, json,
   array...) fall back to text if possible, otherwise `none`; no SQLite BLOB
