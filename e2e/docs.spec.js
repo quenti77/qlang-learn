@@ -6,7 +6,7 @@ test('the documentation lists its pages by group and opens one', async ({ page }
   await page.getByTestId('nav-docs').click();
   await expect(page).toHaveURL('/fr/docs/');
   await expect(page.getByRole('heading', { level: 2, name: 'Démarrer' })).toBeVisible();
-  await expect(page.getByRole('heading', { level: 2, name: 'Le langage' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Les fondamentaux' })).toBeVisible();
   const chapter = page.locator('.lesson-list a', { hasText: /^Opérateurs$/ });
   await expect(chapter).toBeVisible();
   await chapter.click();
@@ -73,7 +73,7 @@ test('the documentation exists in English, and the switch keeps the page', async
   await page.getByTestId('switch-language').click();
   await expect(page).toHaveURL('/en/docs/14-operators/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Operators');
-  await expect(page.getByRole('link', { name: 'VS Code extension' })).toBeVisible();
+  await expect(page.locator('.toc a', { hasText: 'VS Code extension' })).toBeAttached();
   await page.getByTestId('switch-language').click();
   await expect(page).toHaveURL('/fr/docs/14-operateurs/');
 });

@@ -1,0 +1,9 @@
+---
+// items: [{ label, href? }], the last one is the current page.
+const { items, label } = Astro.props;
+---
+<nav class="breadcrumb" aria-label={label}>
+  <ol>
+    {items.map((i, n) => <li>{i.href && n < items.length - 1 ? <a href={i.href}>{i.label}</a> : <span aria-current={n === items.length - 1 ? 'page' : undefined}>{i.label}</span>}</li>)}
+  </ol>
+</nav>

@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base lang="fr" title="404">
+  <section class="hero">
+    <h1>404</h1>
+    <p>Page introuvable. · Page not found.</p>
+    <div class="hero-actions">
+      <a class="button" href={`${base}/fr/`}>Français</a>
+      <a class="button secondary" href={`${base}/en/`}>English</a>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,12 @@
+---
+// "On this page": the h2/h3 headings of the page, the one being read highlighted (src/scripts/ui.js).
+const { headings, title } = Astro.props;
+---
+{headings.length >= 2 && (
+  <aside class="outline" aria-label={title}>
+    <h2>{title}</h2>
+    <ol>
+      {headings.map((h) => <li class={`depth-${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+    </ol>
+  </aside>
+)}

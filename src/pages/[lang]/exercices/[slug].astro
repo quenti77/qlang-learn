@@ -18,7 +18,7 @@ const { Content } = series;
 <Base lang={lang} title={series.title} slug={slug} section="exercices">
   <div class="layout single">
     <div>
-      <article data-series={slug}>
+      <article data-series={slug} data-pagefind-body data-section="exercices" data-pagefind-filter="section[data-section]">
         <Content />
       </article>
       <nav class="pager" aria-label="Navigation">

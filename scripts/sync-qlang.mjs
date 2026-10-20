@@ -81,7 +81,8 @@ const titleOf = (chapter) => chapter.match(/^## (.*)$/m)[1];
 const LANGS = {
   fr: {
     contents: 'Sommaire',
-    languageGroup: 'Le langage',
+    // the chapters of the language, split in groups by their number (10 + position in the document)
+    languageGroups: [[10, 'Les fondamentaux'], [18, 'Types et objets'], [23, 'Bibliothèque standard'], [27, 'Référence']],
     readmeSections: [
       ['Installation', 1, 'Démarrer'],
       ['Utilisation', 2, 'Démarrer'],
@@ -93,7 +94,7 @@ const LANGS = {
   },
   en: {
     contents: 'Contents',
-    languageGroup: 'The language',
+    languageGroups: [[10, 'Fundamentals'], [18, 'Types and objects'], [23, 'Standard library'], [27, 'Reference']],
     readmeSections: [
       ['Installation', 1, 'Getting started'],
       ['Usage', 2, 'Getting started'],
@@ -106,7 +107,8 @@ const LANGS = {
 };
 
 function generate(lang, languageDoc, readme) {
-const { readmeSections, contents, languageGroup } = LANGS[lang];
+const { readmeSections, contents, languageGroups } = LANGS[lang];
+const languageGroup = (number) => languageGroups.findLast(([from]) => number >= from)[1];
 const pages = [];
 // the README: only these sections, in this order
 const readmeChapters = sections(readme);
@@ -120,7 +122,7 @@ for (const [title, number, group] of readmeSections) {
 }
 // the language: chapters 1..18 numbered 10..27
 const body = languageDoc.replace(/^# .*\n/, '').replace(new RegExp(`^## ${contents}\\n[\\s\\S]*?(?=^## 1\\. )`, 'm'), '');
-sections(body).forEach((chapter, i) => pages.push({ slug: fileSlug(10 + i, titleOf(chapter)), title: plain(titleOf(chapter)), chapter, group: languageGroup, source: 'language' }));
+sections(body).forEach((chapter, i) => pages.push({ slug: fileSlug(10 + i, titleOf(chapter)), title: plain(titleOf(chapter)), chapter, group: languageGroup(10 + i), source: 'language' }));
 
 // every anchor and the page it is in, to turn `](#anchor)` into links between pages
 const anchors = new Map();
