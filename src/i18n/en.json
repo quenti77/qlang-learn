@@ -74,5 +74,9 @@
   "menu.chapters": "Chapters",
   "menu.docs": "Documentation pages",
   "pager.previous": "Previous page",
-  "pager.next": "Next page"
+  "pager.next": "Next page",
+  "related.exercises": "Exercises for this part",
+  "related.part": "In the course",
+  "menu.exercises": "Series of exercises",
+  "home.part.exercises": "Exercises"
 }

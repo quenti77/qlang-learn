@@ -7,12 +7,12 @@
   "scripts": {
     "sync": "node scripts/sync-qlang.mjs",
     "dev": "npm run sync && astro dev",
-    "build": "npm run sync && astro build && pagefind --site dist",
+    "build": "npm run sync && npm run build:site",
     "preview": "astro preview",
     "test:e2e": "playwright test",
     "check-content": "node scripts/check-content.mjs",
     "verify-lessons": "node scripts/verify-lessons.mjs",
-    "build:site": "astro build && pagefind --site dist"
+    "build:site": "astro build && node scripts/prepare-search.mjs && pagefind --site dist"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",

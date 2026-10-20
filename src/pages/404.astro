@@ -2,13 +2,22 @@
 import Base from '../layouts/Base.astro';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base lang="fr" title="404">
+<Base lang="fr" title="404" bare>
   <section class="hero">
     <h1>404</h1>
-    <p>Page introuvable. · Page not found.</p>
-    <div class="hero-actions">
-      <a class="button" href={`${base}/fr/`}>Français</a>
-      <a class="button secondary" href={`${base}/en/`}>English</a>
+    <div lang="fr" data-lang="fr">
+      <p>Cette page n'existe pas (ou plus).</p>
+      <div class="hero-actions"><a class="button" href={`${base}/fr/`}>Retour à l'accueil</a></div>
+    </div>
+    <div lang="en" data-lang="en" hidden>
+      <p>This page does not exist (any more).</p>
+      <div class="hero-actions"><a class="button" href={`${base}/en/`}>Back to the home page</a></div>
     </div>
   </section>
+  <script is:inline>
+    // the language of the address (/en/…), else the one of the browser
+    const inEnglish = /\/en(\/|$)/.test(location.pathname) || (!/\/fr(\/|$)/.test(location.pathname) && (navigator.language || 'fr').toLowerCase().startsWith('en'));
+    for (const el of document.querySelectorAll('[data-lang]')) el.hidden = (el.dataset.lang === 'en') !== inEnglish;
+    document.title = '404 · qlang';
+  </script>
 </Base>

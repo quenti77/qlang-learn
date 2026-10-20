@@ -51,7 +51,11 @@ const lessonDocs = {
 export function docsForLesson(lang, slug) {
   const wanted = lessonDocs[Number(slug.slice(0, 2))] || [];
   const pages = docPages(lang);
-  return wanted.map((n) => pages.find((p) => Number(p.slug.slice(0, 2)) === n)).filter(Boolean);
+  return wanted.map((n) => {
+    const page = pages.find((p) => Number(p.slug.slice(0, 2)) === n);
+    if (!page) console.warn(`lessonDocs: lesson ${slug} points to documentation page ${n}, which does not exist in ${lang}`);
+    return page;
+  }).filter(Boolean);
 }
 
 /** The lessons that go with a documentation page (slug). */
@@ -68,12 +72,19 @@ export function hasLesson(lang, slug) {
 const exerciseFiles = import.meta.glob('/content/*/exercices/*.md', { eager: true });
 const exerciseSources = import.meta.glob('/content/*/exercices/*.md', { eager: true, query: '?raw', import: 'default' });
 
+// The part of the course each series of exercises goes with.
+const seriesPart = { '01-bases': 'basics', '02-tableaux-chaines': 'collections', '03-structs-traits': 'types', '04-algorithmes': 'algorithms' };
+
+/** The series of exercises that go with a part of the course. */
+export const exercisesForPart = (lang, partId) => exerciseSeries(lang).filter((s) => s.part === partId);
+
 export function exerciseSeries(lang) {
   return Object.entries(exerciseFiles)
     .map(([file, mod]) => {
       const [, , l, , name] = file.split('/');
       const text = exerciseSources[file] ?? '';
-      return { lang: l, slug: name.replace(/\.md$/, ''), title: mod.frontmatter.title, count: (text.match(/^## /gm) || []).length, Content: mod.Content };
+      const slug = name.replace(/\.md$/, '');
+      return { lang: l, slug, title: mod.frontmatter.title, count: (text.match(/^## /gm) || []).length, part: seriesPart[slug], headings: outline(mod), Content: mod.Content };
     })
     .filter((x) => x.lang === lang)
     .sort((a, b) => a.slug.localeCompare(b.slug));

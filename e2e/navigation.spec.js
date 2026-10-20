@@ -68,3 +68,35 @@ test('on a phone the menu folds behind a button', async ({ page, isMobile }) => 
   await drawer.locator(':scope > summary').click();
   await expect(drawer.locator('a[aria-current="page"]')).toBeVisible();
 });
+
+test('an exercise series has its breadcrumb, menu, outline and the matching lessons', async ({ page }) => {
+  await page.goto('/fr/exercices/02-tableaux-chaines/');
+  await expect(page.locator('.breadcrumb')).toContainText('Exercices');
+  await expect(page.locator('.toc a[aria-current="page"]')).toContainText('Tableaux, chaînes, dictionnaires');
+  await expect(page.locator('.related a[href$="/fr/cours/09-tableaux/"]')).toBeAttached();
+  await expect(page.locator('.outline a').first()).toBeAttached();
+});
+
+test('the exercises of a part are offered on the home page and at the end of its last lesson', async ({ page }) => {
+  await page.goto('/fr/');
+  await expect(page.locator('a.part-exercises[href$="/fr/exercices/01-bases/"]')).toBeVisible();
+  await page.goto('/fr/cours/08-fonctions/');
+  await expect(page.locator('.related a[href$="/fr/exercices/01-bases/"]')).toBeVisible();
+  await page.goto('/fr/cours/07-boucles/');
+  await expect(page.locator('.related a[href*="/exercices/"]')).toHaveCount(0);
+});
+
+test('search does not show the code of the exercises', async ({ page }) => {
+  await page.goto('/fr/');
+  await page.getByTestId('search-open').click();
+  await page.getByTestId('search-input').fill('TODO');
+  await expect(page.getByTestId('search-results').locator('a[href*="/exercices/"]')).toHaveCount(0);
+});
+
+test('the 404 page speaks the language of the address', async ({ page }) => {
+  await page.goto('/en/no-such-page/');
+  await expect(page.getByText('This page does not exist')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Back to the home page' })).toHaveAttribute('href', '/en/');
+  await page.goto('/fr/no-such-page/');
+  await expect(page.getByText("Cette page n'existe pas")).toBeVisible();
+});
