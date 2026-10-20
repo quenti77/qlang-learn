@@ -5,9 +5,9 @@ const KEY = 'qlang-learn:progress';
 function read() {
   try {
     const data = JSON.parse(localStorage.getItem(KEY) || '{}');
-    return data && typeof data.done === 'object' ? data : { done: {} };
+    return data && typeof data.done === 'object' ? { read: {}, ...data } : { done: {}, read: {} };
   } catch {
-    return { done: {} };
+    return { done: {}, read: {} };
   }
 }
 
@@ -32,6 +32,27 @@ export function markDone(id) {
 
 export const doneIn = (series) => Object.keys(read().done).filter((id) => id.startsWith(series + '#')).length;
 
+// The lessons: "read" once the student reached the end of the page, "last" is the one opened last.
+export const isRead = (slug) => Boolean(read().read[slug]);
+
+export function markRead(slug) {
+  const data = read();
+  if (!data.read[slug]) {
+    data.read[slug] = new Date().toISOString();
+    write(data);
+  }
+}
+
+export const lastLesson = () => read().last || null;
+
+export function visit(slug) {
+  const data = read();
+  if (data.last !== slug) {
+    data.last = slug;
+    write(data);
+  }
+}
+
 export function reset() {
-  write({ done: {} });
+  write({ done: {}, read: {} });
 }

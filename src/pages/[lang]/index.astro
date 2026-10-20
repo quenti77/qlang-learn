@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { languages, t } from '../../i18n/index.js';
-import { lessons } from '../../content.js';
+import { lessons, lessonParts } from '../../content.js';
 
 export function getStaticPaths() {
   return languages.map((lang) => ({ params: { lang } }));
@@ -9,17 +9,36 @@ export function getStaticPaths() {
 const { lang } = Astro.params;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const all = lessons(lang);
+const parts = lessonParts(lang);
 ---
 <Base lang={lang} title={t(lang, 'site')}>
   <section class="hero">
     <h1>{t(lang, 'site')}</h1>
     <p>{t(lang, 'home.intro')}</p>
-    {all[0] && <a class="button" href={`${base}/${lang}/cours/${all[0].slug}/`}>{t(lang, 'home.start')}</a>}
+    <div class="hero-actions">
+      {all[0] && <a class="button" href={`${base}/${lang}/cours/${all[0].slug}/`}>{t(lang, 'home.start')}</a>}
+      <a class="button secondary" data-resume hidden data-template={t(lang, 'home.resume')} data-base={`${base}/${lang}/cours/`} data-titles={JSON.stringify(Object.fromEntries(all.map((l) => [l.slug, l.title])))}></a>
+    </div>
   </section>
   <section class="home-lessons">
-    <h2>{t(lang, 'home.lessons')}</h2>
-    <ol class="lesson-list">
-      {all.map((l) => <li><a href={`${base}/${lang}/cours/${l.slug}/`}><span class="n">{l.slug.slice(0, 2)}</span><span>{l.title}</span></a></li>)}
-    </ol>
+    <h2>{t(lang, 'home.parts')}</h2>
+    <div class="parts">
+      {parts.map((p, i) => (
+        <section class="part" aria-labelledby={`part-${p.id}`}>
+          <h3 id={`part-${p.id}`}>
+            <span class="part-n">{i + 1}</span>{t(lang, `part.${p.id}`)}
+            <span class="part-progress" data-part-progress data-slugs={p.lessons.map((l) => l.slug).join(',')}></span>
+          </h3>
+          <ol class="lesson-list">
+            {p.lessons.map((l) => <li><a href={`${base}/${lang}/cours/${l.slug}/`} data-lesson-link={l.slug}><span class="n">{l.slug.slice(0, 2)}</span><span>{l.title}</span></a></li>)}
+          </ol>
+        </section>
+      ))}
+    </div>
+    <h2>{t(lang, 'home.explore')}</h2>
+    <div class="explore">
+      <a href={`${base}/${lang}/exercices/`}><strong>{t(lang, 'nav.exercises')}</strong><span>{t(lang, 'home.explore.exercises')}</span></a>
+      <a href={`${base}/${lang}/docs/`}><strong>{t(lang, 'nav.docs')}</strong><span>{t(lang, 'home.explore.docs')}</span></a>
+    </div>
   </section>
 </Base>

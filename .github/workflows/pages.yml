@@ -28,7 +28,7 @@ jobs:
       - run: npm run sync
       - run: npm run check-content
       - run: npm run verify-lessons
-      - run: npx astro build
+      - run: npm run build:site
         env:
           BASE_PATH: /qlang-learn/
       - uses: actions/upload-pages-artifact@v3

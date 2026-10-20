@@ -7,11 +7,12 @@
   "scripts": {
     "sync": "node scripts/sync-qlang.mjs",
     "dev": "npm run sync && astro dev",
-    "build": "npm run sync && astro build",
+    "build": "npm run sync && astro build && pagefind --site dist",
     "preview": "astro preview",
     "test:e2e": "playwright test",
     "check-content": "node scripts/check-content.mjs",
-    "verify-lessons": "node scripts/verify-lessons.mjs"
+    "verify-lessons": "node scripts/verify-lessons.mjs",
+    "build:site": "astro build && pagefind --site dist"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
@@ -24,6 +25,7 @@
     "astro": "^7.3.8"
   },
   "devDependencies": {
-    "github-slugger": "^2.0.0"
+    "github-slugger": "^2.0.0",
+    "pagefind": "^1.5.2"
   }
 }

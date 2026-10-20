@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 test('the home page lists the lessons and leads to one', async ({ page }) => {
   await page.goto('/fr/');
-  await page.getByRole('link', { name: 'Premiers pas' }).click();
+  await page.locator('.lesson-list a', { hasText: 'Premiers pas' }).click();
   await expect(page).toHaveURL(lesson);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Premiers pas');
 });

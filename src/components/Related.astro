@@ -1,0 +1,12 @@
+---
+// Links to the matching pages of the other section (lesson <-> documentation).
+const { title, pages } = Astro.props;
+---
+{pages.length > 0 && (
+  <aside class="related">
+    <h2>{title}</h2>
+    <ul>
+      {pages.map((p) => <li><a href={p.href}>{p.label}</a></li>)}
+    </ul>
+  </aside>
+)}

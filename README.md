@@ -18,6 +18,16 @@ when `main` changes. To use a newer qlang, change `QLANG_VERSION` (a release tha
 (`QLANG_REPO=../qlang`, after `cargo build --profile wasm --target wasm32-unknown-unknown -p qlang-wasm`
 there), or, without it, from the release named in `QLANG_VERSION`.
 
+## Structure and search
+
+- Lessons are grouped in parts by their number: see `parts` in `src/content.js` (titles: `part.*` in `src/i18n`).
+  `lessonDocs` there links each lesson to the documentation pages that cover it (and back).
+- The documentation groups come from `scripts/sync-qlang.mjs` (`languageGroups`).
+- Search is [Pagefind](https://pagefind.app): `npm run build` indexes `dist/` after Astro (`build:site` when
+  `sync` already ran). The index is built with the site, so search does not work under `npm run dev`.
+  Pages opt in with `data-pagefind-body`; `section` is the filter (lessons, exercises, documentation).
+- Progress (exercises done, lessons read, last lesson opened) stays in the browser: `src/scripts/progress.js`.
+
 ## Tests
 
 ```sh

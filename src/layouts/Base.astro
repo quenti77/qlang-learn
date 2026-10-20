@@ -27,16 +27,31 @@ const otherHref = otherSlug ? `${base}/${other}/${section}/${otherSlug}/` : `${b
           <a href={`${base}/${lang}/exercices/`} data-testid="nav-exercises" aria-current={section === "exercices" ? "page" : undefined}>{t(lang, 'nav.exercises')}</a>
           <a href={`${base}/${lang}/docs/`} data-testid="nav-docs" aria-current={section === "docs" ? "page" : undefined}>{t(lang, 'nav.docs')}</a>
         </nav>
+        <button type="button" class="search-open" data-testid="search-open" aria-haspopup="dialog" aria-keyshortcuts="/ Control+K">
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span class="label">{t(lang, 'search.open')}</span><kbd aria-hidden="true">/</kbd>
+        </button>
         <a href={otherHref} hreflang={other} lang={other} class="lang" data-testid="switch-language">{t(lang, 'lang.switch')}</a>
       </div>
     </header>
     <slot />
+    <dialog class="search" id="search" aria-label={t(lang, 'search.open')} data-base={base} data-lang={lang}>
+      <form method="dialog" class="search-box">
+        <input type="search" data-testid="search-input" placeholder={t(lang, 'search.placeholder')} aria-label={t(lang, 'search.open')} autocomplete="off" spellcheck="false" />
+        <button type="submit" class="search-close" aria-label={t(lang, 'search.close')}>Esc</button>
+      </form>
+      <div class="search-filters" role="group" aria-label={t(lang, 'search.results')}></div>
+      <div class="search-status" role="status" aria-live="polite"></div>
+      <ol class="search-results" data-testid="search-results"></ol>
+    </dialog>
     <footer class="site-footer">
       <a href="https://github.com/quenti77/qlang">qlang</a> · <a href="https://github.com/quenti77/qlang-learn">{t(lang, 'footer.source')}</a>
     </footer>
     <script type="application/json" id="ui-strings" set:html={JSON.stringify(strings(lang))}></script>
     <script>
       import '../scripts/runner.js';
+      import '../scripts/ui.js';
+      import '../scripts/search.js';
     </script>
   </body>
 </html>

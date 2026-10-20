@@ -1,0 +1,29 @@
+---
+// The menu of a lesson or documentation page: groups of pages, the group of the current page open.
+// On a narrow screen the whole menu folds behind a button (see src/scripts/ui.js).
+// groups: [{ name, id?, items: [{ href, label, n?, slug, current? }] }]
+const { title, titleHref, menuLabel, currentLabel, groups, lessons = false } = Astro.props;
+---
+<nav class="toc" aria-label={menuLabel}>
+  <details class="drawer" data-wide-open open>
+    <summary><span>{menuLabel}</span><span class="current">{currentLabel}</span></summary>
+    <h2>{titleHref ? <a href={titleHref}>{title}</a> : title}</h2>
+    {groups.map((group) => (
+      <details class="toc-part" open={group.items.some((i) => i.current)}>
+        <summary>
+          <span>{group.name}</span>
+          {lessons && <span class="part-progress" data-part-progress data-slugs={group.items.map((i) => i.slug).join(',')}></span>}
+        </summary>
+        <ol>
+          {group.items.map((i) => (
+            <li>
+              <a href={i.href} aria-current={i.current ? 'page' : undefined} data-lesson-link={lessons ? i.slug : undefined}>
+                {i.n && <span class="n">{i.n}</span>}<span>{i.label}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </details>
+    ))}
+  </details>
+</nav>
