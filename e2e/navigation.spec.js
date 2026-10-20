@@ -100,3 +100,12 @@ test('the 404 page speaks the language of the address', async ({ page }) => {
   await page.goto('/fr/no-such-page/');
   await expect(page.getByText("Cette page n'existe pas")).toBeVisible();
 });
+
+test('the final project is the last lesson, and the old addresses of renumbered lessons still work', async ({ page }) => {
+  await page.goto('/fr/cours/30-serveur-web/');
+  await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/31-projet-final/');
+  await page.goto('/fr/cours/28-projet-final/');
+  await expect(page).toHaveURL('/fr/cours/31-projet-final/');
+  await page.goto('/en/cours/31-serveur-web/');
+  await expect(page).toHaveURL('/en/cours/30-serveur-web/');
+});
