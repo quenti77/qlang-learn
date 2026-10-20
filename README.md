@@ -22,10 +22,12 @@ there), or, without it, from the release named in `QLANG_VERSION`.
 
 - Lessons are grouped in parts by their number: see `parts` in `src/content.js` (titles: `part.*` in `src/i18n`).
   `lessonDocs` there links each lesson to the documentation pages that cover it (and back).
+- `seriesPart` in `src/content.js` says which part of the course each series of exercises goes with.
 - The documentation groups come from `scripts/sync-qlang.mjs` (`languageGroups`).
 - Search is [Pagefind](https://pagefind.app): `npm run build` indexes `dist/` after Astro (`build:site` when
   `sync` already ran). The index is built with the site, so search does not work under `npm run dev`.
   Pages opt in with `data-pagefind-body`; `section` is the filter (lessons, exercises, documentation).
+  `scripts/prepare-search.mjs` runs before Pagefind to keep the exercises' code out of the results.
 - Progress (exercises done, lessons read, last lesson opened) stays in the browser: `src/scripts/progress.js`.
 
 ## Tests

@@ -156,7 +156,6 @@ nav.pager a:hover { border-color: var(--accent); }
 .qlang-widget .success { color: #7ee2a0; }
 .series-count { margin-left: auto; font-family: ui-monospace, monospace; color: var(--muted); }
 @media (max-width: 40rem) { .main-nav { margin-right: 0.4rem; } .main-nav a { padding: 0.25rem 0.4rem; } }
-.layout.single { grid-template-columns: minmax(0, 1fr); max-width: var(--measure); }
 .link-button { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.9rem; }
 .reference-code .cm-editor { background: var(--code-bg); }
 .reference table { border-collapse: collapse; display: block; overflow-x: auto; margin: 1rem 0; }
@@ -266,3 +265,7 @@ dialog.search::backdrop { background: rgb(10 12 18 / 0.5); }
 .search-results mark { background: color-mix(in srgb, var(--accent) 25%, transparent); color: var(--fg); border-radius: 3px; padding: 0 0.1em; }
 .search-results .more { text-align: center; }
 .search-results .more button { cursor: pointer; font: inherit; font-size: 0.9rem; padding: 0.35rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--accent); }
+
+.part-exercises { display: inline-block; margin: -0.2rem 0 0.7rem 2.3rem; font-size: 0.9rem; text-decoration: none; }
+.part-exercises:hover { text-decoration: underline; }
+.related + .related { margin-top: 1rem; }

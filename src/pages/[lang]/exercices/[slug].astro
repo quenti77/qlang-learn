@@ -1,7 +1,11 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import Sidebar from '../../../components/Sidebar.astro';
+import Outline from '../../../components/Outline.astro';
+import Breadcrumb from '../../../components/Breadcrumb.astro';
+import Related from '../../../components/Related.astro';
 import { languages, t } from '../../../i18n/index.js';
-import { exerciseSeries } from '../../../content.js';
+import { exerciseSeries, lessons } from '../../../content.js';
 
 export function getStaticPaths() {
   return languages.flatMap((lang) => exerciseSeries(lang).map((s) => ({ params: { lang, slug: s.slug } })));
@@ -14,17 +18,37 @@ const previous = all[index - 1];
 const next = all[index + 1];
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const { Content } = series;
+const href = (s) => `${base}/${lang}/exercices/${s.slug}/`;
+const groups = [{
+  name: t(lang, 'exercises.title'),
+  items: all.map((s) => ({ href: href(s), label: s.title, n: s.slug.slice(0, 2), slug: s.slug, current: s.slug === slug })),
+}];
+const crumbs = [
+  { label: t(lang, 'exercises.title'), href: `${base}/${lang}/exercices/` },
+  { label: series.title },
+];
+const related = lessons(lang).filter((l) => l.part === series.part).map((l) => ({ href: `${base}/${lang}/cours/${l.slug}/`, label: l.title }));
 ---
 <Base lang={lang} title={series.title} slug={slug} section="exercices">
-  <div class="layout single">
+  <div class="layout with-outline">
+    <Sidebar
+      title={t(lang, 'exercises.title')}
+      titleHref={`${base}/${lang}/exercices/`}
+      menuLabel={t(lang, 'menu.exercises')}
+      currentLabel={series.title}
+      groups={groups}
+    />
     <div>
-      <article data-series={slug} data-pagefind-body data-section="exercices" data-pagefind-filter="section[data-section]">
+      <Breadcrumb items={crumbs} label={t(lang, 'breadcrumb')} />
+      <article data-series={slug} data-pagefind-body data-section="exercices" data-pagefind-filter="section[data-section]" data-part={series.part && t(lang, `part.${series.part}`)} data-pagefind-meta="part[data-part]">
         <Content />
       </article>
+      <Related title={`${t(lang, 'related.part')} : ${series.part ? t(lang, `part.${series.part}`) : ''}`} pages={related} />
       <nav class="pager" aria-label="Navigation">
-        {previous ? <a href={`${base}/${lang}/exercices/${previous.slug}/`}>← {previous.title}</a> : <a href={`${base}/${lang}/exercices/`}>← {t(lang, 'exercises.title')}</a>}
-        {next ? <a href={`${base}/${lang}/exercices/${next.slug}/`}>{next.title} →</a> : <span />}
+        {previous ? <a href={href(previous)} rel="prev"><small>← {t(lang, 'pager.previous')}</small><span>{previous.title}</span></a> : <a href={`${base}/${lang}/exercices/`}><small>←</small><span>{t(lang, 'exercises.title')}</span></a>}
+        {next ? <a href={href(next)} rel="next" class="next"><small>{t(lang, 'pager.next')} →</small><span>{next.title}</span></a> : <span />}
       </nav>
     </div>
+    <Outline title={t(lang, 'outline.title')} headings={series.headings} />
   </div>
 </Base>

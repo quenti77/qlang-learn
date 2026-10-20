@@ -2,7 +2,8 @@
 import '../styles/site.css';
 import { strings, t } from '../i18n/index.js';
 import { counterpart } from '../content.js';
-const { lang, title, slug, section = 'cours' } = Astro.props;
+// bare: only the brand in the header (the 404 page, whose language is not known at build time)
+const { lang, title, slug, section = 'cours', bare = false } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const other = lang === 'fr' ? 'en' : 'fr';
 // the same page in the other language, if it exists
@@ -22,6 +23,8 @@ const otherHref = otherSlug ? `${base}/${other}/${section}/${otherSlug}/` : `${b
     <header class="site-header">
       <div class="bar">
         <a href={`${base}/${lang}/`} class="brand"><span class="logo" aria-hidden="true">q</span>qlang</a>
+        {!bare && (
+          <>
         <nav class="main-nav" aria-label="Menu">
           <a href={`${base}/${lang}/`} data-testid="nav-lessons" aria-current={section === "cours" ? "page" : undefined}>{t(lang, 'nav.lessons')}</a>
           <a href={`${base}/${lang}/exercices/`} data-testid="nav-exercises" aria-current={section === "exercices" ? "page" : undefined}>{t(lang, 'nav.exercises')}</a>
@@ -32,9 +35,12 @@ const otherHref = otherSlug ? `${base}/${other}/${section}/${otherSlug}/` : `${b
           <span class="label">{t(lang, 'search.open')}</span><kbd aria-hidden="true">/</kbd>
         </button>
         <a href={otherHref} hreflang={other} lang={other} class="lang" data-testid="switch-language">{t(lang, 'lang.switch')}</a>
+          </>
+        )}
       </div>
     </header>
     <slot />
+    {!bare && (
     <dialog class="search" id="search" aria-label={t(lang, 'search.open')} data-base={base} data-lang={lang}>
       <form method="dialog" class="search-box">
         <input type="search" data-testid="search-input" placeholder={t(lang, 'search.placeholder')} aria-label={t(lang, 'search.open')} autocomplete="off" spellcheck="false" />
@@ -44,6 +50,7 @@ const otherHref = otherSlug ? `${base}/${other}/${section}/${otherSlug}/` : `${b
       <div class="search-status" role="status" aria-live="polite"></div>
       <ol class="search-results" data-testid="search-results"></ol>
     </dialog>
+    )}
     <footer class="site-footer">
       <a href="https://github.com/quenti77/qlang">qlang</a> · <a href="https://github.com/quenti77/qlang-learn">{t(lang, 'footer.source')}</a>
     </footer>

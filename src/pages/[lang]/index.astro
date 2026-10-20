@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { languages, t } from '../../i18n/index.js';
-import { lessons, lessonParts } from '../../content.js';
+import { lessons, lessonParts, exercisesForPart } from '../../content.js';
 
 export function getStaticPaths() {
   return languages.map((lang) => ({ params: { lang } }));
@@ -29,6 +29,7 @@ const parts = lessonParts(lang);
             <span class="part-n">{i + 1}</span>{t(lang, `part.${p.id}`)}
             <span class="part-progress" data-part-progress data-slugs={p.lessons.map((l) => l.slug).join(',')}></span>
           </h3>
+          {exercisesForPart(lang, p.id).map((s) => <a class="part-exercises" href={`${base}/${lang}/exercices/${s.slug}/`}>{t(lang, 'home.part.exercises')} : {s.title} →</a>)}
           <ol class="lesson-list">
             {p.lessons.map((l) => <li><a href={`${base}/${lang}/cours/${l.slug}/`} data-lesson-link={l.slug}><span class="n">{l.slug.slice(0, 2)}</span><span>{l.title}</span></a></li>)}
           </ol>

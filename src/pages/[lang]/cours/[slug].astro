@@ -5,7 +5,7 @@ import Outline from '../../../components/Outline.astro';
 import Breadcrumb from '../../../components/Breadcrumb.astro';
 import Related from '../../../components/Related.astro';
 import { languages, t } from '../../../i18n/index.js';
-import { lessons, lessonParts, docsForLesson } from '../../../content.js';
+import { lessons, lessonParts, docsForLesson, exercisesForPart } from '../../../content.js';
 
 export function getStaticPaths() {
   return languages.flatMap((lang) => lessons(lang).map((l) => ({ params: { lang, slug: l.slug } })));
@@ -29,6 +29,8 @@ const crumbs = [
   { label: lesson.title },
 ];
 const related = docsForLesson(lang, slug).map((p) => ({ href: `${base}/${lang}/docs/${p.slug}/`, label: p.title }));
+const lastOfPart = all.filter((l) => l.part === lesson.part).at(-1)?.slug === slug;
+const exercises = lastOfPart ? exercisesForPart(lang, lesson.part).map((s) => ({ href: `${base}/${lang}/exercices/${s.slug}/`, label: s.title })) : [];
 ---
 <Base lang={lang} title={lesson.title} slug={slug}>
   <div class="layout with-outline">
@@ -44,6 +46,7 @@ const related = docsForLesson(lang, slug).map((p) => ({ href: `${base}/${lang}/d
       <article data-series={`lesson-${slug}`} data-lesson={slug} data-pagefind-body data-section="cours" data-pagefind-filter="section[data-section]" data-part={crumbs[1].label} data-pagefind-meta="part[data-part]">
         <Content />
       </article>
+      <Related title={t(lang, 'related.exercises')} pages={exercises} />
       <Related title={t(lang, 'related.docs')} pages={related} />
       <nav class="pager" aria-label="Navigation">
         {previous ? <a href={href(previous)} rel="prev"><small>← {t(lang, 'previous')}</small><span>{previous.title}</span></a> : <span />}
