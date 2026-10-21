@@ -91,7 +91,7 @@ test('the exercises are reachable from the menu, in both languages', async ({ pa
 });
 
 for (const lang of ['fr', 'en']) test(`every ${lang} exercise has a solution that passes its own tests`, async ({ page }) => {
-  for (const s of ['01-bases', '02-tableaux-chaines', '03-structs-traits', '04-algorithmes']) {
+  for (const s of ['01-bases', '02-tableaux-chaines', '03-structs-traits', '04-algorithmes', '05-tuples-ensembles-result']) {
     await page.goto(`/${lang}/exercices/${s}/`);
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
     const count = await page.getByTestId('exercise').count();
@@ -124,7 +124,7 @@ test('hints are revealed one at a time', async ({ page }) => {
 
 test('every exercise has hints, in both languages', async ({ page }) => {
   for (const lang of ['fr', 'en']) {
-    for (const s of ['01-bases', '02-tableaux-chaines', '03-structs-traits', '04-algorithmes']) {
+    for (const s of ['01-bases', '02-tableaux-chaines', '03-structs-traits', '04-algorithmes', '05-tuples-ensembles-result']) {
       await page.goto(`/${lang}/exercices/${s}/`);
       await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
       const count = await page.getByTestId('exercise').count();

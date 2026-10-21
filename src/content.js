@@ -27,8 +27,8 @@ export const parts = [
   { id: 'solid', from: 19, to: 22 },
   { id: 'algorithms', from: 23, to: 27 },
   { id: 'beyond', from: 28, to: 30 },
-  { id: 'more', from: 31, to: 32 },
-  { id: 'project', from: 33, to: 33 },
+  { id: 'more', from: 31, to: 33 },
+  { id: 'project', from: 34, to: 34 },
 ];
 export const partOf = (slug) => {
   const n = Number(slug.slice(0, 2));
@@ -46,7 +46,7 @@ export function lessonParts(lang) {
 const lessonDocs = {
   1: [10, 1, 2], 2: [12], 3: [13], 4: [14], 5: [12, 23], 6: [15], 7: [16], 8: [17], 9: [23], 10: [23],
   11: [12], 12: [15], 13: [18], 14: [18], 15: [19], 16: [19], 17: [20], 18: [21], 19: [17], 20: [22],
-  21: [25, 29], 22: [26], 28: [24], 29: [24], 30: [26], 31: [12, 23], 32: [20, 25],
+  21: [25, 29], 22: [26], 28: [24], 29: [24], 30: [26], 31: [12, 23], 32: [20, 25], 33: [2, 1],
 };
 
 /** The documentation pages that go with a lesson (slug). */
@@ -75,7 +75,7 @@ const exerciseFiles = import.meta.glob('/content/*/exercices/*.md', { eager: tru
 const exerciseSources = import.meta.glob('/content/*/exercices/*.md', { eager: true, query: '?raw', import: 'default' });
 
 // The part of the course each series of exercises goes with.
-const seriesPart = { '01-bases': 'basics', '02-tableaux-chaines': 'collections', '03-structs-traits': 'types', '04-algorithmes': 'algorithms' };
+const seriesPart = { '01-bases': 'basics', '02-tableaux-chaines': 'collections', '03-structs-traits': 'types', '04-algorithmes': 'algorithms', '05-tuples-ensembles-result': 'more' };
 
 /** The series of exercises that go with a part of the course. */
 export const exercisesForPart = (lang, partId) => exerciseSeries(lang).filter((s) => s.part === partId);

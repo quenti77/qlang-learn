@@ -1,9 +1,10 @@
 import { defineConfig } from 'astro/config';
 
-// Lessons 28 to 33 were renumbered (the final project comes last): the old addresses still work.
+// Lessons 28 to 34 were renumbered (the final project comes last): the old addresses still work.
 const renamed = {
-  '28-projet-final': '33-projet-final',
-  '31-projet-final': '33-projet-final',
+  '28-projet-final': '34-projet-final',
+  '31-projet-final': '34-projet-final',
+  '33-projet-final': '34-projet-final',
   '29-temps-hasard-identifiants': '28-temps-hasard-identifiants',
   '30-dates-et-heures': '29-dates-et-heures',
   '31-serveur-web': '30-serveur-web',
