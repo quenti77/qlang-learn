@@ -76,4 +76,4 @@ apparaît une seule fois, tout en haut, avant même la première ligne du fichie
 - `export a, b, c` à la fin du fichier qui offre.
 - `import a, b from "chemin.q"` ou `import "chemin.q" as nom`.
 - Les chemins sont relatifs au fichier, séparés par `/`, jamais absolus.
-- Les imports circulaires sont interdits.
+- Deux fichiers peuvent s'importer mutuellement seulement si un seul des deux exécute du code au niveau du fichier ; sinon c'est une erreur.
