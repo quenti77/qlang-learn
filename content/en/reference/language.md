@@ -209,7 +209,10 @@ print(nested.1.0)    -- 2.5
 ```
 
 - A tuple **does not change**: `t.0 = 5` is refused; you build a new one.
-- `==` and `!=` compare the elements one by one; it is shown as `(1, "a")`.
+- `==` and `!=` compare the elements one by one; it is shown as `(1, "a")`. `<`, `<=`, `>`,
+  `>=`, `sort`, `min` and `max` compare them too, element by element starting with the first
+  (`(1, 9) < (2, 0)`), as long as each element can be ordered (not `bool`, not nullables):
+  `[(2, "b"), (1, "z")].sort()` gives `[(1, "z"), (2, "b")]`.
 - A tuple can be a dictionary key and a set value when its elements can:
   `{ (0, 0): "origin" }`, `Set.of([(0, 0), (1, 2)])`.
 - A tuple type accepts a wider element: `let t: (int?, string) = (5, "a")`.
@@ -391,7 +394,7 @@ From the weakest to the strongest:
   arrays (element by element) and nullable values (`x == none`). To compare two structures,
   you have to implement the `Eq` trait.
 - `<`, `<=`, `>`, `>=` work on numbers and strings (alphabetical order of Unicode
-  characters). For a structure, you have to implement `Ord`.
+  characters). For a structure, you have to implement `Ord`; tuples compare element by element.
 - A condition (`if`, `elseif`, `while`, `match` guard) must be of type `bool`. There is no
   implicit "truthy" or "falsy": `if 1 then` and `if name then` are errors.
 - `and` and `or` only evaluate their right side if necessary.
@@ -489,13 +492,31 @@ Possible patterns in a `case`:
 A variant can be written with or without the name of the enumeration when the tested value
 tells which one it is (`case Red`, `case Circle(r)`); a name that is a variant of that type is
 the variant, otherwise it is a binding. For a variant that carries data, name each value in
-parentheses (`_` to ignore it): the number of names must be that of the values.
+parentheses (`_` to ignore it): the number of patterns must be that of the values.
 
-A tuple pattern has one sub-pattern per element (a value, a range, `none`, a name, `_`, or
-another tuple); the names are bound in the guard and in the body. An enumeration variant cannot
-be written inside a tuple pattern: name the element, then `match` it separately. A tuple
-pattern made of names only (`case (a, b)`) accepts any tuple, so it makes the `match`
-exhaustive; as soon as it tests a value, you need an `else` or a `case` that accepts anything.
+Patterns **nest**: a tuple pattern has one sub-pattern per element, a variant with data one
+sub-pattern per carried value, and each sub-pattern is itself a pattern (a value, a range,
+`none`, a name, `_`, a tuple, a variant). The names are bound in the guard and in the body.
+
+```
+match (shape, color)
+  case (Circle(r), Red) then print("red circle of radius {r}")
+  case (Rect(w, _), _) then print("rectangle of width {w}")
+  else print("other")
+end
+
+match result
+  case Ok((n, name)) then print("{n} {name}")
+  case Ok(0) then print("zero")      -- a literal inside a variant
+  case Err(e) then print(e.message)
+end
+```
+
+The compiler checks that the `case`s **cover** every value, counting variants, `true`/`false`
+and `none` down into nested patterns: `(Red, Red)`, `(Red, Green)` and `(Green, _)` are enough
+for two colors. Literal values and ranges never cover a type (you then need an `else` or a
+name), and a `case` with a guard is not counted. Inside a tuple, a name does not remove the
+`none` of a nullable element (only a `case none` at the first level does).
 
 The `case`s are tried in order. A lone name (`case x then`) accepts any value and names it;
 `_` accepts any value without naming it. After a `case none`, a bound name can no longer be
@@ -1024,8 +1045,8 @@ end
   **built** by a call: `Shape.Circle(2.0)`, by position or by name like any call. Writing
   `Shape.Circle` alone, or `Color.Red()`, is an error.
 - In a `match`, the compiler checks that all the variants are handled (see `match`). The
-  carried values are bound by position; patterns do not nest (`case Circle(0.0)` does not
-  exist: use a guard, `case Circle(r) if r == 0.0`).
+  carried values are bound by position, and each one is a full pattern: `case Circle(0.0)`,
+  `case Ok((n, s))`, `case Ok(Some(x))`… (see `match`).
 - An enumeration can be **generic**: `enum Maybe<T> Just(value: T) Nothing end` (see generics);
   `impl<T> Maybe<T> ... end` adds methods to it, and a trait is implemented as for a struct.
 - Values are shown as `Shape.Circle(2.0)`, `Color.Red`. `==` compares the variant, then the
@@ -1211,12 +1232,13 @@ the name it is declared with (`sqlite_open` here); two modules that declare the 
 therefore call the same function.
 
 - **Allowed types** in the signature (arguments and return): `int`, `float`, `bool`,
-  `string`, enumerations, `T?`, `array<T>`, `map<K, V>`, `Json`, and the non-generic,
+  `string`, enumerations, `T?`, tuples, `array<T>`, `map<K, V>`, `Json`, and the non-generic,
   parentless, non-recursive structs whose fields are all allowed. Nothing else (functions,
   traits, `uuid`, `ulid`, `datetime`, generics): `T260`, `T261` or `T262`.
 - **Values are copied**: the environment never receives a reference to an array or a struct
   of the program, and what it returns is rebuilt from the signature. A struct becomes a table
-  of its fields, an enumeration the name of its variant, `Json` a JSON value.
+  of its fields, a tuple an array of its elements (in order), an enumeration the name of its
+  variant, `Json` a JSON value.
 - **Errors**: if the signature returns `Result<T, Error>`, a failure of the environment
   becomes a `Result::err` (like `http.send` or `Db.connect`). Otherwise it stops the program
   (`R081`).
@@ -1271,6 +1293,10 @@ the **execution environment** (the terminal, a web server…).
 | `panic(message)`         | stops the program with an error                                       |
 | `assert(cond, message?)` | stops the program if `cond` is false                                  |
 | `assert_eq(a, b)`        | stops the program if `a != b`, showing both values (`assert_ne`: if `a == b`) |
+| `assert_lt(a, b)`, `assert_le`, `assert_gt`, `assert_ge` | for a test: `a < b` (`<=`, `>`, `>=`), for any type that can be ordered (numbers, strings, tuples…); shows both values otherwise |
+| `assert_len(array, n)`, `assert_empty(array)` | for a test: the array has `n` elements / none |
+| `assert_not_contains(array, v)` | for a test: `v` is not in the array |
+| `assert_starts_with(text, start)`, `assert_ends_with(text, end)` | for a test: the text starts / ends with... |
 | `assert_ok(r)`, `assert_err(r)` | for a test: the value of an `Ok` / the error of an `Err`, or stops the program showing what the result held |
 | `assert_some(x)`, `assert_none(x)` | for a test: the value of a nullable that must not be `none` / checks that it is |
 | `assert_contains(array, v)`, `assert_contains_text(text, piece)` | for a test: `v` is in the array / `piece` is in the text |
@@ -2258,8 +2284,5 @@ The source code itself cannot exceed 200 levels of nesting.
 - **Traits that require others** (a trait that assumes another is also implemented): not
   planned for now.
 - **Generic anonymous functions:** not planned.
-- **Patterns:** an enum variant inside a tuple pattern, and a pattern nested inside a variant,
-  are not accepted yet.
-- **Tuples:** no ordering (so no sorting) and no passing through an `extern fun`.
 - **Format of documentation comments:** the text stays free (`qlang doc` copies it as is). To be
   planned, depending on use: a light format such as `@param` / `@return`.
