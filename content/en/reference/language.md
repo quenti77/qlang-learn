@@ -85,6 +85,11 @@ documents nothing. The text is free (Markdown is possible): the indentation comm
 lines and the blank lines at the start and at the end are removed. `qlang check --json` with
 `"info": true` returns these texts (`doc` field).
 
+`qlang doc` turns them into a Markdown page: for each file, its exported names (all of them if
+it has no `export`) with their signature and comment, then the `public` fields, methods and
+variants of their types. `qlang doc` alone documents the project (without the test files);
+`qlang doc lib.q` one file; `-o API.md` writes to a file.
+
 ---
 
 ## 3. Values and types
@@ -183,6 +188,70 @@ without having declared it there) is never narrowed: a call between the test and
 could set it back to `none`. Copy its value into a local variable before testing it.
 
 Calling a method or reading a field on a value that may be `none` is a compile-time error.
+
+### Tuples
+
+A **tuple** groups a fixed number of values, of different types, without declaring a struct.
+Its type is written `(int, string)`, its value `(1, "a")`: at least two elements. You read an
+element by its **position**, starting at 0:
+
+```
+fun bounds(xs: array<int>) -> (int, int)
+  (xs[0], xs[xs.len() - 1])
+end
+
+let b = bounds([3, 1, 2])
+print(b)             -- (3, 2)
+print(b.0)           -- 3
+print(b.1)           -- 2
+let nested = (1, (2.5, true))
+print(nested.1.0)    -- 2.5
+```
+
+- A tuple **does not change**: `t.0 = 5` is refused; you build a new one.
+- `==` and `!=` compare the elements one by one; it is shown as `(1, "a")`.
+- A tuple can be a dictionary key and a set value when its elements can:
+  `{ (0, 0): "origin" }`, `Set.of([(0, 0), (1, 2)])`.
+- A tuple type accepts a wider element: `let t: (int?, string) = (5, "a")`.
+- A position that does not exist (`(1, 2).2`) is a compile-time error (`T286`), like `.0` on
+  something that is not a tuple (`T287`). A single element is not a tuple: `(1)` is just `1`
+  and `(1,)` is refused.
+
+**Destructuring.** `let (a, b) = t` takes a tuple apart, and `for (a, b) in …` does the same for
+each element:
+
+```
+let (lo, hi) = bounds([3, 1, 2])          -- lo = 3, hi = 2
+let (name, (x, y)) = ("p", (1, 2))        -- nested patterns
+let (_, hi2) = bounds([1, 2])             -- _ ignores an element
+const (k, v): (string, int) = ("a", 1)    -- const, and the type is optional
+
+let people: array<(string, int)> = [("ana", 31), ("bob", 27)]
+for (name, age) in people do
+  print("{name} is {age}")
+end
+for i, (name, _) in people do             -- the index, then the destructured element
+  print("{i}: {name}")
+end
+```
+
+**Assigning.** On the left of an `=`, a tuple of targets receives the elements of a tuple; the
+value is computed entirely before the first target changes, so `(a, b) = (b, a)` swaps:
+
+```
+(a, b) = (b, a)                      -- swap without a temporary variable
+(xs[0], xs[2]) = (xs[2], xs[0])      -- also with array elements
+(p.x, p.y) = (p.y, p.x + p.y)        -- and fields
+(cur, next) = (next, cur + next)     -- Fibonacci in one line
+((q, _), r) = ((5, 6), 7)            -- nested patterns, `_` ignores an element
+```
+
+Each target must be assignable (a constant is refused, `T210`); `+=` and the other operators do
+not apply to a tuple.
+
+The pattern must have as many names as the tuple has elements (`T288`) and only applies to a
+tuple (`T289`). The resulting variables are ordinary variables (`const` freezes them); at the
+top level of a file they are exported like the others.
 
 ### Conversions
 
@@ -411,9 +480,22 @@ Possible patterns in a `case`:
 | ------------------- | -------------------------------------------------------- |
 | Literal value       | `case 42 then`, `case "a" then`, `case true then`        |
 | `none`              | `case none then` (for a nullable value)                  |
-| Enumeration variant | `case Color.Red then`                                    |
+| Enumeration variant | `case Color.Red then`, `case Red then`                   |
+| Variant with data   | `case Circle(r) then`, `case Shape.Rect(w, _) then`      |
+| Tuple               | `case (0, y) then`, `case ("get", 200..=299) then`, `case (a, b) then` |
 | Range               | `case 1..=9 then`, `case 0.5..1.5 then`                  |
 | Binding + guard     | `case x if x > 100 then` (`x` names the tested value)    |
+
+A variant can be written with or without the name of the enumeration when the tested value
+tells which one it is (`case Red`, `case Circle(r)`); a name that is a variant of that type is
+the variant, otherwise it is a binding. For a variant that carries data, name each value in
+parentheses (`_` to ignore it): the number of names must be that of the values.
+
+A tuple pattern has one sub-pattern per element (a value, a range, `none`, a name, `_`, or
+another tuple); the names are bound in the guard and in the body. An enumeration variant cannot
+be written inside a tuple pattern: name the element, then `match` it separately. A tuple
+pattern made of names only (`case (a, b)`) accepts any tuple, so it makes the `match`
+exhaustive; as soon as it tests a value, you need an `else` or a `case` that accepts anything.
 
 The `case`s are tried in order. A lone name (`case x then`) accepts any value and names it;
 `_` accepts any value without naming it. After a `case none`, a bound name can no longer be
@@ -906,7 +988,8 @@ Arrays already implement these three traits: `xs[] = v` adds `v` at the end (lik
 
 ## 11. Enumerations
 
-An enumeration is a list of named constants.
+An enumeration is a list of variants. A variant is a name, alone or with values that it
+carries (named fields, like the parameters of a function):
 
 ```
 enum Color
@@ -915,12 +998,19 @@ enum Color
   Blue
 end
 
-let c = Color.Red
+enum Shape
+  Circle(radius: float)
+  Rect(w: float, h: float)
+  Empty
+end
 
-let label = match c
-  case Color.Red then "red"
-  case Color.Green then "green"
-  else "other"
+let c = Color.Green
+let s = Shape.Circle(2.0)             -- or Shape.Circle(radius: 2.0)
+
+let area = match s
+  case Circle(r) then 3.14 * r * r    -- r is the carried value
+  case Shape.Rect(w, h) then w * h
+  case Empty then 0.0
 end
 
 impl Color
@@ -930,8 +1020,20 @@ impl Color
 end
 ```
 
-Variants do not carry data. They are compared with `==` and shown as `Color.Red`. An
-enumeration can have methods (`impl`).
+- A variant without data is written `Color.Red` (no parentheses); a variant with data is
+  **built** by a call: `Shape.Circle(2.0)`, by position or by name like any call. Writing
+  `Shape.Circle` alone, or `Color.Red()`, is an error.
+- In a `match`, the compiler checks that all the variants are handled (see `match`). The
+  carried values are bound by position; patterns do not nest (`case Circle(0.0)` does not
+  exist: use a guard, `case Circle(r) if r == 0.0`).
+- An enumeration can be **generic**: `enum Maybe<T> Just(value: T) Nothing end` (see generics);
+  `impl<T> Maybe<T> ... end` adds methods to it, and a trait is implemented as for a struct.
+- Values are shown as `Shape.Circle(2.0)`, `Color.Red`. `==` compares the variant, then the
+  carried values one by one.
+- Variants carry their values without changing them: an enumeration value cannot be modified
+  (an array it contains stays a shared array, though).
+- Only enumerations **with no data at all** can be dictionary keys or cross an `extern fun`
+  (under the name of their variant).
 
 ---
 
@@ -994,7 +1096,7 @@ end
 let e: array<int> = empty()        -- T comes from the expected type, not an argument
 
 fun get() -> Result<int, Error>
-  Result.ok(1)                     -- T and E come from the return type of `get`
+  Result.Ok(1)                     -- T and E come from the return type of `get`
 end
 ```
 
@@ -1164,8 +1266,15 @@ the **execution environment** (the terminal, a web server…).
 | `print(x)`               | shows `x` followed by a new line (`print()`: an empty line)           |
 | `write(x)`               | shows `x` without a new line                                          |
 | `read()`                 | reads a line and returns a `string` (without the new line)            |
+| `read_all()`             | reads all the remaining lines, joined by new lines (none after the last one) |
+| `exit(code?)`            | ends the program right away with this exit code (0 by default); nothing runs after it |
 | `panic(message)`         | stops the program with an error                                       |
 | `assert(cond, message?)` | stops the program if `cond` is false                                  |
+| `assert_eq(a, b)`        | stops the program if `a != b`, showing both values (`assert_ne`: if `a == b`) |
+| `assert_ok(r)`, `assert_err(r)` | for a test: the value of an `Ok` / the error of an `Err`, or stops the program showing what the result held |
+| `assert_some(x)`, `assert_none(x)` | for a test: the value of a nullable that must not be `none` / checks that it is |
+| `assert_contains(array, v)`, `assert_contains_text(text, piece)` | for a test: `v` is in the array / `piece` is in the text |
+| `assert_close(a, b)`, `assert_within(a, b, tolerance)` | for a test: two `float`s equal within the tolerance (one billionth by default; relative as soon as `b` exceeds 1) |
 | `int.parse(s)`           | returns an `int?`: `none` if `s` is not a valid integer               |
 | `float.parse(s)`         | returns a `float?`                                                    |
 
@@ -1267,7 +1376,17 @@ Numbers:
 | `f.floor()`, `f.ceil()`, `f.round()` | roundings of a `float`, which return an `int`                         |
 | `n.to_hex()`, `n.to_oct()`, `n.to_bin()` | (`int`) text in base 16 / 8 / 2 (`255.to_hex()` is `"ff"`)         |
 | `f.to_fixed(decimals)`               | (`float`) text with exactly `decimals` digits after the point (0 to 17) |
+| `x.sin()`, `x.cos()`, `x.tan()`      | trigonometry, `x` in radians (`int` or `float`), a `float`            |
+| `x.asin()`, `x.acos()`, `x.atan()`   | inverse functions, in radians; `asin`/`acos` outside −1 to 1: error   |
+| `y.atan2(x)`                         | the angle of the point (`x`, `y`), in radians                         |
+| `x.exp()`, `x.ln()`, `x.log10()`, `x.log2()`, `x.log(base)` | exponential and logarithms; a number that is not strictly positive: error (`R016`) |
+| `x.to_radians()`, `x.to_degrees()`   | conversion between degrees and radians                                |
+| `x.signum()`                         | −1, 0 or 1 depending on the sign (`int` or `float`)                   |
+| `x.clamp(min, max)`                  | brings `x` back into the interval (same type; `min` > `max`: error)   |
+| `f.trunc()`                          | integer part of a `float` (towards zero), an `int`                    |
+| `f.is_nan()`, `f.is_infinite()`      | `bool`                                                                |
 | `float.PI`, `float.E`                | mathematical constants                                                |
+| `float.INFINITY`, `float.NAN`        | infinity, and "not a number" (`float.NAN == float.NAN` is false: use `is_nan()`) |
 | `int.MAX`, `int.MIN`                 | largest / smallest `int`                                              |
 
 ```
@@ -1357,6 +1476,42 @@ print(a.filter(fun(k: string, v: int) -> bool v > 1 end)) -- {"y": 2}
 
 An index out of bounds (`xs[5]` for 3 elements, a negative index) is a run-time error.
 
+### Sets
+
+A `Set<T>` is a set of values **without duplicates**, which keeps the order of insertion. It is
+a prelude type (no `import`):
+
+```
+let a = Set.of([1, 2, 2, 3])         -- Set(1, 2, 3)
+let seen = Set<string>.new()         -- an empty set
+seen.add("x")                        -- true: the value was new
+seen.add("x")                        -- false
+print(seen.contains("x"))            -- true
+
+let b = Set.of([2, 3, 4])
+print(a.union(b))                    -- Set(1, 2, 3, 4)
+print(a.intersect(b))                -- Set(2, 3)
+print(a.difference(b))               -- Set(1)
+
+for v in a do                        -- in insertion order
+  print(v)
+end
+```
+
+| Method | Role |
+| --- | --- |
+| `Set.of(array)`, `Set<T>.new()` | creates a set |
+| `add(v)`, `remove(v)` | adds / removes; `true` if the set changed |
+| `contains(v)`, `len()`, `is_empty()`, `clear()` | |
+| `to_array()` | the values, in insertion order |
+| `union(other)`, `intersect(other)`, `difference(other)` | a **new** set |
+| `is_subset(other)`, `equals(other)` | `bool` (`equals` ignores the order) |
+
+The values follow the rule of dictionary keys (`int`, `float`, `string`, `bool`, `uuid`,
+`ulid`, `datetime`, enumeration without data): a `Set<array<int>>` is refused (`T270`).
+Iterating over a set while modifying it is allowed (the loop sees the set as it was at the
+start). It is shown as `Set(1, 2, 3)`.
+
 ---
 
 ## 15. Time, identifiers and regular expressions
@@ -1370,6 +1525,7 @@ from the **environment**. A program that calls them while they are missing is re
 | Call                   | Result                                                                   |
 | ---------------------- | ------------------------------------------------------------------------ |
 | `time.now()`           | the current time, an `int`: milliseconds since 1 January 1970 UTC        |
+| `time.sleep(ms)`       | waits `ms` milliseconds (0 to 3,600,000); with a virtual clock (tests, JSON protocol), only moves the clock forward |
 | `random.int(min, max)` | a random `int` from `min` to `max`, **both included**                    |
 | `random.float()`       | a random `float` in `[0, 1[`                                             |
 
@@ -1515,6 +1671,27 @@ An invalid regular expression syntax is an `R070` error: it is a programming
 mistake (like a date that does not exist), not a condition to recover from
 with `Result`.
 
+### Encodings and hashes
+
+Four namespaces work on text (its UTF-8 bytes); text is the only type, there is no byte array,
+so a decoding returns `none` if the result is not valid UTF-8 text:
+
+| Function | Role |
+| --- | --- |
+| `Base64.encode(s)`, `Base64.encode_url(s)` | text in base64 (with `=`), or in "URL" base64 (`-` `_`, no `=`) |
+| `Base64.decode(s)` | the text of a base64 string (both alphabets), or `none` |
+| `Hex.encode(s)`, `Hex.decode(s)` | lowercase hexadecimal; `none` if it is not hexadecimal |
+| `Url.encode(s)`, `Url.decode(s)` | percent-encoding of a piece of URL (`a b&c` gives `a%20b%26c`); `+` decodes to a space; `none` if a `%` is malformed |
+| `Hash.sha256(s)`, `Hash.sha1(s)`, `Hash.md5(s)` | the digest in hexadecimal (`sha1` and `md5` are not for security) |
+| `Hash.hmac_sha256(key, message)` | the HMAC-SHA-256 in hexadecimal |
+
+```
+print(Hash.sha256("abc"))        -- ba7816bf...
+print(Base64.decode("TWFu"))     -- Man
+```
+
+These names start with a capital letter so that a variable `url` or `hash` does not hide them.
+
 ## 16. Prelude: `Result`, `Error` and JSON
 
 ### Prelude: `Result` and `Error`
@@ -1526,12 +1703,14 @@ struct Error
   public message: string
 end
 
-struct Result<T, E>
-  -- data and err are private: access them with the methods below
+enum Result<T, E>
+  Ok(value: T)
+  Err(error: E)
 end
 ```
 
-`Result<T, E>` represents either a value (`ok`) or an error (`err`):
+`Result<T, E>` is an [enumeration](#11-enumerations) with two variants: `Ok(value)` when all
+went well, `Err(error)` otherwise:
 
 ```
 fun divide(a: int, b: int) -> Result<int, Error>
@@ -1541,26 +1720,47 @@ fun divide(a: int, b: int) -> Result<int, Error>
   Ok(a div b)
 end
 
-let r = divide(10, 0)
-if r.is_err() then
-  print(r.unwrap_err().message)
-else
-  print(r.unwrap())
+match divide(10, 0)
+  case Ok(v) then print(v)
+  case Err(e) then print(e.message)
 end
 ```
 
-- `Ok(value)` and `Err(error)` build the result; `T` and `E` are deduced from
-  context (here, the return type of `divide`). When nothing lets them be
-  deduced, write them explicitly on the type: `Result<int, Error>.ok(value)`
-  / `Result<int, Error>.err(error)` (no `?` propagation sugar: you unwrap by
-  hand).
+- `Ok(value)` and `Err(error)` build the result (they are also the variants: `Result.Ok(value)`,
+  `Result.Err(error)`); `T` and `E` are deduced from context (here, the return type of
+  `divide`). When nothing lets them be deduced, write them explicitly on the type:
+  `Result<int, Error>.Ok(value)` / `Result<int, Error>.Err(error)`.
+- `match` takes a result apart, and the compiler checks that both `Ok` and `Err` are handled:
+  the value can only be read in the `Ok` case.
+- `result?` (see below) gives the value, or leaves the function with the error.
 - `is_ok()`, `is_err()`: know which of the two cases you have.
 - `unwrap()`, `unwrap_err()`: read the value or the error, or stop the
   program (`panic`) if you picked the wrong case.
-- `Result`/`Error` are ordinary declarations: a structure `Error` (or
-  `Result`) that you write yourself in your own file **shadows** the
-  prelude's, exactly like a local variable shadows a variable of wider
-  scope.
+- `Result`/`Error` are ordinary declarations: a structure `Error` (or an enumeration
+  `Result`) that you write yourself in your own file **shadows** the prelude's, exactly like a
+  local variable shadows a variable of wider scope.
+
+#### Propagating an error with `?`
+
+In a function that itself returns a `Result`, `expr?` gives the value of an `Ok`, and **leaves
+the function with the error** if it is an `Err`:
+
+```
+fun load(path: string) -> Result<Json, Error>
+  let text = fs.read(path)?          -- the error of fs.read leaves load
+  let json = Json.parse(text)?
+  Ok(json)
+end
+```
+
+- The error type must be the same on both sides (`Error` here): otherwise, a compile-time
+  error (`T282`); there is no automatic conversion.
+- `?` also works on a **nullable** value: `x?` gives the value, or leaves the function with
+  `none`, which requires a function that returns a `T?`.
+  `fun port(s: string) -> int? ... let rest = s.strip_prefix("port=")?` ...
+- It is written after any expression (`a()? + b()?`, `f()?.g()`), but not outside a function
+  (`T280`), and it only applies to a `Result` or a nullable (`T281`). In an anonymous function,
+  only that function is left.
 
 ### Prelude: JSON
 
@@ -1957,6 +2157,31 @@ let p = Point {
 
 A block (body of a function, of an `if`, of a loop…) goes back to its own rules, even inside
 parentheses: each statement there fits on its line.
+
+### Prelude: running a program
+
+`Process.run(command, arguments)` runs a program of the machine, waits for it to end and
+returns a `Result<ProcessOutput, Error>`; `ProcessOutput` has three public fields: `status` (the
+exit code, −1 if a signal stopped it), `stdout` and `stderr` (what it wrote, as text).
+`Process.run_with_input(command, arguments, text)` also writes `text` to its standard input.
+
+```
+let r = Process.run("git", ["rev-parse", "HEAD"])
+match r
+  case Ok(o) then print(o.stdout.trim())
+  case Err(e) then print("no git: {e.message}")
+end
+```
+
+- **No shell**: the command and each argument are given as they are to the system (no
+  wildcard, pipe or variable). A program that ends with a non-zero code is still an `Ok`: it
+  is up to you to read `status`. A program that cannot be found is an `Err`.
+- **Permission is required**: without it, `Process.run` is a compile-time error (`T250`). In
+  the terminal, it is `--allow-process` (on `qlang run`, `qlang test` and `qlang serve`); the
+  JSON protocol, the browser and a `qlang.toml` cannot grant it. `qlang check` does not need
+  it.
+- A program that is run is **not limited** by `--root` nor by qlang's limits (steps, memory);
+  it is stopped if it runs for more than a minute, and at most 16 MB of each stream is kept.
 
 ---
 
