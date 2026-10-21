@@ -75,4 +75,4 @@ time, at the very top, even before the first line of the file that imports it.
 - `export a, b, c` at the end of the file that offers.
 - `import a, b from "path.q"` or `import "path.q" as name`.
 - Paths are relative to the file, separated by `/`, never absolute.
-- Circular imports are forbidden.
+- Two files can import each other only if just one of them runs top-level code; otherwise it is an error.

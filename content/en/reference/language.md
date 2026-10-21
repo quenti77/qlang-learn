@@ -1047,7 +1047,11 @@ print(math.add(1, 2))
   the modules are the files of the request.
 - A file reached through two paths (`a.q`, `../d/a.q`, a symbolic link) is a single module.
 - A module is run only once, before the file that imports it, however many imports there
-  are. Circular imports are refused.
+  are.
+- Two modules can import each other (a cycle) as long as **only one** module of the cycle
+  runs top-level code (`print`, `let`, calls…): modules that only declare functions, structs,
+  traits or enumerations do not depend on the order of execution. If several modules of the
+  cycle run code, there is no valid order and the program is refused (`T101`).
 - You cannot modify an exported variable from another file.
 
 ### Packages
