@@ -2069,7 +2069,12 @@ driver: `sqlite://path/to/file.db`, or
 the same here): `postgres://user:pass@host/database?sslmode=require`. The
 server's certificate is always verified against the public authorities
 (Mozilla); a self-signed certificate or a private authority are not
-accepted without host-side configuration.
+accepted without host-side configuration. A server that is not on this machine (anything but
+`localhost`, `127.0.0.1`, `::1` or a socket) **requires** an `sslmode` in the URL: without it, the
+connection is refused rather than sending the password in the clear by accident
+(`?sslmode=disable` confirms that you want that). With `--root`, the file of a `sqlite://`
+database must be inside the folder; the SQL itself is not confined (`ATTACH DATABASE` reaches
+any readable file).
 
 ```
 let c = Db.connect("sqlite://data.db")
@@ -2257,11 +2262,16 @@ errors come after. A run-time error also shows the call stack.
 | nested calls                                                           | 1,000       | `R901` (infinite recursion?)   |
 | output shown                                                           | 10 MB       | `R902`                         |
 | size of an array or dictionary (elements) or of a string (bytes)       | 10,000,000  | `R903`                         |
+| memory of the process (`qlang` program, `--max-memory`)                | 1 GB        | `R904`                         |
 
 The time spent in built-in operations counts too: searching an array (`contains`,
 `index_of`), sorting it, joining it (`join`), copying a string (`+`, `replace`, `split`…)
 costs about one step per 4 elements (or 32 bytes). A loop that searches a very large array
 at each turn therefore reaches the step limit, like any loop that is too long.
+
+Comparing two values (`==`, `<`) goes down at most 1,000 levels into nested enums, arrays and
+tuples: beyond that, `R092` (a program can build linked lists of millions of links; freeing
+them has no limit).
 
 Showing a value (`print`, interpolation, `as string`) goes down at most 64 levels into arrays
 and structures: below that, it shows `...`. This prevents a structure that contains itself
