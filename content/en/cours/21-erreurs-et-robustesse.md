@@ -81,6 +81,9 @@ else
 end
 ```
 
+When the caller must know **why** something failed, return a `Result`: see the lesson
+« Result and the `?` operator ».
+
 ## Validating before acting
 
 ```qlang
