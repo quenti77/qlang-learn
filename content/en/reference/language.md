@@ -2247,7 +2247,9 @@ The source code itself cannot exceed 200 levels of nesting.
 
 ## 21. Open points
 
-- **Standard library:** it is deliberately small (see section 14) and will grow with use.
+- **Standard library:** it covers everyday needs (strings, arrays, dictionaries, `Set`, tuples,
+  maths, encodings, files, network, processes, tests). The rest lives in packages: see
+  `qlang-std` (CSV, templates, TOML); YAML, mail and S3 are not written.
 - **Dictionaries:** no keys of type array or structure (see above), and no `<` comparison.
 - **Smallest integer:** `-9223372036854775808` cannot be written as a literal (the unsigned
   digits exceed 64 bits).
@@ -2256,6 +2258,8 @@ The source code itself cannot exceed 200 levels of nesting.
 - **Traits that require others** (a trait that assumes another is also implemented): not
   planned for now.
 - **Generic anonymous functions:** not planned.
-- **Format of documentation comments:** the text is free for now. To be planned, depending on
-  use: a light format such as `@param` / `@return`, and a documentation page generated from
-  these comments.
+- **Patterns:** an enum variant inside a tuple pattern, and a pattern nested inside a variant,
+  are not accepted yet.
+- **Tuples:** no ordering (so no sorting) and no passing through an `extern fun`.
+- **Format of documentation comments:** the text stays free (`qlang doc` copies it as is). To be
+  planned, depending on use: a light format such as `@param` / `@return`.
