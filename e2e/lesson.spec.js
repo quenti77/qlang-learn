@@ -177,6 +177,11 @@ for (const lang of ['fr', 'en']) {
       await page.goto(href);
       await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
       const first = page.locator('.qlang-widget:not(.module)').first();
+      // a lesson to read only (the command-line tools) has no example to run
+      if (href.includes('/33-outils-du-terminal')) {
+        await expect(page.locator('.qlang-widget')).toHaveCount(0);
+        continue;
+      }
       await first.getByTestId('run').click();
       await expect(first.getByTestId('output'), href).not.toBeEmpty();
     }

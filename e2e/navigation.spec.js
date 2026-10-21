@@ -105,11 +105,15 @@ test('the final project is the last lesson, and the old addresses of renumbered 
   await page.goto('/fr/cours/30-serveur-web/');
   await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/31-tuples-et-ensembles/');
   await page.goto('/fr/cours/32-result-et-propagation/');
-  await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/33-projet-final/');
+  await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/33-outils-du-terminal/');
+  await page.goto('/fr/cours/33-outils-du-terminal/');
+  await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/34-projet-final/');
   await page.goto('/fr/cours/28-projet-final/');
-  await expect(page).toHaveURL('/fr/cours/33-projet-final/');
+  await expect(page).toHaveURL('/fr/cours/34-projet-final/');
   await page.goto('/fr/cours/31-projet-final/');
-  await expect(page).toHaveURL('/fr/cours/33-projet-final/');
+  await expect(page).toHaveURL('/fr/cours/34-projet-final/');
+  await page.goto('/fr/cours/33-projet-final/');
+  await expect(page).toHaveURL('/fr/cours/34-projet-final/');
   await page.goto('/en/cours/31-serveur-web/');
   await expect(page).toHaveURL('/en/cours/30-serveur-web/');
 });
