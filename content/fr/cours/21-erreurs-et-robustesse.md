@@ -82,6 +82,9 @@ else
 end
 ```
 
+Quand l'appelant doit savoir **pourquoi** ça a échoué, on renvoie un `Result` : voir la leçon
+« Result et l'opérateur `?` ».
+
 ## Valider avant d'agir
 
 ```qlang

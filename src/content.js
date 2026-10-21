@@ -26,7 +26,9 @@ export const parts = [
   { id: 'types', from: 13, to: 18 },
   { id: 'solid', from: 19, to: 22 },
   { id: 'algorithms', from: 23, to: 27 },
-  { id: 'beyond', from: 28, to: 31 },
+  { id: 'beyond', from: 28, to: 30 },
+  { id: 'more', from: 31, to: 32 },
+  { id: 'project', from: 33, to: 33 },
 ];
 export const partOf = (slug) => {
   const n = Number(slug.slice(0, 2));
@@ -44,7 +46,7 @@ export function lessonParts(lang) {
 const lessonDocs = {
   1: [10, 1, 2], 2: [12], 3: [13], 4: [14], 5: [12, 23], 6: [15], 7: [16], 8: [17], 9: [23], 10: [23],
   11: [12], 12: [15], 13: [18], 14: [18], 15: [19], 16: [19], 17: [20], 18: [21], 19: [17], 20: [22],
-  21: [25, 29], 22: [26], 28: [24], 29: [24], 30: [26],
+  21: [25, 29], 22: [26], 28: [24], 29: [24], 30: [26], 31: [12, 23], 32: [20, 25],
 };
 
 /** The documentation pages that go with a lesson (slug). */
