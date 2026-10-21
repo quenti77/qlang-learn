@@ -74,6 +74,75 @@ never an absolute path. `--root folder` limits imports to that folder:
 qlang run app/main.q --root .      # imports stay in the current folder
 ```
 
+### Starting a project
+
+```sh
+qlang init my-app       # qlang.toml, main.q and .gitignore (overwrites nothing)
+cd my-app
+qlang run               # runs the `entry` of the qlang.toml
+qlang check             # checks without running
+```
+
+`entry` is in the `[package]` table of the `qlang.toml`; `qlang run` and `qlang check` without a
+file look for it from the current folder, going up. (`main`, in the same table, is something
+else: the file that `import "@my-app"` loads when the project is used as a package.)
+
+### Documentation
+
+```sh
+qlang doc                  # Markdown for the whole project, on the standard output
+qlang doc lib.q -o API.md  # one file, written to API.md
+```
+
+It is taken from the `--" … --"` comments placed right above declarations: the exported names
+of a file (all of them if it has no `export`) with their signature, and the `public` fields,
+methods and variants of their types. Test files are ignored.
+
+### Tests
+
+```sh
+qlang test                       # all the tests of the project
+qlang test math_test.q           # one file (or a folder)
+qlang test --filter double       # the tests whose name contains "double"
+```
+
+Test files are named `*_test.q` or `test_*.q`; in each of them, every `fun test_...()` with no
+parameter is a test. Each test starts from a clean state (the code of the file is replayed) and
+succeeds if it does not stop on an error:
+
+```
+import double from "math.q"
+
+fun test_double()
+  assert_eq(double(21), 42)       -- shows both values if they differ
+end
+
+fun test_negatives()
+  assert(double(-1) < 0, "must stay negative")
+  assert_ne(double(1), 3)
+end
+
+fun test_load()
+  let json = assert_ok(Json.parse("{\"n\": 1}"))   -- the value of the Ok, or fails showing the error
+  assert_close(0.1 + 0.2, 0.3)                      -- floats: within a billionth
+  assert_contains([1, 2, 3], 2)
+end
+```
+
+The other assertions: `assert_err`, `assert_some`, `assert_none`, `assert_contains_text`,
+`assert_within` (given tolerance). A failure is shown at the line of your test, not in the
+library.
+
+Exit code: `0` if everything passes (or if there is no test), `1` otherwise. `--seed N` fixes
+the random numbers, `--max-steps N` limits each test.
+
+### Running a program
+
+`Process.run("git", ["status"])` starts a program of the machine (without a shell). It is refused
+by default: the program must be started with `--allow-process`
+(`qlang run --allow-process app.q`, also for `qlang test` and `qlang serve`). See "Prelude:
+running a program" in [docs/language.md](docs/language.md).
+
 ### Packages
 
 A project lists its dependencies in its `qlang.toml` and imports them with `@name`:
@@ -238,6 +307,7 @@ Response:
 
 - `phase`: `"request"` (invalid request), `"compile"` (errors before running) or `"run"` (the
   program was run; `ok` says whether it succeeded).
+- `exit_code`: present only if the program called `exit(code)`.
 - `diagnostics`: list of errors (and warnings):
 
 ```json
