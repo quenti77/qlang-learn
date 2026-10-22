@@ -846,6 +846,88 @@ print(Holder<Dog> { item: Dog { n: "Rex" } }.describe()) --> "Dog: Rex"
 If a type defines its own `class` method, that one is called instead:
 `.class()` is a default behavior, not a reserved word.
 
+### Annotations
+
+An **annotation** is a note put on a declaration, between `#[` and `]`. The program does not
+change: it describes something (a route, a validation rule, a label) for code that will read it.
+
+An annotation is a structure declared with `#[annotation]`. Its fields are its arguments:
+
+```
+#[annotation]
+struct Route
+  path: string
+  method: string = "GET"
+end
+
+#[annotation]
+struct Min
+  value: int
+end
+
+#[Route("/users", method: "POST")]
+fun create_user() -> int
+  1
+end
+
+struct Form
+  #[Min(0)]
+  age: int
+end
+```
+
+- You can annotate a `fun`, a method (in an `impl` or a `trait`), a `struct` and its fields, an
+  `enum` and its variants, a `trait`, a parameter: `fun f(#[Min(1)] n: int)`.
+- Several annotations: one under the other, or separated by a comma (`#[Min(0), Tags(["id"])]`).
+  A documentation comment stays above the first one.
+- Arguments are given like those of a call, in the order of the fields or by name; a field with a
+  default value is optional. They are **literals** (number, text without `{}`, `true`, `false`,
+  `none`, array of literals): everything is known at compile time.
+- The checker verifies the name (`T001`, `T290` if it is not an annotation), the arguments
+  (`T292` unknown name, too many or given twice; `T293` missing argument; `T294` not a literal;
+  `T002` wrong type), and that `#[annotation]` is on a structure with no type parameter, no parent
+  and no `static` field (`T291`, `T295`). An annotation on a statement is an error (`P051`).
+
+### Reflection
+
+`Reflect` describes, at run time, what the checker knows: a structure, an enumeration, the
+functions of the file, with their annotations. Types stay static: you read descriptions
+(`StructInfo`, `EnumInfo`, `FunctionInfo`...), which are ordinary values.
+
+| Call | Result |
+| --- | --- |
+| `Reflect.struct_info<Form>()` | `StructInfo`: `name`, `fields` (`FieldInfo`: `name`, `type_name`, `annotations`), `annotations` |
+| `Reflect.enum_info<Color>()` | `EnumInfo`: `name`, `variants` (`VariantInfo`: `name`, `fields`, `annotations`), `annotations` |
+| `Reflect.functions()` | `array<FunctionInfo>` of the functions declared in **this file**: `name`, `params` (`ParamInfo`: `name`, `type_name`, `annotations`), `return_type`, `annotations` |
+| `Reflect.find<fun(Request) -> Response>("home")` | the function `home` of this file if its type is exactly that one, otherwise `none` |
+
+An annotation that is read is an `AnnotationInfo`: `name` (its structure's) and `args`, the
+arguments by field name, as `Json` (default values are filled in; numbers are floats). Every
+description has `annotation("Route")`, which gives the annotation of that name or `none`.
+
+```
+#[Route("/hello", method: "POST")]
+fun hello(req: Request) -> Response
+  Response.text("hi")
+end
+
+for info in Reflect.functions() do
+  let route = info.annotation("Route")
+  if route != none then
+    let path = route.args["path"]
+    if path != none then
+      print("{info.name} serves {path.as_string()}")   --> hello serves /hello
+    end
+  end
+end
+```
+
+`Reflect.find` gives a real function value you can call: together with `Reflect.functions()`, it
+lets you route requests from annotations (see `examples/routes.q`). Only top-level functions of the
+file without type parameters are concerned (not methods). Shape errors: `T300` (wrong number of
+arguments or types), `T301` (the type is not the expected kind), `T302` (unknown name: `struct_info`,
+`enum_info`, `functions` and `find` exist).
+
 ---
 
 ## 10. Traits and operator overloading
@@ -1868,7 +1950,7 @@ end
 ```
 
 There is **no automatic conversion** between a decoded `Json` and a
-user-defined structure (qlang has no reflection or `derive` macros): to
+user-defined structure (reflection describes fields but does not build values, and there are no `derive` macros): to
 rebuild a `Post` from a `Json`, write your own static method that reads the
 fields one by one, for example `Post.from_json(json: Json) -> Result<Post,
 Error>` (a convention, not an interface the language imposes, like `new`).
@@ -1957,6 +2039,12 @@ end
 qlang serve app.q --port 8080
 curl "http://127.0.0.1:8080/hello?name=Ada"
 ```
+
+With `--watch`, the server reloads the program when one of its files (the main file or an
+imported one) changes: the next request is answered by the new version. A mistake in the new code
+is printed and the previous version keeps answering until it is fixed. Module variables (like
+`visits` above) start again from their initial value at each reload. This is meant for
+development, not for production.
 
 - **The function** is called exactly `handle`, takes a `Request` and returns a `Response`: the
   check controls this before starting.
