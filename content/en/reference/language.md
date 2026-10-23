@@ -1295,8 +1295,8 @@ depend on other git packages, not on a local folder.
   can import other packages with `@name/...`. Error messages name the files `@mail/send.q`.
 - A file whose name starts with `@` is imported by writing `./@x.q`.
 - Packages are not limited by `--root`: it is the project that chooses them.
-- The VS Code extension follows `@name` imports (it asks `qlang packages`, which only reads
-  the `qlang.toml` files).
+- The language server (`qlang lsp`, so VS Code) follows `@name` imports (it reads the
+  `qlang.toml` files, like `qlang packages`).
 - A project without a `qlang.toml` has no packages; environments without a disk (JSON, HTTP,
   browser) see them as files of the request named `@mail/send.q`.
 
