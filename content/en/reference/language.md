@@ -900,6 +900,8 @@ functions of the file, with their annotations. Types stay static: you read descr
 | `Reflect.enum_info<Color>()` | `EnumInfo`: `name`, `variants` (`VariantInfo`: `name`, `fields`, `annotations`), `annotations` |
 | `Reflect.functions()` | `array<FunctionInfo>` of the functions declared in **this file**: `name`, `params` (`ParamInfo`: `name`, `type_name`, `annotations`), `return_type`, `annotations` |
 | `Reflect.find<fun(Request) -> Response>("home")` | the function `home` of this file if its type is exactly that one, otherwise `none` |
+| `Reflect.methods<Users>()` | `array<FunctionInfo>` of the methods of the `impl`s of `Users` (`has_self` tells whether it takes `self`) |
+| `Reflect.find_method<Users, fun(Request) -> Response>(value, "list")` | the method `list` of `value`, already bound to it, if its type (without `self`) is that one, otherwise `none` |
 
 An annotation that is read is an `AnnotationInfo`: `name` (its structure's) and `args`, the
 arguments by field name, as `Json` (default values are filled in; numbers are floats). Every
@@ -923,10 +925,12 @@ end
 ```
 
 `Reflect.find` gives a real function value you can call: together with `Reflect.functions()`, it
-lets you route requests from annotations (see `examples/routes.q`). Only top-level functions of the
-file without type parameters are concerned (not methods). Shape errors: `T300` (wrong number of
+lets you route requests from annotations (see `examples/routes.q`). For functions, only top-level ones of the
+file without type parameters are concerned; for methods, use `Reflect.methods` and
+`Reflect.find_method` (for example a controller: a structure whose methods carry `#[Route(...)]`).
+Reflection ignores visibility: a private method can be found and called. Shape errors: `T300` (wrong number of
 arguments or types), `T301` (the type is not the expected kind), `T302` (unknown name: `struct_info`,
-`enum_info`, `functions` and `find` exist).
+`enum_info`, `functions`, `find`, `methods` and `find_method` exist).
 
 ---
 
