@@ -87,7 +87,7 @@ lines and the blank lines at the start and at the end are removed. `qlang check 
 
 `qlang doc` turns them into a Markdown page: for each file, its exported names (all of them if
 it has no `export`) with their signature and comment, then the `public` fields, methods and
-variants of their types. `qlang doc` alone documents the project (without the test files);
+variants of their types. `qlang doc` alone documents the project (without the test files nor the `examples` folder);
 `qlang doc lib.q` one file; `-o API.md` writes to a file.
 
 ---
@@ -143,7 +143,8 @@ let y = 3
 print("{x} + {y} = {x + y}")
 ```
 
-The expression inside `{ }` cannot contain an unescaped `"` quote. To show a brace, write
+The expression inside `{ }` can contain strings of its own (`"{names.join(", ")}"`); a brace in
+such a string is also written `\{`. To show a brace, write
 `\{`. Any value can be interpolated: it is converted with `as string` (see
 [Conversions](#conversions)).
 
@@ -927,6 +928,7 @@ end
   `enum` and its variants, a `trait`, a parameter: `fun f(#[Min(1)] n: int)`.
 - Several annotations: one under the other, or separated by a comma (`#[Min(0), Tags(["id"])]`).
   A documentation comment stays above the first one.
+- For a `float` field, a whole number is enough: `#[Min(1)]` (read as `1.0`).
 - Arguments are given like those of a call, in the order of the fields or by name; a field with a
   default value is optional. They are **literals** (number, text without `{}`, `true`, `false`,
   `none`, array of literals): everything is known at compile time.
@@ -990,6 +992,9 @@ arguments or types), `T301` (the type is not the expected kind), `T302` (unknown
 | `Reflect.get(value, "field")` | the field of a structure, as an `Any?` (`none` if it does not exist); visibility is ignored |
 | `Reflect.construct<T>(fields)` | `Result<T, Error>`: a `T` built from a `map<string, Any>` (default values respected) |
 | `Reflect.type_name<T>()` | the name of the type `T` (`"array<User>"`) |
+| `Reflect.parts(a)` | an `EnumParts?`: the name of the enumeration, of the variant and the data (each as an `Any`) of an enumeration value held by the `Any` `a`; `none` for anything else. It opens a `Result` given by `Callable.call` |
+| `Reflect.info_of(a)` | the `StructInfo?` of the structure held by the `Any` `a` (to walk its fields with `Reflect.get`) |
+| `Reflect.items(a)` | the elements, as `Any`, of the array held by the `Any` `a` (`array<Any>?`) |
 
 `Callable` has the fields of `FunctionInfo` (`name`, `params`, `return_type`, `annotations`) and
 `call(args: array<Any>) -> Result<Any, Error>`: `err` when the number of arguments or one of their
