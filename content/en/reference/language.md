@@ -1894,8 +1894,9 @@ with `Result`.
 
 ### Encodings and hashes
 
-Four namespaces work on text (its UTF-8 bytes); text is the only type, there is no byte array,
-so a decoding returns `none` if the result is not valid UTF-8 text:
+Four namespaces work on text (its UTF-8 bytes); a decoding into text returns `none` if the result
+is not valid UTF-8. For arbitrary data, see [`bytes`](#bytes-sequences-of-bytes): each function has
+a `*_bytes` variant:
 
 | Function | Role |
 | --- | --- |
@@ -1912,6 +1913,71 @@ print(Base64.decode("TWFu"))     -- Man
 ```
 
 These names start with a capital letter so that a variable `url` or `hash` does not hide them.
+
+### `bytes`: sequences of bytes
+
+`bytes` is a sequence of bytes that never changes: a file, a request body, a digest. It is not
+text (text is valid UTF-8) and not an array of integers.
+
+```
+let b = "héllo".to_bytes()
+print(b.len())               -- 6: bytes, not characters
+print(b.hex())               -- 68c3a96c6c6f
+print(b.to_string())         -- héllo (none if it is not valid text)
+print(b.slice(0, 3))         -- bytes[68 c3 a9]
+print(b.at(1))               -- 195 (none outside the bytes)
+```
+
+| Call | Result |
+| --- | --- |
+| `s.to_bytes()` | the UTF-8 bytes of a text |
+| `bytes.empty()` | no bytes at all |
+| `bytes.from_array([1, 2, 255])` | the bytes of these integers, or `none` if one is not from 0 to 255 |
+| `b.len()`, `b.is_empty()`, `b.at(i)` | size; the `i`-th byte (0 to 255) or `none` |
+| `b.slice(start, end)`, `b.concat(other)` | bytes; `slice` stays within the bounds |
+| `b.to_string()`, `b.to_array()` | the text (`string?`); an `array<int>` |
+| `b.hex()`, `b.base64()` | the hexadecimal text; the base64 text |
+| `b.find(x)`, `b.contains(x)`, `b.starts_with(x)`, `b.ends_with(x)` | searching for bytes |
+| `Base64.encode_bytes(b)`, `Base64.encode_url_bytes(b)`, `Base64.decode_bytes(s)` | base64; `decode_bytes` gives a `bytes?` |
+| `Hex.encode_bytes(b)`, `Hex.decode_bytes(s)`, `Url.encode_bytes(b)`, `Url.decode_bytes(s)` | likewise |
+| `Hash.sha256_bytes(b)`, `sha1_bytes`, `md5_bytes`, `hmac_sha256_bytes(key, message)` | the digest in hexadecimal |
+| `Hash.sha256_raw(b)`, `Hash.hmac_sha256_raw(key, message)` | the digest as bytes (32) |
+| `random.bytes(n)` | `n` random bytes (0 to 1,048,576), from the generator of `random` |
+| `fs.read_bytes(path)`, `fs.write_bytes(path, b)` | a file as bytes |
+
+- `==` compares the content; there is no `<` and no index `b[i]` (use `at`).
+- `print` shows the first 32 bytes: `bytes[68 c3 a9]`.
+- In a `Json`, bytes are base64 text (`Json.of`, `Json.to<bytes>`).
+- `bytes` is not a reserved word: `let bytes = 3` is still valid (like `map`).
+- An `extern fun` can take and return `bytes`; to an external program (`--extern`,
+  `qlang.toml`) they travel as base64.
+
+### Secrets: `Crypto` and `Password`
+
+`random` is a generator you can fix (`--seed`): good for tests, **never** for a secret. `Crypto`
+asks the operating system's secure source for bytes.
+
+| Call | Result |
+| --- | --- |
+| `Crypto.random_bytes(n)` | `Result<bytes, Error>`: `n` unpredictable bytes |
+| `Crypto.token(n)` | `Result<string, Error>`: a token (session, reset link, API key) made of `n` bytes in "URL" base64 (32 bytes: 43 characters) |
+| `Crypto.equal(a, b)`, `Crypto.equal_bytes(a, b)` | `true` if both are equal, **without revealing where they differ** (constant time): to compare a received token, signature or digest |
+
+`Password` keeps passwords. It makes a text to store in the database (**Argon2id**, with its own
+random salt and its settings inside) and never keeps the password itself:
+
+```
+let hash = Password.hash("s3cret").unwrap()      -- "$argon2id$v=19$m=19456,t=2,p=1$..."
+Password.verify("s3cret", hash).unwrap()         -- true
+Password.verify("other", hash).unwrap()          -- false
+Password.needs_rehash(hash).unwrap()             -- true if the settings have aged
+```
+
+- `verify` gives `err` if the text is not a hash. Computing a hash takes a few tens of
+  milliseconds, on purpose.
+- After a successful login, `needs_rehash` tells whether to hash again (and store the new one).
+- Only the `qlang` command offers `Password` and `Crypto` (another host: error `T250` before
+  running; a test host may answer from its seed, never for real secrets).
 
 ## 16. Prelude: `Result`, `Error` and JSON
 
@@ -2306,6 +2372,7 @@ Options of `qlang serve app.q`:
 | `--bind ADDRESS`   | the address to listen on (`127.0.0.1` by default: this machine only)                    |
 | `--max-steps N`    | the number of evaluation steps **per request**                                          |
 | `--static FOLDER`  | serves the files of this folder as they are, **before** calling the program             |
+| `--compress`       | gzips text answers for clients that accept it                                           |
 | `--dev`            | the detail of an error of the program is in the 500 response (never in production)      |
 | `--workers N`      | N interpreters (from 1 to 64) that answer in parallel                                   |
 | `--root FOLDER`    | limits `import` and `fs` to this folder                                                 |
@@ -2322,16 +2389,34 @@ Options of `qlang serve app.q`:
   variable.
 - **Stopping**: Ctrl-C or a `TERM` signal stops the server cleanly: requests already accepted
   get their answer (5 seconds at most), new ones get `503`.
-- **The server** is minimal: HTTP/1.1 with no TLS nor persistent connections, at most 16
-  simultaneous connections, body limited to 1 MB, no chunked requests
-  (`Transfer-Encoding: chunked`). Like `qlang serve` for the JSON protocol, **put it behind a
-  reverse proxy** and do not expose it directly to the Internet.
+- **The server** is simple: HTTP/1.1 with no TLS, at most 64 simultaneous connections, body limited
+  to 1 MB. Like `qlang serve` for the JSON protocol, **put it behind a reverse proxy** and do not
+  expose it directly to the Internet.
+  - **Persistent connections**: a connection serves up to 100 requests (5 seconds of silence
+    close it; so does `Connection: close`), requests sent all at once included.
+  - **Chunked bodies** (`Transfer-Encoding: chunked`) and `Expect: 100-continue` are understood; a
+    body announced in two ways at once is refused (`400`).
+  - **Bytes**: `req.raw` is the exact body (`bytes?`); `Response.bytes(data, type)` answers with
+    bytes; a `Response` whose `raw` is filled sends these bytes instead of `body`.
+  - **Forms with files**: `req.multipart()` gives the `Part`s of a `multipart/form-data` body
+    (`name`, `filename: string?`, `content_type: string?`, `data: bytes`, `text()`), or `err` if
+    it is malformed.
+  - **Answers written as they are produced**: `Response.stream(type, next)` calls `next()` again
+    and again and sends each text it gets right away (`Transfer-Encoding: chunked`), until
+    `none`; `Response.sse(next)` does the same with `SseEvent { data, event?, id?, retry? }`
+    (`text/event-stream`). The worker that answers serves only this connection while it lasts
+    (give enough `--workers`); if the client leaves, the stream stops at the next piece. Between
+    two pieces, `time.sleep` waits.
+  - **Compression**: with `--compress`, a text, JSON, JavaScript, XML or SVG answer of 1 KB or more
+    is sent as gzip to clients that accept it (`Content-Encoding: gzip`, `Vary`), unless the
+    program already chose an encoding. Off by default (a proxy does it just as well).
 
 ### Prelude: `Db`
 
 `Db.connect(url)` opens a database connection; the URL's scheme picks the
-driver: `sqlite://path/to/file.db`, or
-`postgres://user:password@host/database`. For Postgres over TLS, add
+driver: `sqlite://path/to/file.db`,
+`postgres://user:password@host/database` or `mysql://user:password@host/database`
+(MySQL and MariaDB; `mariadb://` is accepted). For Postgres and MySQL over TLS, add
 `?sslmode=require` (or `prefer`/`verify-ca`/`verify-full`, they are treated
 the same here): `postgres://user:pass@host/database?sslmode=require`. The
 server's certificate is always verified against the public authorities
@@ -2393,6 +2478,10 @@ end
   `sql_query`, `sql_execute`, `sql_close`) that the host provides: `qlang` provides them for
   SQLite and Postgres, and another environment can plug its own database under the same
   names.
+- **MySQL / MariaDB**: columns keep their type (integers, floats, text); a date (`DATE`,
+  `DATETIME`, `TIMESTAMP`) becomes a text `2026-10-23` or `2026-10-23 14:05:09`, a time (`TIME`) a
+  text, a `BLOB` or invalid text `none`. Queries are prepared on the server (`?`). Transactions
+  work as elsewhere. Tested with MySQL 8.0 and 9.5.
 - **Current limits**: on the Postgres side, only the common scalar types (`bool`,
   integers, floats, text) are properly converted, others (date, uuid, json,
   array...) fall back to text if possible, otherwise `none`; no SQLite BLOB
@@ -2403,7 +2492,8 @@ end
 `fs.read(path)` reads a file's whole content, `fs.write(path, content)`
 replaces it entirely (creating it if needed). Both return a `Result`: a
 missing file or a permission error gives a `Result::err`, never a program
-crash.
+crash. `fs.read_bytes(path)` and `fs.write_bytes(path, bytes)` do the same with
+[`bytes`](#bytes-sequences-of-bytes) (an image, an archive).
 
 ```
 let r = fs.read("config.json")
@@ -2433,6 +2523,31 @@ fails the check before it even runs, same as `http`/`Db`. With `qlang-cli`,
 the arguments after `--` on the command line are the ones `env.args()`
 returns (`qlang run script.q -- a b`), and `fs` honours `--root` the same
 way imports do.
+
+### Prelude: the `Log` journal
+
+`Log` writes the program's journal: `Log.debug("detail")`, `Log.info("started")`,
+`Log.warn("slow")`, `Log.error("failed")`, or `Log.write("info", "message", { "user": "ada" })` with
+extra fields (any other level is written as `info`).
+
+```
+Log.info("started")
+Log.write("error", "payment refused", { "order": "42", "reason": "card expired" })
+```
+
+The `qlang` command writes one line per call on the **error output** (not on the output: the
+journal does not mix with the results):
+
+```
+2026-10-23T18:50:33.145Z INFO  started
+2026-10-23T18:50:33.146Z ERROR payment refused order=42 reason="card expired"
+```
+
+- `--log-level debug|info|warn|error` (or the variable `QLANG_LOG`) hides the lower levels; `info`
+  by default.
+- `--log-format json` (or `QLANG_LOG_FORMAT=json`) writes one object per line:
+  `{"level":"error","message":"...","order":"42","time":"..."}`.
+- Another host keeps or drops the lines; they never make the program fail.
 
 ## 18. Line endings
 
