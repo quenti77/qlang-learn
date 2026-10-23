@@ -665,6 +665,53 @@ print(apply(double, 21))
 `fun(int) -> int?` is a function that returns an `int?`. For a function that is itself
 nullable, use parentheses: `(fun(int) -> int)?`.
 
+### Type aliases
+
+`type Name = type` gives a name to a type. The alias and the type are **the same type**:
+nothing is converted, one can be passed where the other is expected.
+
+```
+type Handler = fun(Request) -> Response
+type Middleware = fun(Request, Handler) -> Response
+type Names = array<string>
+
+fun wrap(m: Middleware, h: Handler) -> Handler
+  fun(req: Request) -> Response
+    m(req, h)
+  end
+end
+```
+
+- `type` is not a reserved word: `let type = 3` is still valid. It only starts an alias in the
+  form `type Name =`, at the top level of a file.
+- An alias is declared in a file, exported (`export Handler`) and imported like a structure. It
+  has no type parameter (`T121` if you give one).
+- It only serves to **write a type**: you cannot build a value by its name (`Names { ... }` does
+  not exist: write the name of the real type).
+- An alias that refers to itself, directly or through another, is an error (`T122`), and the
+  type of an alias is checked even if nothing uses it.
+
+### Types at run time
+
+Types are erased at run time, except for a generic function that **names them**: if its body uses
+`Reflect.type_name<T>()`, `a.as<T>()`, `Any.of(x)`, `Json.to<T>(j)` or `Reflect.construct<T>(...)`
+with its own type parameter `T`, every call passes it the chosen type.
+
+```
+fun decode<T>(text: string) -> Result<T, Error>
+  Json.to<T>(Json.parse(text)?)
+end
+
+let input = decode<CreateUser>("\{\"name\": \"Ann\"\}")
+```
+
+- This also holds for a function that calls another one passing its `T` (`name_of<array<T>>()`)
+  and for the type parameters of a **method** (`bag.get<int>()`).
+- The type parameters of a generic **structure** (`Stack<T>`) are not known: in its methods, `T`
+  keeps its name.
+- Only a direct call provides the types: a function passed as a value and then called does not
+  receive them.
+
 ### Local declarations
 
 Named `fun` declarations only exist at file level. In a block, a local function is written
@@ -931,6 +978,68 @@ file without type parameters are concerned; for methods, use `Reflect.methods` a
 Reflection ignores visibility: a private method can be found and called. Shape errors: `T300` (wrong number of
 arguments or types), `T301` (the type is not the expected kind), `T302` (unknown name: `struct_info`,
 `enum_info`, `functions`, `find`, `methods` and `find_method` exist).
+
+#### More reflection
+
+| Call | Result |
+| --- | --- |
+| `Reflect.functions(m)` | the functions of the module `m` (`import "x.q" as m`) instead of those of the file |
+| `Reflect.structs()` / `Reflect.structs(m)` | `array<StructInfo>` of the structures (without type parameter or annotation) of the file or of `m` |
+| `Reflect.callable("name")` / `Reflect.callable(m, "name")` | a `Callable?`: the function of that name, to call with `Any` values |
+| `Reflect.callables()` / `Reflect.callables(m)` | `array<Callable>`: every function (without type parameter) of the file or of `m` |
+| `Reflect.get(value, "field")` | the field of a structure, as an `Any?` (`none` if it does not exist); visibility is ignored |
+| `Reflect.construct<T>(fields)` | `Result<T, Error>`: a `T` built from a `map<string, Any>` (default values respected) |
+| `Reflect.type_name<T>()` | the name of the type `T` (`"array<User>"`) |
+
+`Callable` has the fields of `FunctionInfo` (`name`, `params`, `return_type`, `annotations`) and
+`call(args: array<Any>) -> Result<Any, Error>`: `err` when the number of arguments or one of their
+types does not fit (`argument 1: expected int, found string`). Generic functions cannot be found.
+`Reflect.construct` only fills fields with a value of the right type
+(``field `id`: expected int, found string``), and reports a missing field (``missing field `name` ``)
+or an unknown one.
+
+A module is not a value: `Reflect.functions(m)`, `structs(m)`, `callable(m, ...)` and
+`callables(m)` are written with the name of the module, not with a variable holding it. For a
+library to work on the functions of an application, it is the application that calls
+`Reflect.callables(providers)` and passes the array.
+
+**Reading the types of a signature.** A `ParamInfo` (a parameter of a `Callable`, a
+`FunctionInfo` or a variant) knows how to read a value of its type:
+- `p.parse("42")` reads a text (path segment, query parameter) as `int`, `float`, `bool`,
+  `string`, `uuid`, `ulid`, `datetime`, or one of them followed by `?` (empty text: `none`);
+  gives a `Result<Any, Error>` (``` `x` is not a valid int ```);
+- `p.decode(json)` reads a `Json` as that type, as `Json.to<T>` does (see below);
+- with `p.annotation("Path")`, `p.type_name` and `Callable.call`, that is what it takes to fill
+  the parameters of a request handler: `show(#[Path] id: int, repo: Repo) -> string`.
+
+An `AnnotationInfo` reads its arguments with `get_string("path")`, `get_int`, `get_float` and
+`get_bool` (`none` if the argument does not exist or has another type).
+
+### `Any`
+
+An `Any` is a value **with its type**, to keep together values of different types (a service
+container, a list of arguments) without losing typing: you only get a value out by saying which
+type you expect.
+
+```
+let a = Any.of(42)
+print(a.as<int>())       -- 42
+print(a.as<string>())    -- none
+print(a.type_name())     -- int
+
+let user = User { id: 1, name: "Ada" }
+let services: map<string, Any> = { "user": Any.of(user) }
+```
+
+- `Any.of(value)` has no implicit conversion back: `x as int` does not work on an `Any`, you need
+  `a.as<T>()`, which gives a `T?` (`none` if the type does not fit).
+- `as<T>` succeeds if the remembered type is exactly `T`, if the value is a child structure of
+  `T`, or if it implements the trait `T`: an `Animal` that holds a `Dog` can be read as a `Dog`.
+  `T` cannot be a nullable type or `Any`.
+- The remembered type is the one of the expression: `Any.of([])` is refused (`T303`, give it a
+  type: `let xs: array<int> = []`).
+- `==` does not exist between `Any` values (`T005`); `print` shows the value inside.
+- An `Any` can leave towards the host (field of a structure), as `null`, but cannot come back.
 
 ---
 
@@ -1953,11 +2062,53 @@ else
 end
 ```
 
-There is **no automatic conversion** between a decoded `Json` and a
-user-defined structure (reflection describes fields but does not build values, and there are no `derive` macros): to
-rebuild a `Post` from a `Json`, write your own static method that reads the
-fields one by one, for example `Post.from_json(json: Json) -> Result<Post,
-Error>` (a convention, not an interface the language imposes, like `new`).
+`j.to_text()` gives the JSON text of a `Json` (`{"a":1,"b":[true,null]}`); a `Json` also
+implements `ToJson`, so it can go into a `json_object`.
+
+### Converting: `Json.of` and `Json.to`
+
+No need to write `to_json` and `from_json` by hand for the usual cases: two functions read the
+**shape of the type**.
+
+```
+struct User
+  public id: int
+  public name: string
+  #[JsonName("e_mail")]
+  public email: string = ""
+  #[JsonSkip]
+  public cache: int = 0
+  password_hash: string = ""
+end
+
+let j = Json.of(User { id: 1, name: "Ada" })
+print(j.to_text())        -- {"id":1,"name":"Ada","e_mail":""}
+
+let r = Json.to<User>(Json.parse("\{\"id\": 7, \"name\": \"Bob\"\}").unwrap())
+print(r.unwrap().name)    -- Bob
+```
+
+**`Json.of(value)`** gives a `Json`:
+- a structure becomes an object of its **`public`** fields only (a private field never leaves),
+  in declaration order, parents first;
+- `#[JsonName("x")]` renames a field, `#[JsonSkip]` leaves it out;
+- `none` becomes `null`, `uuid`/`ulid`/`datetime` a text, an array or a tuple an array, a map an
+  object (keys as text);
+- an enumeration without data becomes the name of the variant (`"Empty"`), with data an object
+  with `type`: `{"type":"Circle","radius":2.5}`;
+- a function or a range cannot be converted (`R084`); the depth is limited.
+- The shape of the type is what counts: a hand-written `to_json` method is not called by
+  `Json.of`.
+
+**`Json.to<T>(json)`** gives a `Result<T, Error>` and says **where** it does not fit:
+- only `public` fields are read from the `Json`: a received `{"password_hash": "..."}` fills
+  nothing. A missing field takes its default value, or `none` if it is nullable, otherwise the
+  error is `address.city: missing`;
+- a wrong type gives `id: expected an int, found string`, a number with decimals for an `int` is
+  refused, an array element reads `[2]: expected an int, found string`;
+- extra members are ignored; generics (`Page<User>`), `T?`, enumerations (name or object with
+  `type`), maps, `uuid`, `ulid` and `datetime` are understood;
+- a function, an `Any` or a range cannot be the target (`T305`).
 
 ## 17. Prelude: network, databases and the system
 
@@ -1975,16 +2126,21 @@ struct Request
   public path: string = ""
   public query: map<string, string> = {}
   public params: map<string, string> = {}
+  public query_all: map<string, array<string>> = {}
+  public headers_all: map<string, array<string>> = {}
+  public cookies: map<string, string> = {}
+  public attrs: map<string, Any> = {}
 end
 
 struct Response
   public status: int
   public headers: map<string, string> = {}
   public body: string
+  public cookies: array<Cookie> = []
 end
 ```
 
-`path`, `query` and `params` are only used for a **received** request (see
+`path`, `query`, `params`, `query_all`, `headers_all`, `cookies` and `attrs` are only used for a **received** request (see
 [Answering HTTP requests](#answering-http-requests)); the `headers` of a `Response` give the
 headers received (names in lower case).
 
@@ -2059,7 +2215,17 @@ development, not for production.
     `"3"`; if a name is repeated, the last value wins);
   - `headers`, whose names are in **lower case**, and `req.header("User-Agent")`, which looks
     up a header ignoring the case (`string?`);
-  - `body`, the body (`none` if there is none).
+  - `body`, the body (`none` if there is none);
+  - `query_all` keeps **every** value of a repeated parameter (`?t=1&t=2` gives `{"t": ["1",
+    "2"]}`) and `headers_all` those of a header sent several times, while `query` and `headers`
+    stay as they are (the last value wins); `req.header_all("X-Tag")` gives them as an array;
+  - `cookies` is the content of the `Cookie` header, values decoded (`who=Ada%20L` gives
+    `"Ada L"`);
+  - `req.form()` gives the decoded `application/x-www-form-urlencoded` body
+    (`Result<map<string, string>, Error>`, `err` if the request is not a form);
+  - `attrs` is a space for the program: a middleware puts, for example, the user it found there
+    (`req.attrs["user"] = Any.of(user)`), and the handler reads it back with `as<T>()`. It is
+    empty on arrival, belongs to each request, and does not leave the program.
 - **The response**: `status` (from 100 to 599), `body`, and optional `headers`. Shortcuts:
 
   | Call                         | Result                                                      |
@@ -2071,6 +2237,14 @@ development, not for production.
   | `Response.not_found()`       | status 404                                                  |
   | `r.with_status(201)`         | the same response with another status                       |
   | `r.with_header("X-Id", "7")` | the same response with one more header                      |
+  | `r.with_cookie(Cookie { ... })` | the same response with one more cookie (one `Set-Cookie` header each) |
+
+  A `Cookie` has `name`, `value` (sent percent-encoded), `path` (`"/"`), `domain` (`none`),
+  `max_age` in seconds (`none`: a session cookie), `secure` (`false`), `http_only` (`true`) and
+  `same_site` (`"Lax"`, `"Strict"` or `"None"`). A name that is not an HTTP token, or an attribute
+  that contains `;` or a control character, is a mistake of the program (500).
+  `HttpError { status, message }` is an error with a status; `e.to_response()` turns it into a
+  text response.
 
   Without a `Content-Type`, the server adds `text/plain; charset=utf-8`. Headers that contain a
   line break are ignored, and `Content-Length` and `Connection` are handled by the server.
@@ -2132,6 +2306,7 @@ Options of `qlang serve app.q`:
 | `--bind ADDRESS`   | the address to listen on (`127.0.0.1` by default: this machine only)                    |
 | `--max-steps N`    | the number of evaluation steps **per request**                                          |
 | `--static FOLDER`  | serves the files of this folder as they are, **before** calling the program             |
+| `--dev`            | the detail of an error of the program is in the 500 response (never in production)      |
 | `--workers N`      | N interpreters (from 1 to 64) that answer in parallel                                   |
 | `--root FOLDER`    | limits `import` and `fs` to this folder                                                 |
 | `--seed N`         | fixes the randomness (each worker takes `N` plus its number)                            |
