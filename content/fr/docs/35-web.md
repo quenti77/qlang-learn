@@ -8,14 +8,14 @@ group: "Outils"
 qlang sait servir du HTTP (`qlang serve app.q`), et le paquet **`web`** de
 [`qlang-std`](https://github.com/quenti77/qlang-std) apporte ce dont une application est faite :
 routes, injection de dépendances, validation, accès à la base, middleware et sessions. Tout est écrit
-en qlang ; il demande `qlang` 0.50 ou plus.
+en qlang ; il demande `qlang` 0.51 ou plus.
 
 ## Installer
 
 Dans le dossier du projet :
 
 ```sh
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.3.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.4.0
 ```
 
 Puis, dans un fichier `.q` :
@@ -189,6 +189,61 @@ end
 - `@std/web/limit.q` : `app.use(rate_limit(cache, 100, 60, by_header("x-forwarded-for")))` répond `429`
   avec `Retry-After` au-delà de 100 requêtes par minute.
 - `cors_with(CorsOptions { origins: [...], credentials: true, expose: [...] })` règle finement le CORS.
+
+## Commandes en ligne de commande
+
+`@std/cli.q` fait des commandes avec la même idée que les routes : une fonction, dont les paramètres
+disent d'où viennent leurs valeurs.
+
+```
+import "@std/cli.q" as cli
+
+#[cli.Command("greet", "Dit bonjour")]
+fun greet(#[cli.Arg] name: string, #[cli.Opt(short: "l")] loud: bool, console: cli.Console) -> int
+  console.line(if loud then "BONJOUR {name}" else "Bonjour {name}" end)
+  0
+end
+
+let program = cli.Cli.new(Reflect.callables(providers))   -- les services dont les commandes ont besoin
+program.add(Reflect.callables(commands))
+program.main()
+```
+
+```sh
+qlang run main.q -- greet Ada --loud
+qlang run main.q -- help               # la liste des commandes
+qlang run main.q -- greet --help       # l'usage d'une commande
+```
+
+`#[cli.Arg]` est un mot de la ligne (un `array<T>` prend le reste), `#[cli.Opt]` une option (`--count 3`,
+`-c 3` ; un `bool` est un drapeau), `console: cli.Console` la console (`line`, `error`, `table`, `ask`,
+`confirm`), tout autre paramètre un service. Un `int` rendu est le code de sortie, un `Err` un message sur
+la sortie d'erreur et le code `1` ; une ligne fausse donne `2`, une commande inconnue `127`.
+`Cli.run(args, Console.captured([]))` lance une commande sans processus : c'est ainsi qu'on les teste.
+`@std/web/commands.q` apporte `routes:list`, `db:migrate`, `db:rollback`, `db:status` et `locale:missing`.
+
+## Traductions
+
+`@std/i18n.q` lit un fichier JSON par langue.
+
+```
+import "@std/i18n.q" as i18n
+
+let tr = i18n.Translator.new("en")
+tr.load("fr", "lang/fr.json").unwrap()
+tr.load("en", "lang/en.json").unwrap()
+
+tr.t("fr", "welcome", { "name": "Ada" })     -- Bonjour Ada
+tr.tn("fr", "cart.items", 3, {})             -- 3 articles
+```
+
+Un objet imbriqué fait une clé pointée (`cart.items`) ; un objet dont les clés sont `one`, `other`, `few`...
+est un message à formes du pluriel, choisi par `tn` selon la langue. `fr-CA` se replie sur `fr`, puis sur la
+langue par défaut, puis sur la clé elle-même. `tr.negotiate(entête, ["en", "fr"])` choisit la langue d'après
+`Accept-Language`, `tr.number("fr", 1234.5, 2)` écrit un nombre à la manière de la langue et
+`tr.missing("fr")` liste ce qui reste à traduire. Côté web, `use_locale(app, tr, ["en", "fr"])`
+(`@std/web/locale.q`) choisit la langue de chaque requête (`?lang=`, cookie, `Accept-Language`) et
+donne un paramètre `lang: i18n.Lang` aux gestionnaires.
 
 ## Documentation OpenAPI
 

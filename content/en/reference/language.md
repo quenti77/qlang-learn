@@ -1502,6 +1502,7 @@ the **execution environment** (the terminal, a web server…).
 | ------------------------ | --------------------------------------------------------------------- |
 | `print(x)`               | shows `x` followed by a new line (`print()`: an empty line)           |
 | `write(x)`               | shows `x` without a new line                                          |
+| `eprint(x)`, `ewrite(x)` | like `print` and `write`, on the error output (never mixed with the results; a host with no error output drops them) |
 | `read()`                 | reads a line and returns a `string` (without the new line)            |
 | `read_all()`             | reads all the remaining lines, joined by new lines (none after the last one) |
 | `exit(code?)`            | ends the program right away with this exit code (0 by default); nothing runs after it |
