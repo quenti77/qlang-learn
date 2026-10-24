@@ -2428,6 +2428,20 @@ Options of `qlang serve app.q`:
     (`text/event-stream`). The worker that answers serves only this connection while it lasts
     (give enough `--workers`); if the client leaves, the stream stops at the next piece. Between
     two pieces, `time.sleep` waits.
+  - **WebSocket**: `Response.websocket(WebSocketHandler { ... })`, returned to a request that asks for
+    `Upgrade: websocket`, turns the connection into a WebSocket (otherwise `426`). The handler has
+    `on_message(c: WebSocket, m: WsMessage)` (required), `on_open(c)`, `on_close(c)` and `on_tick(c)`
+    called every `tick_ms` milliseconds (1000 by default; 0: never). A `WsMessage` has `text: string?`,
+    `data: bytes?` and `binary`. A `WebSocket` has `id` (unique), `request` (the request that opened it,
+    with what guards put in `attrs`), `data` (a `map<string, Any>` of yours), `send(text)`,
+    `send_bytes(bytes)`, `close()` and `close_with(code, reason)` (1000 to 4999), `is_open()`. **A worker
+    serves many connections** between two requests, one callback at a time, each with its own step
+    budget: a callback must be short and never wait. A worker does not see the connections of the
+    others: to talk to everybody, go through a database (an `on_tick` that reads the new messages).
+    Messages are limited to 1 MB (`1009`), unmasked or malformed frames close with `1002`, invalid text
+    with `1007`, an error in a callback with `1011` (the detail goes to the log); a `ping` is sent every
+    30 s. WebSocket compression is not negotiated. **A browser lets any page open a WebSocket to your
+    server with the visitor's cookies**: check the `Origin` header (`req.header("origin")`).
   - **Compression**: with `--compress`, a text, JSON, JavaScript, XML or SVG answer of 1 KB or more
     is sent as gzip to clients that accept it (`Content-Encoding: gzip`, `Vary`), unless the
     program already chose an encoding. Off by default (a proxy does it just as well).

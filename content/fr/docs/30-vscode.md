@@ -21,7 +21,9 @@ s'appuie sur le vrai compilateur : tu vois les mêmes erreurs que dans le termin
 - **Autocomplétion** : après un `.`, les champs et méthodes du type de la valeur (les membres
   publics, et tous ceux de `self`) ; après `Type.`, les variantes d'une énumération et les fonctions
   statiques ; sinon, les variables visibles, les noms du fichier, les fonctions prédéfinies, les
-  mots-clés et les types.
+  mots-clés et les types. Dans un `import "..."`, les paquets (`@std/`), les fichiers et dossiers
+  d'un paquet, ou ceux à côté du fichier. Un projet situé dans un sous-dossier du dossier ouvert est
+  trouvé par son `qlang.toml` le plus proche.
 - **Aide aux paramètres** : en tapant `(` ou `,` dans un appel, la signature s'affiche avec le
   paramètre courant en gras.
 - **Exécuter** : le bouton ▶ de la barre de titre (ou la commande **qlang: Run File**) enregistre le
