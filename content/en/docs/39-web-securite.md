@@ -151,6 +151,33 @@ asks for: `none` is refused, and a public key is never used as an HMAC secret); 
 - **A JWT is signed, not encrypted**: anybody can read its content. Put little in it, keep it short-lived (minutes) and
   renew it with a *refresh token* that you keep in your database: you can revoke that one, which you cannot do with a JWT
   that was already issued.
+- **Algorithms.** `hs256`, `hs384`, `hs512` (secrets of at least 32, 48 and 64 characters), `rs256/384/512`,
+  `ps256/384/512` (RSA-PSS, recommended over RS) and `es256/384`, `eddsa`. HS384, HS512 and PS need `qlang` 0.55.
+
+### Refresh tokens
+
+`@std/web/refresh.q` keeps refresh tokens in your database (a **hash**, never the token) and **rotates** them: each use
+gives a new token and burns the old one. If a burnt token comes back (it was stolen), the whole session is closed.
+
+```qlang-ref
+import "@std/web/refresh.q" as rf
+
+let refresh = rf.Refresh.new(db)
+refresh.install().unwrap()
+
+-- at login: an access token (15 min) and a refresh token (30 days)
+let first = refresh.issue("{row.id}").unwrap()
+
+-- on POST /token/refresh
+let next = refresh.rotate(body.refresh_token)
+if next.is_err() then
+  return Response.json("\{\"error\": \"login\"\}").with_status(401)    -- invalid, expired or reused
+end
+-- sign a new JWT for next.unwrap().user, send next.unwrap().token
+```
+
+`revoke(token)` closes one session, `revoke_user(id)` all those of a user (a password change) and `purge()` deletes the
+expired tokens.
 
 ## CSRF
 

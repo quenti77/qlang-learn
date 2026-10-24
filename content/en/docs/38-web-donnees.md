@@ -100,8 +100,34 @@ One trap when reading:
 - **SQLite stores a boolean as an integer** (0 or 1). Read the column in a structure with `done: int`, then
   convert (`row.done != 0`): the example has a `TaskRow` for that and a `to_task()` method.
 
-There is **no ORM** with relations: a "repository" is a structure that groups the queries of one table
+There is **no ORM** that hides the SQL: a "repository" is a structure that groups the queries of one table
 (`Users`, `Tasks`), which keeps SQL out of the routes and can be replaced in a test.
+
+### Relations, without "N+1"
+
+Loading the posts of each user with one query **per user** is the classic trap. `@std/web/relations.q` loads what
+relates to a list of rows with **one query per relation** and gives each row back with its neighbours:
+
+```qlang-ref
+import "@std/web/relations.q" as rel
+
+let users = q.Query.table("users").all_as<User>(db).unwrap()
+
+-- a user has many posts (one query for all of them)
+let loaded = rel.has_many<User, Post>(db, users, "id", "posts", "user_id").unwrap()
+for u in loaded do
+  print("{u.item.name}: {u.related.len()} post(s)")
+end
+
+-- a post belongs to a user; a user has one profile; many roles through a pivot table
+rel.belongs_to<Post, User>(db, posts, "user_id", "users", "id")
+rel.has_one<User, Profile>(db, users, "id", "profiles", "user_id")
+rel.belongs_to_many<User, Role>(db, users, "id", "role_user", "user_id", "role_id", "roles", "id")
+```
+
+The result is an array of `With<P, R>`: `item` is the row you started from, `related` what relates to it (an array, or
+an `O?` for `belongs_to` and `has_one`). `has_many_where` adds a function that tunes the query of the children (an
+order, a filter). Names are checked like in `Query`, and values are always `?`.
 
 ## Migrations
 

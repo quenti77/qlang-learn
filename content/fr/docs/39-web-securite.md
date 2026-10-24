@@ -153,6 +153,34 @@ Un jeton sans `exp` est refusé. Un secret HMAC de moins de 32 caractères est r
 - **Un JWT est signé, pas chiffré** : n'importe qui lit son contenu. Mets-y peu de choses, une durée courte (quelques
   minutes) et renouvelle-le avec un *jeton de rafraîchissement* que tu gardes dans ta base : tu peux le révoquer, ce que
   tu ne peux pas faire d'un JWT déjà émis.
+- **Algorithmes.** `hs256`, `hs384`, `hs512` (secrets d'au moins 32, 48 et 64 caractères), `rs256/384/512`,
+  `ps256/384/512` (RSA-PSS, recommandé à la place de RS) et `es256/384`, `eddsa`. HS384, HS512 et PS demandent `qlang` 0.55.
+
+### Jetons de rafraîchissement
+
+`@std/web/refresh.q` garde les jetons de rafraîchissement dans ta base (un **hachage**, jamais le jeton) et les **fait
+tourner** : chaque usage donne un nouveau jeton et brûle l'ancien. Si un jeton brûlé revient (il a été volé), toute la
+session est fermée.
+
+```qlang-ref
+import "@std/web/refresh.q" as rf
+
+let refresh = rf.Refresh.new(db)
+refresh.install().unwrap()
+
+-- à la connexion : un jeton d'accès (15 min) et un jeton de rafraîchissement (30 jours)
+let first = refresh.issue("{row.id}").unwrap()
+
+-- sur POST /token/refresh
+let next = refresh.rotate(body.refresh_token)
+if next.is_err() then
+  return Response.json("\{\"error\": \"login\"\}").with_status(401)    -- invalid, expired ou reused
+end
+-- signer un nouveau JWT pour next.unwrap().user, rendre next.unwrap().token
+```
+
+`revoke(jeton)` ferme une session, `revoke_user(id)` toutes celles d'un utilisateur (changement de mot de passe) et
+`purge()` supprime les jetons expirés.
 
 ## CSRF
 
