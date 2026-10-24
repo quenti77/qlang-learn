@@ -102,8 +102,34 @@ Un piège de lecture :
 - **SQLite range un booléen en entier** (0 ou 1). Lis la colonne dans une structure avec `done: int`, puis
   convertis (`row.done != 0`) : l'exemple a un `TaskRow` pour cela et une méthode `to_task()`.
 
-Il n'y a **pas d'ORM** avec des relations : un « dépôt » est une structure qui regroupe les requêtes d'une
-table (`Users`, `Tasks`), ce qui garde le SQL hors des routes et se remplace dans un test.
+Il n'y a **pas d'ORM** qui cache le SQL : un « dépôt » est une structure qui regroupe les requêtes d'une table
+(`Users`, `Tasks`), ce qui garde le SQL hors des routes et se remplace dans un test.
+
+### Les relations, sans « N+1 »
+
+Charger les articles de chaque utilisateur avec une requête **par utilisateur** est le piège classique. `@std/web/relations.q`
+charge ce qui se rattache à une liste de lignes avec **une requête par relation**, et rend chaque ligne avec ses voisines :
+
+```qlang-ref
+import "@std/web/relations.q" as rel
+
+let users = q.Query.table("users").all_as<User>(db).unwrap()
+
+-- un utilisateur a plusieurs articles (une requête pour tous)
+let loaded = rel.has_many<User, Post>(db, users, "id", "posts", "user_id").unwrap()
+for u in loaded do
+  print("{u.item.name} : {u.related.len()} article(s)")
+end
+
+-- un article appartient à un utilisateur ; un utilisateur a un profil ; plusieurs rôles par une table pivot
+rel.belongs_to<Post, User>(db, posts, "user_id", "users", "id")
+rel.has_one<User, Profile>(db, users, "id", "profiles", "user_id")
+rel.belongs_to_many<User, Role>(db, users, "id", "role_user", "user_id", "role_id", "roles", "id")
+```
+
+Le résultat est un tableau de `With<P, R>` : `item` est la ligne de départ, `related` ce qui s'y rattache (un tableau, ou
+un `O?` pour `belongs_to` et `has_one`). `has_many_where` ajoute une fonction qui règle la requête des enfants (un tri, un
+filtre). Les noms sont vérifiés comme dans `Query`, et les valeurs sont toujours des `?`.
 
 ## Les migrations
 

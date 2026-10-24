@@ -188,8 +188,50 @@ end
   pour que le processus soit relancé, avec une mémoire neuve), et **s'arrête proprement** sur Ctrl-C ou `kill` : il finit
   le job en cours puis sort (`Process.stopping()`). En ligne de commande : `queue:work --max-jobs 500 --max-time 3600`.
 
+### Plusieurs files, chaînes et lots
+
+Un job d'envoi de mail ne doit pas attendre derrière mille redimensionnements d'images. `queue.lane(nom, pilote)` ajoute
+une file à côté de `default`, et `#[qq.OnQueue(name: "high")]` envoie un type de job dans la sienne. Le worker sert les
+files **dans l'ordre qu'on lui donne** : tant qu'il y a du travail dans la première, il ne touche pas à la suivante.
+
+```qlang-ref
+queue.lane("high", qq.DbDriver { db: db, dialect: "sqlite", table: "jobs_high" })   -- ou qq.RedisDriver { redis: r, name: "high" }
+queue.work_with(qq.WorkOptions { queues: ["high", "default"] })                    -- en ligne de commande : queue:work --queues high,default
+queue.push_on("high", Resize { id: 1 })                                             -- ou #[qq.OnQueue(name: "high")] sur le type
+```
+
+Un worker qui sert plusieurs files les regarde à tour de rôle (au moins toutes les 250 ms avec Redis) ; avec une seule
+file, il attend sur la liste comme avant. Les jobs en échec disent de quelle file ils viennent (`queue:failed`).
+
+Une **chaîne** lance des jobs l'un après l'autre : chacun part quand le précédent est fini, et aucun ne part si l'un
+abandonne (alors le job d'`on_failure` est ajouté). Un **lot** lance des jobs en parallèle et ajoute un job quand
+**tous** sont finis, ou, une seule fois, quand l'un abandonne :
+
+```qlang-ref
+queue.chain().add(Download { url: u }).add(Convert { id: 1 }).add(Notify { user: 7 }).on_failure(Alarm { why: "convert" }).dispatch()
+queue.batch().add(Resize { id: 1 }).add(Resize { id: 2 }).add(Resize { id: 3 }).when_done(Summary { n: 3 }).when_failed(Alarm { why: "resize" }).dispatch()
+```
+
+Le compte d'un lot est tenu par le pilote (une ligne de la base, ou `DECR` dans Redis) : peu importe combien de workers
+finissent les jobs, le job de fin n'est ajouté qu'**une** fois.
+
+### Le tableau de bord de la file
+
+`@std/web/queue_admin.q` ajoute des routes derrière une garde à toi : `queue_admin.mount(app, queue, "/admin/queue",
+ma_garde)` donne une page (jobs en attente, jobs en échec avec leur erreur), `GET …/stats` en JSON, et
+`POST …/retry/:id`, `POST …/forget/:id`. Mets-y ta vérification d'administrateur et ta protection CSRF.
+
+### Reprendre après une coupure
+
+Un client qui perd sa connexion rate des messages. Avec `bus.numbered = true`, chaque message part sous la forme
+`{"room", "id", "text"}` ; le client garde le dernier `id` et, en se reconnectant (`/chat?after=41`), la route appelle
+`bus.replay(conn, "lobby", after)` dans `on_open` : les messages manqués arrivent d'abord, puis `deliver` continue. Le
+client ignore un `id` qu'il a déjà. Seul le bus de la base garde les messages : avec Redis, un message que personne
+n'écoutait est perdu.
+
 ## Et ensuite
 
-Ce qui manque encore : JWT tout fait, relations d'ORM, un tableau de bord des files.
+Ce qui manque encore : un ORM qui écrit le SQL à ta place (volontairement), des files nommées par locataire, des
+tableaux de bord graphiques. Les relations, les lots et les chaînes sont là.
 Pour tout le reste, la page « Applications web » et le [guide](../36-web-demarrer/) disent comment les pièces
 s'assemblent.

@@ -148,6 +148,6 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 ## Et ensuite
 
 La référence de chaque fonction est dans
-[`API.md`](https://github.com/quenti77/qlang-std/blob/main/API.md) du paquet. Ce qui n'existe pas (encore) :
-files de tâches, WebSocket, JWT tout fait, relations d'ORM. Le serveur et les types (`Request`, `Response`, `Db`,
+[`API.md`](https://github.com/quenti77/qlang-std/blob/main/API.md) du paquet. Ce qui n'existe pas :
+un ORM qui écrit le SQL à ta place, des tableaux de bord graphiques. Le serveur et les types (`Request`, `Response`, `Db`,
 `Crypto`, `Log`) sont décrits dans la [référence du langage](../26-prelude-reseau-bases-de-donnees-et-systeme/).

@@ -185,7 +185,48 @@ end
   process is restarted with fresh memory), and **stops cleanly** on Ctrl-C or `kill`: it finishes the job it is doing,
   then leaves (`Process.stopping()`). On the command line: `queue:work --max-jobs 500 --max-time 3600`.
 
+### Several queues, chains and batches
+
+A mail job should not wait behind a thousand image resizes. `queue.lane(name, driver)` adds a queue next to `default`, and
+`#[qq.OnQueue(name: "high")]` sends a type of job to its own. The worker serves the queues **in the order you give it**:
+as long as the first one has work, it does not touch the next.
+
+```qlang-ref
+queue.lane("high", qq.DbDriver { db: db, dialect: "sqlite", table: "jobs_high" })   -- or qq.RedisDriver { redis: r, name: "high" }
+queue.work_with(qq.WorkOptions { queues: ["high", "default"] })                    -- on the command line: queue:work --queues high,default
+queue.push_on("high", Resize { id: 1 })                                             -- or #[qq.OnQueue(name: "high")] on the type
+```
+
+A worker that serves several queues looks at them in turn (at least every 250 ms with Redis); with a single queue it waits
+on the list as before. Failed jobs say which queue they come from (`queue:failed`).
+
+A **chain** runs jobs one after the other: each starts when the previous one is done, and none starts if one gives up
+(then the `on_failure` job is added). A **batch** runs jobs in parallel and adds a job when **all** are done, or, once,
+when one gives up:
+
+```qlang-ref
+queue.chain().add(Download { url: u }).add(Convert { id: 1 }).add(Notify { user: 7 }).on_failure(Alarm { why: "convert" }).dispatch()
+queue.batch().add(Resize { id: 1 }).add(Resize { id: 2 }).add(Resize { id: 3 }).when_done(Summary { n: 3 }).when_failed(Alarm { why: "resize" }).dispatch()
+```
+
+The count of a batch is kept by the driver (a row in the database, or `DECR` in Redis): however many workers finish the
+jobs, the closing job is added **once**.
+
+### The queue dashboard
+
+`@std/web/queue_admin.q` adds routes behind a guard of yours: `queue_admin.mount(app, queue, "/admin/queue", my_guard)`
+gives a page (waiting jobs, failed jobs with their error), `GET …/stats` as JSON, and `POST …/retry/:id`,
+`POST …/forget/:id`. Put your admin check and your CSRF protection in the guard.
+
+### Resuming after a drop
+
+A client that loses its connection misses messages. With `bus.numbered = true` each message is sent as
+`{"room", "id", "text"}`; the client keeps the last `id` and, when it reconnects (`/chat?after=41`), the route calls
+`bus.replay(conn, "lobby", after)` in `on_open`: the missed messages come first, then `deliver` goes on. The client ignores
+an `id` it already has. Only the database bus keeps messages: with Redis a message nobody was listening to is gone.
+
 ## What next
 
-What is still missing: ready-made JWT, ORM relations, a dashboard for the queues. For all
-the rest, the "Web applications" page and the [guide](../36-web-demarrer/) say how the pieces fit together.
+What is still missing: an ORM that writes the SQL for you (on purpose), per-tenant queues, graphical dashboards.
+Relations, batches and chains are there. For all the rest, the "Web applications" page and the
+[guide](../36-web-demarrer/) say how the pieces fit together.

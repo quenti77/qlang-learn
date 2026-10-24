@@ -146,6 +146,6 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 ## What next
 
 The reference of each function is in the package's
-[`API.md`](https://github.com/quenti77/qlang-std/blob/main/API.md). What does not exist (yet): job queues,
-WebSocket, ready-made JWT, ORM relations. The server and the types (`Request`, `Response`, `Db`, `Crypto`, `Log`)
+[`API.md`](https://github.com/quenti77/qlang-std/blob/main/API.md). What does not exist: an ORM that writes
+the SQL for you, graphical dashboards. The server and the types (`Request`, `Response`, `Db`, `Crypto`, `Log`)
 are described in the [language reference](../26-prelude-network-databases-and-the-system/).
