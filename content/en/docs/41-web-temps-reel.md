@@ -160,6 +160,31 @@ queue.work(false)                                                      -- never 
   `queue:failed` and `queue:retry <id>`. Run the worker under systemd, Docker or whatever restarts it.
 - Tests give their own clock (`queue.clock`) so as not to wait.
 
+### Queue options
+
+Annotations go on the job structure (`import "@std/queue.q" as qq`):
+
+```qlang-ref
+#[qq.Retry(tries: 5, backoff: [10, 60, 300])]     -- 5 tries; waits of 10 s, 1 min, then 5 min
+#[qq.Unique(seconds: 3600)]                       -- no two identical jobs waiting or running
+#[qq.Delay(seconds: 30)]                          -- starts 30 s after it is pushed
+struct SendWelcome
+  public email: string
+end
+```
+
+- `push` gives `false` when an identical `Unique` job is already there; the lock is freed when the job is done (or
+  abandoned), or after `seconds`.
+- **Job middleware**: `queue.use(m)` (every job) or `queue.handle_with<T>(function, [m])` (one type). A middleware
+  receives the job and `next`, and returns an `Outcome`: `next()` to run it, `Outcome.release(10)` to give it back and
+  try again in 10 s **without counting an attempt**. Two are provided: `qq.rate_limited(cache, qq.by_kind, 10, 60)` (at
+  most 10 jobs of a type per minute; the others wait for the next window) and
+  `qq.without_overlapping(cache, qq.by_kind, 120, 5)` (never two jobs of a type at once). With `Cache.redis`, the count
+  is exact for every worker.
+- **The worker**: `queue.work_with(qq.WorkOptions { max_jobs: 500, max_seconds: 3600 })` stops by itself (so that the
+  process is restarted with fresh memory), and **stops cleanly** on Ctrl-C or `kill`: it finishes the job it is doing,
+  then leaves (`Process.stopping()`). On the command line: `queue:work --max-jobs 500 --max-time 3600`.
+
 ## What next
 
 What is still missing: ready-made JWT, ORM relations, a dashboard for the queues. For all
