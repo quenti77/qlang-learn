@@ -1,6 +1,6 @@
 ---
 title: "Applications web"
-group: "Outils"
+group: "Applications web"
 ---
 
 # Applications web
@@ -9,6 +9,9 @@ qlang sait servir du HTTP (`qlang serve app.q`), et le paquet **`web`** de
 [`qlang-std`](https://github.com/quenti77/qlang-std) apporte ce dont une application est faite :
 routes, injection de dépendances, validation, accès à la base, middleware et sessions. Tout est écrit
 en qlang ; il demande `qlang` 0.51 ou plus.
+
+> Un **guide pas à pas** (projet, routes, données, comptes, production) suit cette page : commence par
+> [Guide web 1 : démarrer](../36-web-demarrer/).
 
 ## Installer
 
@@ -20,7 +23,7 @@ qlang add std --git https://github.com/quenti77/qlang-std --tag v0.4.0
 
 Puis, dans un fichier `.q` :
 
-```
+```qlang-ref
 import "@std/web/app.q" as web
 ```
 
@@ -29,7 +32,7 @@ import "@std/web/app.q" as web
 Une route est une fonction. Ses paramètres disent d'où viennent ses valeurs ; ce qu'elle rend devient la
 réponse.
 
-```
+```qlang-ref
 -- controllers.q
 import "@std/web/app.q" as web
 
@@ -43,7 +46,7 @@ fun hello(#[web.Path] name: string, #[web.Query] shout: bool?) -> Greeting
 end
 ```
 
-```
+```qlang-ref
 -- main.q
 import "@std/web/app.q" as web
 import "controllers.q" as controllers
@@ -83,7 +86,7 @@ Une fonction qui rend un `T` *fournit* un `T` ; ses paramètres sont ses besoins
 fournisseurs par le type qu'ils rendent, construit chaque service la première fois qu'on en a besoin et
 vérifie tout le graphe avant la première requête.
 
-```
+```qlang-ref
 -- providers.q
 struct Config
   public database: string
@@ -106,7 +109,7 @@ fun make_posts(db: Db) -> Posts
 end
 ```
 
-```
+```qlang-ref
 import "providers.q" as providers
 
 let app = web.App.new(Reflect.callables(providers))
@@ -121,7 +124,7 @@ nouveau à chaque fois. Hors d'une route, `app.container.get<Posts>()` donne un 
 Les règles sont des annotations sur les champs ; un `#[web.Body]` est vérifié avant que ta fonction ne
 s'exécute.
 
-```
+```qlang-ref
 import "@std/web/validate.q" as v
 
 struct NewUser
@@ -142,7 +145,7 @@ est ce que le client reçoit pour un corps incorrect.
 Les routes peuvent aussi être les méthodes d'une structure : `#[web.Controller("/posts")]` sur la
 structure donne le préfixe, `#[web.Get("/:id")]` sur ses méthodes publiques la route.
 
-```
+```qlang-ref
 #[web.Controller("/shelf")]
 struct Shelf
   public label: string
@@ -167,7 +170,7 @@ méthode, comme pour une fonction.
 `@std/web/testing.q` envoie des requêtes directement à `App.handle` et garde les cookies d'une requête à
 l'autre.
 
-```
+```qlang-ref
 import "@std/web/testing.q" as t
 
 fun test_creating_a_post()
@@ -195,7 +198,7 @@ end
 `@std/cli.q` fait des commandes avec la même idée que les routes : une fonction, dont les paramètres
 disent d'où viennent leurs valeurs.
 
-```
+```qlang-ref
 import "@std/cli.q" as cli
 
 #[cli.Command("greet", "Dit bonjour")]
@@ -226,7 +229,7 @@ la sortie d'erreur et le code `1` ; une ligne fausse donne `2`, une commande inc
 
 `@std/i18n.q` lit un fichier JSON par langue.
 
-```
+```qlang-ref
 import "@std/i18n.q" as i18n
 
 let tr = i18n.Translator.new("en")
