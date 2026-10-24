@@ -190,6 +190,18 @@ could set it back to `none`. Copy its value into a local variable before testing
 
 Calling a method or reading a field on a value that may be `none` is a compile-time error.
 
+**`a ?? b`** gives `a` if it is not `none`, otherwise `b`. `a` must be nullable (`T?`); `b` has type
+`T` (the result is then a `T`) or `T?` (the result stays nullable). `b` is only evaluated when `a` is
+`none`, and `0` or `""` are not `none`:
+
+```
+let port = env.get("PORT") ?? "8080"
+let d = a ?? b ?? 9      -- reads a ?? (b ?? 9)
+```
+
+It is the loosest of the calculation operators (just above `..`): `x ?? 1 + 2` is `x ?? (1 + 2)`. A
+left side that is not nullable is the error `T010`.
+
 ### Tuples
 
 A **tuple** groups a fixed number of values, of different types, without declaring a struct.
@@ -360,6 +372,7 @@ From the weakest to the strongest:
 | Operators                                  | Note                                                         |
 | ------------------------------------------ | ------------------------------------------------------------ |
 | `=` `+=` `-=` `*=` `/=` `div=` `mod=` `%=` | assignment, right-associative                                |
+| `??`                                       | default value of a nullable, right-associative               |
 | `..` `..=`                                 | range, non-associative                                       |
 | `or`                                       |                                                              |
 | `and`                                      |                                                              |
@@ -951,6 +964,8 @@ functions of the file, with their annotations. Types stay static: you read descr
 | `Reflect.find<fun(Request) -> Response>("home")` | the function `home` of this file if its type is exactly that one, otherwise `none` |
 | `Reflect.methods<Users>()` | `array<FunctionInfo>` of the methods of the `impl`s of `Users` (`has_self` tells whether it takes `self`) |
 | `Reflect.find_method<Users, fun(Request) -> Response>(value, "list")` | the method `list` of `value`, already bound to it, if its type (without `self`) is that one, otherwise `none` |
+| `Reflect.type_info<T>()` | the shape of a type, as a `TypeInfo`: `kind` (`int`, `string`, `array`, `map`, `struct`, `enum`...), `name`, `nullable`, `item` (element of an array, value of a map), `fields` (the fields `Json.of` writes: `FieldType` with the JSON `name`, `field`, `info`, `annotations`), `variants`, `recursive`; enough to write a schema. `ParamInfo.type_info()` and `Callable.return_info()` give that of a parameter and of the result |
+| `Reflect.bound_callables<Users>(value)` | the public methods of `Users` (with `self`, without type parameters), already bound to `value`, as an `array<Callable>`: this is what makes controllers as classes possible |
 
 An annotation that is read is an `AnnotationInfo`: `name` (its structure's) and `args`, the
 arguments by field name, as `Json` (default values are filled in; numbers are floats). Every

@@ -8,14 +8,14 @@ group: "Tools"
 qlang can serve HTTP (`qlang serve app.q`), and the **`web`** package of
 [`qlang-std`](https://github.com/quenti77/qlang-std) adds what an application is made of: routes,
 dependency injection, validation, a database layer, middleware and sessions. All of it is written in
-qlang; it needs `qlang` 0.49 or more.
+qlang; it needs `qlang` 0.50 or more.
 
 ## Install
 
 In the project folder:
 
 ```sh
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.2.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.3.0
 ```
 
 Then, in a `.q` file:
@@ -135,6 +135,65 @@ end
 
 `{"error": {"status": 422, "message": "validation failed", "details": [{"field": "name", "message": "must not be blank"}]}}`
 is what the client gets for a bad body.
+
+## Controllers as classes
+
+Routes can also be the methods of a structure: `#[web.Controller("/posts")]` on the structure gives the
+prefix, `#[web.Get("/:id")]` on its public methods the route.
+
+```
+#[web.Controller("/shelf")]
+struct Shelf
+  public label: string
+end
+
+impl Shelf
+  #[web.Get("/")]
+  public fun all(self, posts: Posts) -> string
+    "{self.label}: {posts.all().len()}"
+  end
+end
+
+app.controller(Shelf { label: "books" })
+-- or, if a provider returns a Shelf: app.controller_from_container<Shelf>()
+```
+
+The instance lives as long as the application: what changes with each request comes in as a parameter of
+the method, as for a function.
+
+## Testing without a server
+
+`@std/web/testing.q` sends requests straight to `App.handle` and keeps the cookies from one request to
+the next.
+
+```
+import "@std/web/testing.q" as t
+
+fun test_creating_a_post()
+  let client = t.Client.new(build_app())
+  client.bearer("secret")
+  let r = client.post_json("/posts", NewPost { title: "Hello" })
+  r.expect_status(201)
+  assert_eq(r.json<Post>().unwrap().title, "Hello")
+end
+```
+
+## Events, cache, rate limiting, CORS
+
+- `@std/web/events.q`: `events.listen<UserRegistered>(fun(e: UserRegistered) ... end)`, then
+  `events.dispatch(UserRegistered { ... })`. The listeners of a type are called in order.
+- `@std/web/cache.q`: `Cache.memory()` or `Cache.files("/tmp/cache")`;
+  `cache.remember<array<Post>>("top", 60, fun() -> array<Post> ... end)`. Memory belongs to one worker;
+  files are shared by all of them.
+- `@std/web/limit.q`: `app.use(rate_limit(cache, 100, 60, by_header("x-forwarded-for")))` answers `429`
+  with `Retry-After` beyond 100 requests a minute.
+- `cors_with(CorsOptions { origins: [...], credentials: true, expose: [...] })` tunes CORS.
+
+## OpenAPI documentation
+
+`openapi_route(app, "/openapi.json", "Blog", "1.0.0")` adds a route that describes the API as OpenAPI 3.1:
+paths, parameters, bodies, return types and validation rules, read from the annotations and the types.
+`#[web.Doc("Lists the posts")]` and `#[web.Tag("posts")]` add a summary and a group.
 
 ## Database, migrations, middleware, sessions
 
