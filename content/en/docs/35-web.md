@@ -1,6 +1,6 @@
 ---
 title: "Web applications"
-group: "Tools"
+group: "Web applications"
 ---
 
 # Web applications
@@ -9,6 +9,9 @@ qlang can serve HTTP (`qlang serve app.q`), and the **`web`** package of
 [`qlang-std`](https://github.com/quenti77/qlang-std) adds what an application is made of: routes,
 dependency injection, validation, a database layer, middleware and sessions. All of it is written in
 qlang; it needs `qlang` 0.51 or more.
+
+> A **step-by-step guide** (project, routes, data, accounts, production) follows this page: start with
+> [Web guide 1: getting started](../36-web-demarrer/).
 
 ## Install
 
@@ -20,7 +23,7 @@ qlang add std --git https://github.com/quenti77/qlang-std --tag v0.4.0
 
 Then, in a `.q` file:
 
-```
+```qlang-ref
 import "@std/web/app.q" as web
 ```
 
@@ -29,7 +32,7 @@ import "@std/web/app.q" as web
 A route is a function. Its parameters say where its values come from; what it returns becomes the
 response.
 
-```
+```qlang-ref
 -- controllers.q
 import "@std/web/app.q" as web
 
@@ -43,7 +46,7 @@ fun hello(#[web.Path] name: string, #[web.Query] shout: bool?) -> Greeting
 end
 ```
 
-```
+```qlang-ref
 -- main.q
 import "@std/web/app.q" as web
 import "controllers.q" as controllers
@@ -83,7 +86,7 @@ A function that returns a `T` *provides* a `T`; its parameters are what it needs
 finds the providers by the type they return, builds each service when it is first needed and checks
 the whole graph before the first request.
 
-```
+```qlang-ref
 -- providers.q
 struct Config
   public database: string
@@ -106,7 +109,7 @@ fun make_posts(db: Db) -> Posts
 end
 ```
 
-```
+```qlang-ref
 import "providers.q" as providers
 
 let app = web.App.new(Reflect.callables(providers))
@@ -120,7 +123,7 @@ each time. Outside a route, `app.container.get<Posts>()` gives a service.
 
 Rules are annotations on the fields; a `#[web.Body]` is checked before your function runs.
 
-```
+```qlang-ref
 import "@std/web/validate.q" as v
 
 struct NewUser
@@ -141,7 +144,7 @@ is what the client gets for a bad body.
 Routes can also be the methods of a structure: `#[web.Controller("/posts")]` on the structure gives the
 prefix, `#[web.Get("/:id")]` on its public methods the route.
 
-```
+```qlang-ref
 #[web.Controller("/shelf")]
 struct Shelf
   public label: string
@@ -166,7 +169,7 @@ the method, as for a function.
 `@std/web/testing.q` sends requests straight to `App.handle` and keeps the cookies from one request to
 the next.
 
-```
+```qlang-ref
 import "@std/web/testing.q" as t
 
 fun test_creating_a_post()
@@ -194,7 +197,7 @@ end
 `@std/cli.q` makes commands with the same idea as routes: a function whose parameters say where their
 values come from.
 
-```
+```qlang-ref
 import "@std/cli.q" as cli
 
 #[cli.Command("greet", "Says hello")]
@@ -225,7 +228,7 @@ error output with code `1`; a wrong line gives `2`, an unknown command `127`.
 
 `@std/i18n.q` reads one JSON file per language.
 
-```
+```qlang-ref
 import "@std/i18n.q" as i18n
 
 let tr = i18n.Translator.new("en")
