@@ -2559,6 +2559,22 @@ the arguments after `--` on the command line are the ones `env.args()`
 returns (`qlang run script.q -- a b`), and `fs` honours `--root` the same
 way imports do.
 
+### Prelude: `Redis`
+
+`Redis.connect(url)` opens a connection to a Redis server (RESP2 protocol): `redis://[user:password@]host[:port][/database]`, or `rediss://` for TLS (the certificate is checked with Mozilla's roots, as for Postgres). A server that is not on this machine needs `rediss://`, or `?tls=disable` to confirm that you want it in clear. Only the `qlang` command offers it (another host: error `T250`).
+
+| Call | Result |
+| --- | --- |
+| `r.command(["SET", "k", "v"])` | `Result<Json, Error>`: any command, by its words; the answer is a text, a number, `null` or an array of those; a Redis error is an `err` |
+| `r.get(k)`, `r.set(k, v)`, `r.set_ex(k, v, seconds)`, `r.set_if_absent(k, v, seconds)` (a lock), `r.del(k)`, `r.exists(k)`, `r.incr(k)`, `r.expire(k, seconds)` | keys |
+| `r.lpush`, `r.rpush`, `r.lpop`, `r.rpop`, `r.llen`, `r.lrange(k, start, stop)`, `r.blpop(keys, seconds)` | lists; `blpop` waits for an element (0: for ever) and gives `(list, element)?` |
+| `r.zadd(k, score, member)`, `r.zrem`, `r.zcard`, `r.zrange_by_score(k, min, max, limit)` | sorted sets |
+| `r.eval(script, keys, arguments)` | a Lua script, run in one go |
+| `r.publish(channel, message)` | publish; gives the number of subscribers |
+| `Redis.subscriber(url, channels)` | a connection that **listens** (`Subscription`): `next(ms)` gives the next `RedisMessage?` (`channel`, `payload`, `pattern`), waiting at most `ms` (0: only what already arrived), `subscribe`, `unsubscribe`, `psubscribe` |
+
+A connection does one thing at a time (each command waits for its answer, 30 s at most, except `BLPOP`, which waits as long as it was asked to): take one for the commands and another to listen. A `Subscription` does not run commands. Numbers come back as `float`, like for `Db`.
+
 ### Prelude: the `Log` journal
 
 `Log` writes the program's journal: `Log.debug("detail")`, `Log.info("started")`,

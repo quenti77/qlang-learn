@@ -112,8 +112,9 @@ chaque requête (`?lang=`, cookie, `Accept-Language`) et donne un paramètre `la
 - `@std/web/events.q` : `events.listen<TaskDone>(fun(e: TaskDone) ... end)` puis `events.dispatch(TaskDone { ... })`,
   pour que l'envoi d'un mail ou une statistique ne soit pas écrit dans la route. Les écouteurs tournent dans la
   requête, dans l'ordre ; il n'y a pas de file d'attente.
-- `@std/web/cache.q` : `Cache.memory()` (par worker) ou `Cache.files(dossier)` (partagé), `cache.remember<T>(clé,
-  secondes, fonction)`.
+- `@std/web/cache.q` : `Cache.memory()` (par worker), `Cache.files(dossier)` (la machine) ou `Cache.redis(redis, "app:")` (toutes
+  les machines), `cache.remember<T>(clé, secondes, fonction)`, `cache.increment(clé, secondes)` (un compteur, atomique
+  avec Redis).
 
 ## Mettre en production
 

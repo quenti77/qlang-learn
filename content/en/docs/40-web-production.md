@@ -112,8 +112,9 @@ parameter. See the "Web applications" page for details. The validation messages 
 - `@std/web/events.q`: `events.listen<TaskDone>(fun(e: TaskDone) ... end)` then `events.dispatch(TaskDone { ...
   })`, so that sending a mail or a statistic is not written in the route. Listeners run in the request, in
   order; there is no queue.
-- `@std/web/cache.q`: `Cache.memory()` (per worker) or `Cache.files(folder)` (shared), `cache.remember<T>(key,
-  seconds, function)`.
+- `@std/web/cache.q`: `Cache.memory()` (per worker), `Cache.files(folder)` (the machine) or `Cache.redis(redis, "app:")` (every
+  machine), `cache.remember<T>(key, seconds, function)`, `cache.increment(key, seconds)` (a counter, atomic with
+  Redis).
 
 ## Going to production
 

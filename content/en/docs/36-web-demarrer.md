@@ -21,14 +21,14 @@ package, which has its tests: what you read works.
 
 For context (PHP, Laravel, Symfony...): a web framework for qlang is **a package written in qlang**, not a part
 of the language. `qlang serve` reads HTTP requests and calls your function `handle(req: Request) -> Response`;
-the `web` package adds routes, dependency injection and the rest. You need `qlang` 0.52 or more.
+the `web` package adds routes, dependency injection and the rest. You need `qlang` 0.53 or more.
 
 ## Create the project
 
 ```sh
 mkdir tasks && cd tasks
 qlang init .
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.6.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.7.0
 ```
 
 `qlang init` creates `qlang.toml`; `qlang add` writes the `std` dependency in it and downloads it (the files
