@@ -8,7 +8,7 @@ group: "Applications web"
 qlang sait servir du HTTP (`qlang serve app.q`), et le paquet **`web`** de
 [`qlang-std`](https://github.com/quenti77/qlang-std) apporte ce dont une application est faite :
 routes, injection de dépendances, validation, accès à la base, middleware et sessions. Tout est écrit
-en qlang ; il demande `qlang` 0.52 ou plus.
+en qlang ; il demande `qlang` 0.53 ou plus.
 
 > Un **guide pas à pas** (projet, routes, données, comptes, production) suit cette page : commence par
 > [Guide web 1 : démarrer](../36-web-demarrer/).
@@ -18,7 +18,7 @@ en qlang ; il demande `qlang` 0.52 ou plus.
 Dans le dossier du projet :
 
 ```sh
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.6.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.7.0
 ```
 
 Puis, dans un fichier `.q` :

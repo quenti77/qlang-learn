@@ -56,28 +56,48 @@ remember who is connected, in which room...
 - Limits: messages of 1 MB at most, a `ping` every 30 s, a client that sends an invalid frame is closed
   (`1002`). There is no TLS in `qlang serve`: a reverse proxy does `wss://`.
 
-### Several workers: the bus
+### Several workers: a relay per worker
+
+Each worker gets a `Relay`: a `Hub` (the connections of this worker) plus a **feed** of messages. The relay reads
+the feed **once per interval and room, whatever the number of connections**, then fans out in memory. Each
+connection calls `relay.pump()` in its `on_tick`: the call returns at once until the interval has passed.
 
 ```qlang-ref
 import "@std/web/ws.q" as ws
 
+let hub = ws.Hub.new()
 let bus = ws.Bus.new(db, "sqlite")      -- "postgres" or "mysql" for those databases
 bus.install().unwrap()                  -- the table, if it does not exist
+let relay = ws.Relay.new(bus, hub, 250)
 
 Response.websocket(WebSocketHandler {
-  tick_ms: 300,
-  on_open: fun(c: WebSocket) bus.deliver(c, "lobby") end,         -- notes where the room stands
+  tick_ms: 100,
+  on_open: fun(c: WebSocket)
+    hub.join("lobby", c)
+    relay.watch("lobby")
+  end,
   on_message: fun(c: WebSocket, m: WsMessage) bus.publish("lobby", m.text ?? "").unwrap() end,
-  on_tick: fun(c: WebSocket) bus.deliver(c, "lobby") end,         -- sends what has come since
+  on_tick: fun(c: WebSocket) relay.pump() end,
+  on_close: fun(c: WebSocket) hub.leave(c) end,
 })
 ```
 
-`bus.prune(3600)` deletes the messages older than an hour: run it from time to time. A database read every
-300 ms per connection is enough for a chat or notifications; beyond a few thousand connections, use a real
-message broker. The complete example is `examples/chat` of the package (an HTML page and a room):
+Two feeds:
+
+| Feed | Messages go through | Cost |
+| --- | --- | --- |
+| `Bus` + `Relay.new(bus, hub, ms)` | a table of your database | one query per interval, room and worker, even without messages |
+| `RedisBus` + `Relay.with_feed(RedisFeed.open(url, "app:").unwrap(), hub, 50)` | **Redis** publish/subscribe | nothing while nobody speaks: Redis pushes |
+
+With Redis, each worker subscribes once per room and publishes with `RedisBus.new(redis, "app:").publish(room,
+text)`. This is what real systems do (Laravel Reverb, Socket.IO adapters). With the database, the cost stays
+constant as connections grow, but it does not drop to zero: an interval of 250 ms is enough for a chat.
+(`Bus.deliver` reads once per *connection*: for a few dozen only.) `bus.prune(3600)` deletes the messages older
+than an hour. The complete example is `examples/chat` of the package:
 
 ```sh
 CHAT_DB=sqlite://chat.db qlang serve examples/chat/main.q --workers 2
+CHAT_REDIS=redis://127.0.0.1:6379 qlang serve examples/chat/main.q --workers 2
 ```
 
 ### Testing a WebSocket
@@ -97,7 +117,7 @@ testing.WsClient.try_open(app, "/chat", {"origin": "https://evil.example"})   --
 ## The job queue
 
 Long work is not done during the request: you **write it down** (a *job*) and a separate process does it.
-`@std/queue.q` keeps the jobs in your database, with nothing else to run.
+`@std/queue.q` keeps the jobs in your database, with nothing else to run, or in **Redis**.
 
 ```qlang-ref
 import "@std/queue.q" as qq
@@ -106,7 +126,7 @@ struct SendWelcome
   public email: string
 end
 
-let queue = qq.Queue.new(db, "sqlite")
+let queue = qq.Queue.new(db, "sqlite")          -- or qq.Queue.redis(redis, "default")
 queue.install().unwrap()
 queue.handle<SendWelcome>(fun(job: SendWelcome) -> string?
   let sent = mailer.send(job.email, "Welcome")
@@ -130,6 +150,10 @@ queue.work(false)                                                      -- never 
   (that would stop the worker).
 - A failure is tried again later (10 s, 1 min, 5 min, then 15 min) up to `max_attempts` times (3 by default),
   then the job moves to the table of abandoned jobs: `queue.failed()`, `retry_failed(id)`, `forget_failed(id)`.
+- **Database or Redis?** With the database, a job added in a transaction only exists once the transaction commits,
+  and there is nothing else to run; a worker looks every second. With Redis, the worker **waits on the list** (it
+  does not poll) and a job that is added starts at once; delayed jobs and the ones a dead worker left "running" are
+  put back in the list. The code is the same on both sides.
 - Several workers may run: each **marks** a job before doing it. A job left "running" for more than
   `queue.timeout` seconds (the worker died) is given again: a function must therefore be safe to run twice.
 - On the command line: `@std/web/commands.q` brings `queue:work` (`--once` to stop when nothing is left),
@@ -138,5 +162,5 @@ queue.work(false)                                                      -- never 
 
 ## What next
 
-What is still missing: a message broker for thousands of connections, ready-made JWT, ORM relations. For all
+What is still missing: ready-made JWT, ORM relations, a dashboard for the queues. For all
 the rest, the "Web applications" page and the [guide](../36-web-demarrer/) say how the pieces fit together.

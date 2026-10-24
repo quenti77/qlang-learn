@@ -136,7 +136,8 @@ app.use(limit.rate_limit(cache.Cache.memory(), 100, 60, limit.by_header("x-forwa
 - `cors_with(CorsOptions { origins: [...], credentials: true, expose: [...], max_age: 600 })` règle finement.
 - `rate_limit(cache, 100, 60, clé)` : 100 requêtes par minute et par clé, sinon `429` avec `Retry-After`. Le
   compteur vit dans le cache : en mémoire, il compte **par worker** ; avec `Cache.files(dossier)`, pour la
-  machine. Derrière un proxy, compte par l'en-tête qu'il fixe ; ne fais pas confiance à `x-forwarded-for` si un
+  machine ; avec `Cache.redis(redis, "limit:")`, **exactement pour toutes les machines** (le compte est une seule
+  opération atomique). Derrière un proxy, compte par l'en-tête qu'il fixe ; ne fais pas confiance à `x-forwarded-for` si un
   client peut joindre le serveur directement.
 
 ## Une liste de vérifications

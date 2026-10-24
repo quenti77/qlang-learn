@@ -135,7 +135,8 @@ app.use(limit.rate_limit(cache.Cache.memory(), 100, 60, limit.by_header("x-forwa
 - The **first** middleware added is the outermost; put `request_id` then `logging` first.
 - `cors_with(CorsOptions { origins: [...], credentials: true, expose: [...], max_age: 600 })` tunes it.
 - `rate_limit(cache, 100, 60, key)`: 100 requests a minute per key, otherwise `429` with `Retry-After`. The
-  counter lives in the cache: in memory it counts **per worker**; with `Cache.files(folder)`, for the machine.
+  counter lives in the cache: in memory it counts **per worker**; with `Cache.files(folder)`, for the machine; with `Cache.redis(redis, "limit:")`, **exactly for every machine** (the
+  count is one atomic step).
   Behind a proxy, count by the header it sets; do not trust `x-forwarded-for` if a client can reach the server
   directly.
 
