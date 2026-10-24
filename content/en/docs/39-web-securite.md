@@ -104,6 +104,54 @@ For **permissions** (admin, owner): a second guard, or a test in the route with 
 To make sure a resource belongs to the user, filter by `user_id` in the repository (like `tasks.find(who.id,
 id)`): someone else's task is then a plain `404`.
 
+## Tokens (JWT) for clients that are not browsers
+
+A mobile app, a single-page application or another server do not use cookies: they send a **token** in the
+`Authorization: Bearer ...` header. `@std/jwt.q` signs and checks it, `@std/web/auth.q` makes a guard of it.
+
+```qlang-ref
+import "@std/jwt.q" as jwt
+import "@std/web/auth.q" as auth
+
+struct Session
+  public sub: string
+  public email: string
+  public iat: int
+  public exp: int
+end
+
+-- issue: a 15-minute token in exchange for an email and a password
+let now = time.now() div 1000
+let signed = jwt.sign(Session { sub: "{row.id}", email: row.email, iat: now, exp: now + 900 }, jwt.Key.hs256(config.secret))
+
+-- check: a guard, then the claims in the route
+app.guard("jwt", auth.jwt_guard([jwt.Key.hs256(config.secret)], jwt.Options {}))
+app.guard("admin", auth.scope_guard(["admin"]))
+```
+
+```qlang-ref
+#[web.Get("/api/me")]
+#[web.Guard("jwt")]
+fun api_me(req: Request) -> Session?
+  auth.claims_of<Session>(req)
+end
+```
+
+What checking looks at, in order: the shape; **the algorithm is one of *your* keys' algorithms** (never what the token
+asks for: `none` is refused, and a public key is never used as an HMAC secret); the signature, with the key the header's
+`kid` names; `exp` and `nbf` (with `leeway` seconds of grace); `iss` and `aud` if you ask for them. A token without
+`exp` is refused. An HMAC secret shorter than 32 characters is refused too. A guard that refuses answers `401` with
+`WWW-Authenticate: Bearer` (`403` and `insufficient_scope` for `scope_guard`) and does not say why.
+
+- **Key pairs.** `jwt.Key.rs256(pem)`, `es256`, `eddsa`...: **sign** with the private key (PKCS#8, `BEGIN PRIVATE KEY`)
+  and **verify** with the public one (PEM or JWK).
+- **The identity provider** (Auth0, Keycloak, Google) publishes its keys: `auth.fetch_jwks(url, cache, 3600)` reads them
+  once an hour and the `kid` of each token picks the right one. Give them to `auth.jwt_guard(keys, jwt.Options { issuer:
+  "https://...", audience: "my-api" })`.
+- **A JWT is signed, not encrypted**: anybody can read its content. Put little in it, keep it short-lived (minutes) and
+  renew it with a *refresh token* that you keep in your database: you can revoke that one, which you cannot do with a JWT
+  that was already issued.
+
 ## CSRF
 
 A browser sends cookies by itself, even from another site: for an application with **pages and forms** (not for

@@ -105,6 +105,55 @@ Pour des **droits** (admin, propriétaire) : une deuxième garde ou un test dans
 `HttpError { status: 403, ... }`. Pour vérifier qu'une ressource appartient à l'utilisateur, filtre par
 `user_id` dans le dépôt (comme `tasks.find(who.id, id)`) : une tâche d'un autre est alors un simple `404`.
 
+## Jetons (JWT) pour les clients qui ne sont pas des navigateurs
+
+Une application mobile, une application web monopage ou un autre serveur n'utilisent pas de cookie : ils envoient un
+**jeton** dans l'en-tête `Authorization: Bearer ...`. `@std/jwt.q` le signe et le vérifie, `@std/web/auth.q` en fait une
+garde.
+
+```qlang-ref
+import "@std/jwt.q" as jwt
+import "@std/web/auth.q" as auth
+
+struct Session
+  public sub: string
+  public email: string
+  public iat: int
+  public exp: int
+end
+
+-- émettre : un jeton de 15 minutes contre un email et un mot de passe
+let now = time.now() div 1000
+let signed = jwt.sign(Session { sub: "{row.id}", email: row.email, iat: now, exp: now + 900 }, jwt.Key.hs256(config.secret))
+
+-- vérifier : une garde, puis les revendications dans la route
+app.guard("jwt", auth.jwt_guard([jwt.Key.hs256(config.secret)], jwt.Options {}))
+app.guard("admin", auth.scope_guard(["admin"]))
+```
+
+```qlang-ref
+#[web.Get("/api/me")]
+#[web.Guard("jwt")]
+fun api_me(req: Request) -> Session?
+  auth.claims_of<Session>(req)
+end
+```
+
+Ce que la vérification contrôle, dans l'ordre : la forme ; **l'algorithme est celui de *tes* clés** (jamais ce que le
+jeton demande : `none` est refusé, et une clé publique ne sert jamais de secret HMAC) ; la signature, avec la clé que
+désigne le `kid` de l'en-tête ; `exp` et `nbf` (avec `leeway` secondes de marge) ; `iss` et `aud` si tu les demandes.
+Un jeton sans `exp` est refusé. Un secret HMAC de moins de 32 caractères est refusé aussi. Une garde qui refuse répond
+`401` avec `WWW-Authenticate: Bearer` (`403` et `insufficient_scope` pour `scope_guard`) et ne dit pas pourquoi.
+
+- **Clés asymétriques.** `jwt.Key.rs256(pem)`, `es256`, `eddsa`... : on **signe** avec la clé privée (PKCS#8,
+  `BEGIN PRIVATE KEY`) et on **vérifie** avec la publique (PEM ou JWK).
+- **Le fournisseur d'identité** (Auth0, Keycloak, Google) publie ses clés : `auth.fetch_jwks(url, cache, 3600)` les lit une
+  fois par heure et le `kid` de chaque jeton choisit la bonne. Donne-les à `auth.jwt_guard(keys, jwt.Options { issuer:
+  "https://...", audience: "mon-api" })`.
+- **Un JWT est signé, pas chiffré** : n'importe qui lit son contenu. Mets-y peu de choses, une durée courte (quelques
+  minutes) et renouvelle-le avec un *jeton de rafraîchissement* que tu gardes dans ta base : tu peux le révoquer, ce que
+  tu ne peux pas faire d'un JWT déjà émis.
+
 ## CSRF
 
 Un navigateur envoie les cookies tout seul, même depuis le site d'un autre : pour une application à **pages et

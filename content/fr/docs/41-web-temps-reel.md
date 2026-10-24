@@ -163,6 +163,31 @@ queue.work(false)                                                      -- ne ren
   `queue:failed` et `queue:retry <id>`. Lance le worker sous systemd, Docker ou ce qui le relance.
 - Les tests donnent leur horloge (`queue.clock`) pour ne pas attendre.
 
+### Options de file
+
+Les annotations se mettent sur la structure du job (`import "@std/queue.q" as qq`) :
+
+```qlang-ref
+#[qq.Retry(tries: 5, backoff: [10, 60, 300])]     -- 5 essais ; attentes de 10 s, 1 min, puis 5 min
+#[qq.Unique(seconds: 3600)]                       -- pas deux jobs identiques en attente ou en cours
+#[qq.Delay(seconds: 30)]                          -- démarre 30 s après son ajout
+struct SendWelcome
+  public email: string
+end
+```
+
+- `push` rend `false` quand un job `Unique` identique est déjà là ; le verrou tombe quand le job est fini (ou abandonné),
+  ou au bout de `seconds`.
+- **Intergiciels de job** : `queue.use(m)` (tous les jobs) ou `queue.handle_with<T>(fonction, [m])` (un type). Un
+  intergiciel reçoit le job et `next`, et rend un `Outcome` : `next()` pour l'exécuter, `Outcome.release(10)` pour le
+  rendre et réessayer dans 10 s **sans compter un essai**. Deux sont fournis : `qq.rate_limited(cache, qq.by_kind, 10,
+  60)` (au plus 10 jobs d'un type par minute ; les autres attendent la fenêtre suivante) et
+  `qq.without_overlapping(cache, qq.by_kind, 120, 5)` (jamais deux jobs d'un type en même temps). Avec `Cache.redis`, le
+  compte est exact pour tous les workers.
+- **Le worker** : `queue.work_with(qq.WorkOptions { max_jobs: 500, max_seconds: 3600 })` s'arrête de lui-même (utile
+  pour que le processus soit relancé, avec une mémoire neuve), et **s'arrête proprement** sur Ctrl-C ou `kill` : il finit
+  le job en cours puis sort (`Process.stopping()`). En ligne de commande : `queue:work --max-jobs 500 --max-time 3600`.
+
 ## Et ensuite
 
 Ce qui manque encore : JWT tout fait, relations d'ORM, un tableau de bord des files.

@@ -1983,6 +1983,8 @@ asks the operating system's secure source for bytes.
 | `Crypto.random_bytes(n)` | `Result<bytes, Error>`: `n` unpredictable bytes |
 | `Crypto.token(n)` | `Result<string, Error>`: a token (session, reset link, API key) made of `n` bytes in "URL" base64 (32 bytes: 43 characters) |
 | `Crypto.equal(a, b)`, `Crypto.equal_bytes(a, b)` | `true` if both are equal, **without revealing where they differ** (constant time): to compare a received token, signature or digest |
+| `Crypto.verify(alg, key, message, signature)` | `Result<bool, Error>`: `true` if `signature` (`bytes`) is the signature of `message` (`bytes`) made with the private key that goes with `key`, a public key as a PEM (`BEGIN PUBLIC KEY`, `BEGIN RSA PUBLIC KEY`) or a JWK (JSON text). `alg`: `RS256`, `RS384`, `RS512` (RSA PKCS#1), `ES256`, `ES384` (the signature is `r` then `s`, as a JWT writes it), `EdDSA` (Ed25519). A wrong signature is `false`; `err` is for a key or an algorithm that cannot be used |
+| `Crypto.sign(alg, key, message)` | `Result<bytes, Error>`: the signature of `message` with a private key as a PKCS#8 PEM (`BEGIN PRIVATE KEY`; for RSA also `BEGIN RSA PRIVATE KEY`). Same algorithms |
 
 `Password` keeps passwords. It makes a text to store in the database (**Argon2id**, with its own
 random salt and its settings inside) and never keeps the password itself:
@@ -2628,6 +2630,14 @@ parentheses: each statement there fits on its line.
 returns a `Result<ProcessOutput, Error>`; `ProcessOutput` has three public fields: `status` (the
 exit code, −1 if a signal stopped it), `stdout` and `stderr` (what it wrote, as text).
 `Process.run_with_input(command, arguments, text)` also writes `text` to its standard input.
+
+`Process.stopping()` says whether the program was told to stop (Ctrl-C, `kill`, a service manager). **The first call makes the program take over**: from then on the signal no longer ends it at once, it only makes this return `true`, so that a worker can finish what it is doing and leave; a second signal ends the program (code 130). A program that never calls it stops as before. In a program served by `qlang serve`, it is `true` while the server stops.
+
+```
+while not Process.stopping() do
+  do_some_work()
+end
+```
 
 ```
 let r = Process.run("git", ["rev-parse", "HEAD"])
