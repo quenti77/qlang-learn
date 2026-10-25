@@ -633,9 +633,32 @@ print(greet("hi", name: "ana"))             -- mixing positional and named
 ```
 
 Positional arguments must come before named ones, each parameter can only be
-filled once, and every parameter must be given. Named arguments only work for
+filled once, and every parameter must be given, except those that have a default
+value (below). Named arguments only work for
 calling a function or method declared in qlang code (not native built-ins
 such as `print` or `.sort()`).
+
+### Default values
+
+A parameter can have a default value, written after its type: a call can then leave it out.
+
+```
+fun connect(host: string, port: int = 5432, tls: bool = false, name: string? = none) -> string
+  "{host}:{port}"
+end
+
+print(connect("db"))                      -- db:5432
+print(connect("db", 3306))                -- db:3306
+print(connect("db", tls: true))           -- skip `port` by naming the next one
+```
+
+- The value is a **literal**: a number (`-1` too), a text without `\{`, `true`, `false`, `none`, `[]` or
+  `{}`. It must have the type of the parameter (`T002` otherwise, at the first call that uses it).
+- Parameters without a default are required: `T240` ("expects 1 to 4 argument(s)").
+- A generic type parameter that only a left-out parameter mentions has nothing to infer:
+  `fun note<C>(message: string, context: C? = none)` is called as `note("a")` or `note("a", {"k": 1})`.
+- It works for functions and methods declared in qlang, like named arguments; not for function types
+  (`fun(int) -> int`) nor `Callable.call`.
 
 ### Anonymous functions
 
@@ -2593,13 +2616,17 @@ A connection does one thing at a time (each command waits for its answer, 30 s a
 
 ### Prelude: the `Log` journal
 
-`Log` writes the program's journal: `Log.debug("detail")`, `Log.info("started")`,
-`Log.warn("slow")`, `Log.error("failed")`, or `Log.write("info", "message", { "user": "ada" })` with
-extra fields (any other level is written as `info`).
+`Log` writes the program's journal with the levels of PSR-3 (PHP), lowest first: `debug`, `info`,
+`notice`, `warning` (or `warn`), `error`, `critical`, `alert`, `emergency`. Each level is a function
+`Log.level(message, context)`; the **context** is optional and can be any value (map, structure,
+array...): it is written as JSON.
 
 ```
 Log.info("started")
-Log.write("error", "payment refused", { "order": "42", "reason": "card expired" })
+Log.error("payment refused", { "order": 42, "reason": "card expired" })
+Log.warning("slow", Slow { route: "/pay", ms: 912 })
+Log.log("notice", "your choice", [1, 2])      -- the level is a text (an unknown one is written as `info`)
+Log.write("info", "old style", { "user": "ada" })   -- flat text fields
 ```
 
 The `qlang` command writes one line per call on the **error output** (not on the output: the
@@ -2607,13 +2634,15 @@ journal does not mix with the results):
 
 ```
 2026-10-23T18:50:33.145Z INFO  started
-2026-10-23T18:50:33.146Z ERROR payment refused order=42 reason="card expired"
+2026-10-23T18:50:33.146Z ERROR payment refused context={"order":42,"reason":"card expired"}
 ```
 
-- `--log-level debug|info|warn|error` (or the variable `QLANG_LOG`) hides the lower levels; `info`
-  by default.
-- `--log-format json` (or `QLANG_LOG_FORMAT=json`) writes one object per line:
-  `{"level":"error","message":"...","order":"42","time":"..."}`.
+- `--log-level debug|info|notice|warning|error|critical|alert|emergency` (or the variable `QLANG_LOG`)
+  hides the lower levels; `info` by default. `warn` is another name for `warning`.
+- `--log-format json` (or `QLANG_LOG_FORMAT=json`) writes one object per line, the context as an object:
+  `{"level":"error","message":"payment refused","context":{"order":42},"time":"..."}`.
+- PSR-3 also replaces `{key}` in the message with the value from the context: in qlang, `"{x}"` in a
+  text is already an interpolation, so write the message as `"order {id}"`.
 - Another host keeps or drops the lines; they never make the program fail.
 
 ## 18. Line endings

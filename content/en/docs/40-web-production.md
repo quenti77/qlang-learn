@@ -145,7 +145,7 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 - **Configuration** by environment variables (`env.get`), read in a `Config` provider; no secret in the code.
 - **Database**: a SQLite file suits a single server; PostgreSQL or MySQL (`Db.connect("postgres://...")`,
   `mysql://...?sslmode=...`) beyond that. Run migrations with `db:migrate`, not at each start of each worker.
-- **Log**: `Log.info/warn/error` (with `Log.write(level, message, {"field": "value"})`); the `logging()`
+- **Log**: `Log.info/warning/error` and the other PSR-3 levels, with an optional JSON context (`Log.error("failed", {"order": 42})`); the `logging()`
   middleware writes one line per request.
 - **Process**: run `qlang serve` under systemd, Docker or an equivalent that restarts it; a deployment replaces
   the file and restarts.
