@@ -5,6 +5,13 @@ group: "Web applications"
 
 # Web guide 5: testing and going to production
 
+This page builds on the application from the previous pages: `tasks.build()` (the `app.q` file that assembles the
+application), the `Task`, `NewTask` and `Credentials` types and the `Tasks` service. The test examples also need an account:
+
+```qlang-ref
+let ADA = Credentials { email: "ada@example.com", password: "correct horse battery" }
+```
+
 ## Testing without a server
 
 `@std/web/testing.q` sends requests straight to `App.handle`: no port, no socket, the same code as a real
