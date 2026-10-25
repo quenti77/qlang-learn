@@ -2261,6 +2261,20 @@ let res = http.send(Request {
 })
 ```
 
+`http.send_all(requests)` sends **several at the same time** (16 at once at most) and gives an
+`array<Result<Response, Error>>` in the same order: ten calls to slow services take as long as the slowest. A
+request that fails is an `err` and does not stop the others.
+
+```
+let answers = http.send_all([
+  Request { method: "GET", url: "https://a.example/api" },
+  Request { method: "GET", url: "https://b.example/api" },
+])
+for r in answers do
+  print(if r.is_ok() then r.unwrap().status else 0 end)
+end
+```
+
 ### Answering HTTP requests
 
 A program can also **serve** requests: `qlang serve app.q` listens on a port (8080 by default,
