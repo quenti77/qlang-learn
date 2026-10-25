@@ -9,6 +9,9 @@ Two needs that an ordinary HTTP request cannot meet: **pushing** news to the bro
 notifications), and **postponing** long work (sending a mail, resizing an image). Both are done with
 `qlang serve` and the `std` package.
 
+The examples use `db` (the application's `Db` connection), `mailer` (a `Mailer` from `@std/mail.q`, or any service that
+sends) and `Me` (the signed-in user, defined in guide 3 and filled in by the `auth` guard of guide 4).
+
 ## WebSocket
 
 A route becomes a WebSocket when it returns `Response.websocket(...)`. The guards and middleware of the

@@ -9,6 +9,9 @@ Deux besoins que l'on ne peut pas satisfaire dans une requête HTTP ordinaire : 
 nouvelles au navigateur (un chat, des notifications), et **différer** un travail long (envoyer un mail,
 redimensionner une image). Les deux se font avec `qlang serve` et le paquet `std`.
 
+Les exemples utilisent `db` (la connexion `Db` de l'application), `mailer` (un `Mailer` de `@std/mail.q`, ou tout
+service qui envoie) et `Me` (l'utilisateur connecté, défini à la page 3 et rempli par la garde `auth` de la page 4).
+
 ## WebSocket
 
 Une route devient un WebSocket quand elle rend `Response.websocket(...)`. Les gardes et les middleware de la
