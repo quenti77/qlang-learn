@@ -18,18 +18,19 @@ ses tests : ce que tu lis marche.
 | [4. Comptes et sécurité](../39-web-securite/) | mots de passe, sessions, gardes, CSRF, CORS, limitation de débit |
 | [5. Tester et mettre en production](../40-web-production/) | tests, commandes, OpenAPI, traductions, `qlang serve` en production |
 | [6. Temps réel et tâches de fond](../41-web-temps-reel/) | WebSocket, file de tâches |
+| [7. Mettre en service](../42-web-exploitation/) | Docker, systemd, santé et métriques, courrier, S3, tâches planifiées |
 
 Pour le contexte (PHP, Laravel, Symfony...) : un framework web de qlang est **un paquet écrit en qlang**,
 pas une partie du langage. `qlang serve` lit les requêtes HTTP et appelle ta fonction
 `handle(req: Request) -> Response` ; le paquet `web` y ajoute les routes, l'injection de dépendances et le
-reste. Tu as besoin de `qlang` 0.55 ou plus.
+reste. Tu as besoin de `qlang` 0.56 ou plus.
 
 ## Créer le projet
 
 ```sh
 mkdir tasks && cd tasks
 qlang init .
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.9.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.10.0
 ```
 
 `qlang init` crée `qlang.toml` ; `qlang add` y inscrit la dépendance `std` et la télécharge (les fichiers sont

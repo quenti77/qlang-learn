@@ -23,6 +23,8 @@ real compiler: you see the same errors as in the terminal.
   elsewhere, the variables in scope, the names of the file, the built-in functions, keywords and
   types. In an `import "..."`, the packages (`@std/`), the files and folders of a package, or those
   next to the file. A project in a subfolder of the opened folder is found by its nearest `qlang.toml`.
+- **Formatting**: "Format Document" (or `qlang fmt` in the terminal) puts the indentation back to two spaces per level without touching the tokens or the comments.
+- **Functions completed with their parentheses**: `validate()`, `new(items)` (Tab moves from one parameter to the next). Completion also works after `not x.` or `a + b.`, through a module (`web.App.`) and where a type is written (`fun f() -> web.`).
 - **Parameter hints**: typing `(` or `,` in a call shows the signature with the current parameter
   in bold.
 - **Run**: the ▶ button in the title bar (or the command **qlang: Run File**) saves the file and

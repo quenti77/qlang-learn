@@ -24,6 +24,8 @@ s'appuie sur le vrai compilateur : tu vois les mêmes erreurs que dans le termin
   mots-clés et les types. Dans un `import "..."`, les paquets (`@std/`), les fichiers et dossiers
   d'un paquet, ou ceux à côté du fichier. Un projet situé dans un sous-dossier du dossier ouvert est
   trouvé par son `qlang.toml` le plus proche.
+- **Mettre en forme** : « Mettre en forme le document » (ou `qlang fmt` dans le terminal) remet l'indentation à deux espaces par niveau sans toucher aux jetons ni aux commentaires.
+- **Fonctions complétées avec leurs parenthèses** : `validate()`, `new(items)` (Tab passe d'un paramètre au suivant). La complétion marche aussi après `not x.` ou `a + b.`, à travers un module (`web.App.`) et à la place d'un type (`fun f() -> web.`).
 - **Aide aux paramètres** : en tapant `(` ou `,` dans un appel, la signature s'affiche avec le
   paramètre courant en gras.
 - **Exécuter** : le bouton ▶ de la barre de titre (ou la commande **qlang: Run File**) enregistre le
