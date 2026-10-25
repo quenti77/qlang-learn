@@ -33,6 +33,8 @@ qlang init .
 qlang add std --git https://github.com/quenti77/qlang-std --tag v0.10.0
 ```
 
+(Depuis `qlang` 0.56, `qlang add std` seul suffit : le nom est cherché dans l'index des paquets et la dernière version est prise. `qlang search` liste l'index.)
+
 `qlang init` crée `qlang.toml` ; `qlang add` y inscrit la dépendance `std` et la télécharge (les fichiers sont
 dans `.qlang/packages`, la version exacte dans `qlang.lock`). On l'importe ensuite par `@std/...` :
 
