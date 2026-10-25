@@ -23,6 +23,47 @@ struct Tasks
   public db: Db
 end
 
+struct User
+  public id: int
+  public email: string
+end
+
+--" Un utilisateur tel que la table le garde, avec l'empreinte du mot de passe (jamais envoyée). --"
+struct UserRow
+  public id: int
+  public email: string
+  public password_hash: string
+end
+
+struct Task
+  public id: int
+  public title: string
+  public done: bool
+end
+
+--" Une tâche telle que la table la garde : SQLite range un booléen en 0 ou 1. --"
+struct TaskRow
+  public id: int
+  public title: string
+  public done: int
+end
+
+impl TaskRow
+  public fun to_task(self) -> Task
+    Task { id: self.id, title: self.title, done: self.done != 0 }
+  end
+end
+
+--" Qui fait la requête : rempli par une garde (page 4). --"
+struct Me
+  public id: int
+  public email: string
+end
+
+struct Users
+  public db: Db
+end
+
 fun make_config() -> Config
   Config { database: env.get("TASKS_DB") ?? "sqlite://:memory:", secret: env.get("TASKS_SECRET") ?? "dev-only-secret" }
 end
@@ -31,10 +72,18 @@ fun make_db(config: Config) -> Db
   Db.connect(config.database).unwrap()
 end
 
+fun make_users(db: Db) -> Users
+  Users { db: db }
+end
+
 fun make_tasks(db: Db) -> Tasks
   Tasks { db: db }
 end
 ```
+
+Les structures du début sont celles que **les pages suivantes réutilisent** : `Task` et `User` sont ce que l'API
+rend, `TaskRow` et `UserRow` ce que les tables contiennent (on y revient avec la base de données), `Me` l'utilisateur
+qui fait la requête (rempli par une garde, page 4), `Users` et `Tasks` les services qui parlent à la base.
 
 ```qlang-ref
 let app = web.App.new(Reflect.callables(providers))
@@ -103,7 +152,41 @@ Un piège de lecture :
   convertis (`row.done != 0`) : l'exemple a un `TaskRow` pour cela et une méthode `to_task()`.
 
 Il n'y a **pas d'ORM** qui cache le SQL : un « dépôt » est une structure qui regroupe les requêtes d'une table
-(`Users`, `Tasks`), ce qui garde le SQL hors des routes et se remplace dans un test.
+(`Users`, `Tasks`), ce qui garde le SQL hors des routes et se remplace dans un test. Voici les deux de l'exemple, ceux
+que les routes de la suite reçoivent en paramètre :
+
+```qlang-ref
+import "@std/web/query.q" as q
+
+impl Users
+  public fun by_email(self, email: string) -> UserRow?
+    q.Query.table("users").where("email", "=", email).first_as<UserRow>(self.db).unwrap()
+  end
+
+  public fun register(self, email: string, password: string) -> Result<User, Error>
+    let hash = Password.hash(password)
+    if hash.is_err() then
+      return Result<User, Error>.Err(hash.unwrap_err())
+    end
+    q.Query.table("users").insert(self.db, { "email": Json.string(email), "password_hash": Json.string(hash.unwrap()) })?
+    let found = self.by_email(email)
+    if found == none then
+      return Result<User, Error>.Err(Error { message: "the user was not saved" })
+    end
+    Result<User, Error>.Ok(User { id: found.id, email: found.email })
+  end
+end
+
+impl Tasks
+  public fun for_user(self, user: int, done: bool?) -> array<Task>
+    let query = q.Query.table("tasks").where("user_id", "=", user)
+    if done != none then
+      query = query.where("done", "=", if done then 1 else 0 end)
+    end
+    query.order_by("id", "asc").all_as<TaskRow>(self.db).unwrap().map(fun(r: TaskRow) -> Task r.to_task() end)
+  end
+end
+```
 
 ### Les relations, sans « N+1 »
 

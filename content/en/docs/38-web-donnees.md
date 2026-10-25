@@ -23,6 +23,47 @@ struct Tasks
   public db: Db
 end
 
+struct User
+  public id: int
+  public email: string
+end
+
+--" A user as the table holds it, with the hash of the password (never sent out). --"
+struct UserRow
+  public id: int
+  public email: string
+  public password_hash: string
+end
+
+struct Task
+  public id: int
+  public title: string
+  public done: bool
+end
+
+--" A task as the table holds it: SQLite keeps a boolean as 0 or 1. --"
+struct TaskRow
+  public id: int
+  public title: string
+  public done: int
+end
+
+impl TaskRow
+  public fun to_task(self) -> Task
+    Task { id: self.id, title: self.title, done: self.done != 0 }
+  end
+end
+
+--" Who is making the request: filled in by a guard (page 4). --"
+struct Me
+  public id: int
+  public email: string
+end
+
+struct Users
+  public db: Db
+end
+
 fun make_config() -> Config
   Config { database: env.get("TASKS_DB") ?? "sqlite://:memory:", secret: env.get("TASKS_SECRET") ?? "dev-only-secret" }
 end
@@ -31,10 +72,18 @@ fun make_db(config: Config) -> Db
   Db.connect(config.database).unwrap()
 end
 
+fun make_users(db: Db) -> Users
+  Users { db: db }
+end
+
 fun make_tasks(db: Db) -> Tasks
   Tasks { db: db }
 end
 ```
+
+The structures at the start are the ones **the following pages reuse**: `Task` and `User` are what the API returns,
+`TaskRow` and `UserRow` what the tables hold (more on that with the database), `Me` the user making the request (filled
+in by a guard, page 4), `Users` and `Tasks` the services that talk to the database.
 
 ```qlang-ref
 let app = web.App.new(Reflect.callables(providers))
@@ -101,7 +150,41 @@ One trap when reading:
   convert (`row.done != 0`): the example has a `TaskRow` for that and a `to_task()` method.
 
 There is **no ORM** that hides the SQL: a "repository" is a structure that groups the queries of one table
-(`Users`, `Tasks`), which keeps SQL out of the routes and can be replaced in a test.
+(`Users`, `Tasks`), which keeps SQL out of the routes and can be replaced in a test. Here are the two of the example,
+the ones the routes that follow receive as parameters:
+
+```qlang-ref
+import "@std/web/query.q" as q
+
+impl Users
+  public fun by_email(self, email: string) -> UserRow?
+    q.Query.table("users").where("email", "=", email).first_as<UserRow>(self.db).unwrap()
+  end
+
+  public fun register(self, email: string, password: string) -> Result<User, Error>
+    let hash = Password.hash(password)
+    if hash.is_err() then
+      return Result<User, Error>.Err(hash.unwrap_err())
+    end
+    q.Query.table("users").insert(self.db, { "email": Json.string(email), "password_hash": Json.string(hash.unwrap()) })?
+    let found = self.by_email(email)
+    if found == none then
+      return Result<User, Error>.Err(Error { message: "the user was not saved" })
+    end
+    Result<User, Error>.Ok(User { id: found.id, email: found.email })
+  end
+end
+
+impl Tasks
+  public fun for_user(self, user: int, done: bool?) -> array<Task>
+    let query = q.Query.table("tasks").where("user_id", "=", user)
+    if done != none then
+      query = query.where("done", "=", if done then 1 else 0 end)
+    end
+    query.order_by("id", "asc").all_as<TaskRow>(self.db).unwrap().map(fun(r: TaskRow) -> Task r.to_task() end)
+  end
+end
+```
 
 ### Relations, without "N+1"
 

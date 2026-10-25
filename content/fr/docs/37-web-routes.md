@@ -5,6 +5,39 @@ group: "Applications web"
 
 # Guide web 2 : routes et contrôleurs
 
+## Les données de cette page
+
+Les exemples de cette page n'ont besoin de rien d'autre que quatre petites structures et deux tableaux en mémoire à la
+place d'une base de données (la base arrive page 3, les comptes et les mots de passe page 4) :
+
+```qlang-ref
+struct Task
+  public id: int
+  public title: string
+  public done: bool
+end
+
+struct NewTask
+  public title: string
+end
+
+struct Credentials
+  public email: string
+  public password: string
+end
+
+struct User
+  public id: int
+  public email: string
+end
+
+let tasks: array<Task> = []
+let users: array<User> = []
+```
+
+Les routes ci-dessous lisent et modifient ces tableaux ; ils sont perdus à l'arrêt du serveur, ce qui suffit pour
+apprendre les routes.
+
 ## Les annotations de route
 
 | Annotation | Sert à |
@@ -29,16 +62,23 @@ ce type** (`int`, `float`, `bool`, `uuid`, `datetime`, nullable...) ; si elle ne
 | `#[web.Header("X-Token")] token: string` | un en-tête |
 | `#[web.CookieValue("sid")] sid: string?` | un cookie |
 | `req: Request` | la requête elle-même (`req.method`, `req.headers`, `req.cookies`, `req.raw`...) |
-| `tasks: Tasks` | le **service** de ce type (page 3) |
+| `tasks: Tasks` | un **service** : une valeur que l'application construit pour toi (une base, un dépôt, l'utilisateur connecté). Voir la page 3 ; cette page n'en a pas besoin |
 
 Le nom du paramètre est celui utilisé dans la requête ; `#[web.Path("id")]` donne un autre nom explicitement.
 
 ```qlang-ref
 #[web.Get("/tasks/:id")]
-fun show(#[web.Path] id: int, who: Me, tasks: Tasks) -> Task?
-  tasks.find(who.id, id)
+fun show(#[web.Path] id: int) -> Task?
+  for t in tasks do
+    if t.id == id then
+      return t
+    end
+  end
+  none
 end
 ```
+
+`GET /tasks/7` rend la tâche en JSON, ou `404` si la fonction rend `none`, ou `400` si l'identifiant n'est pas un entier.
 
 ## Ce que la fonction rend
 
@@ -63,13 +103,20 @@ Pour une erreur, `HttpError { status: 409, message: "..." }` donne ce statut ; u
 ```qlang-ref
 #[web.Post("/register")]
 #[web.Status(201)]
-fun register(#[web.Body] input: Credentials, users: Users) -> Result<User, HttpError>
-  if users.by_email(input.email) != none then
-    return Result<User, HttpError>.Err(HttpError { status: 409, message: "this email is already used" })
+fun register(#[web.Body] input: Credentials) -> Result<User, HttpError>
+  for u in users do
+    if u.email == input.email then
+      return Result<User, HttpError>.Err(HttpError { status: 409, message: "this email is already used" })
+    end
   end
-  ...
+  let user = User { id: users.len() + 1, email: input.email }
+  users.push(user)
+  Result<User, HttpError>.Ok(user)
 end
 ```
+
+(Cette route ne garde pas le mot de passe : un mot de passe ne se stocke jamais tel quel, la page 4 montre comment
+le hacher.)
 
 ## Un contrôleur en classe
 
@@ -78,39 +125,41 @@ publiques annotées sont les routes.
 
 ```qlang-ref
 #[web.Controller("/tasks")]
-#[web.Guard("auth")]
 struct TaskController
 end
 
 impl TaskController
   #[web.Get("/")]
-  public fun list(self, who: Me, tasks: Tasks, #[web.Query] done: bool?) -> array<Task>
-    tasks.for_user(who.id, done)
+  public fun list(self, #[web.Query] done: bool?) -> array<Task>
+    tasks.filter(fun(t: Task) -> bool done == none or t.done == done end)
   end
 
   #[web.Post("/")]
   #[web.Status(201)]
-  public fun create(self, #[web.Body] input: NewTask, who: Me, tasks: Tasks) -> Task
-    tasks.add(who.id, input.title)
+  public fun create(self, #[web.Body] input: NewTask) -> Task
+    let task = Task { id: tasks.len() + 1, title: input.title, done: false }
+    tasks.push(task)
+    task
   end
 end
 ```
 
 ```qlang-ref
-app.controller(controllers.TaskController {})
+app.controller(TaskController {})
 ```
 
-`#[web.Controller("/tasks")]` donne le préfixe, `#[web.Guard]` sur la structure s'applique à toutes ses
-méthodes. L'instance vit autant que l'application : **ce qui change à chaque requête arrive en paramètre de la
-méthode** (l'utilisateur, un dépôt), pas dans des champs. Si un fournisseur sait construire le contrôleur :
+`#[web.Controller("/tasks")]` donne le préfixe (`GET /tasks`, `POST /tasks`). Une annotation `#[web.Guard("auth")]` sur la
+structure s'appliquerait à toutes ses méthodes (les gardes sont l'objet de la page 4). L'instance vit autant que
+l'application : **ce qui change à chaque requête arrive en paramètre de la méthode**, jamais dans des champs. Quand
+les routes auront des services (page 3), le contrôleur les recevra de la même façon, et un fournisseur saura le construire :
 `app.controller_from_container<TaskController>()`.
 
 **Un `s` de différence** : `app.controllers(Reflect.callables(module))` (pluriel) ajoute les **fonctions** d'un module qui
 portent une annotation de route ; `app.controller(instance)` (singulier) ajoute les méthodes d'**un** contrôleur, une
 instance de structure. Donner un tableau à la version singulière s'arrête sur un message qui le dit.
 
-Fonctions ou classes ? Les deux se mélangent dans la même application ; l'exemple garde les routes de compte en
-fonctions et celles des tâches en classe.
+Fonctions ou classes ? Les deux se mélangent dans la même application ; l'exemple complet (`examples/tasks` du paquet)
+garde les routes de compte en fonctions et celles des tâches en classe.
 
 ## Préfixes et groupes
 
@@ -118,6 +167,8 @@ fonctions et celles des tâches en classe.
 groupes :
 
 ```qlang-ref
+import "api_routes.q" as api_routes          -- un fichier qui contient des fonctions annotées
+
 app.prefix("/api")
 app.controllers(Reflect.callables(api_routes))
 app.prefix("")
