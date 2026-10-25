@@ -5,6 +5,38 @@ group: "Web applications"
 
 # Web guide 2: routes and controllers
 
+## The data of this page
+
+The examples on this page need nothing more than four small structures and two arrays in memory instead of a database
+(the database comes on page 3, accounts and passwords on page 4):
+
+```qlang-ref
+struct Task
+  public id: int
+  public title: string
+  public done: bool
+end
+
+struct NewTask
+  public title: string
+end
+
+struct Credentials
+  public email: string
+  public password: string
+end
+
+struct User
+  public id: int
+  public email: string
+end
+
+let tasks: array<Task> = []
+let users: array<User> = []
+```
+
+The routes below read and change these arrays; they are lost when the server stops, which is enough to learn routes.
+
 ## Route annotations
 
 | Annotation | Used for |
@@ -29,16 +61,23 @@ the detail.
 | `#[web.Header("X-Token")] token: string` | a header |
 | `#[web.CookieValue("sid")] sid: string?` | a cookie |
 | `req: Request` | the request itself (`req.method`, `req.headers`, `req.cookies`, `req.raw`...) |
-| `tasks: Tasks` | the **service** of that type (page 3) |
+| `tasks: Tasks` | a **service**: a value the application builds for you (a database, a repository, the signed-in user). See page 3; this page does not need any |
 
 The name of the parameter is the one used in the request; `#[web.Path("id")]` gives another name explicitly.
 
 ```qlang-ref
 #[web.Get("/tasks/:id")]
-fun show(#[web.Path] id: int, who: Me, tasks: Tasks) -> Task?
-  tasks.find(who.id, id)
+fun show(#[web.Path] id: int) -> Task?
+  for t in tasks do
+    if t.id == id then
+      return t
+    end
+  end
+  none
 end
 ```
+
+`GET /tasks/7` gives the task as JSON, or `404` when the function gives `none`, or `400` when the id is not an integer.
 
 ## What the function returns
 
@@ -63,13 +102,19 @@ For a `422`, `details` has one element per refused field: `{"field": "title", "m
 ```qlang-ref
 #[web.Post("/register")]
 #[web.Status(201)]
-fun register(#[web.Body] input: Credentials, users: Users) -> Result<User, HttpError>
-  if users.by_email(input.email) != none then
-    return Result<User, HttpError>.Err(HttpError { status: 409, message: "this email is already used" })
+fun register(#[web.Body] input: Credentials) -> Result<User, HttpError>
+  for u in users do
+    if u.email == input.email then
+      return Result<User, HttpError>.Err(HttpError { status: 409, message: "this email is already used" })
+    end
   end
-  ...
+  let user = User { id: users.len() + 1, email: input.email }
+  users.push(user)
+  Result<User, HttpError>.Ok(user)
 end
 ```
+
+(This route does not keep the password: a password is never stored as it is, page 4 shows how to hash it.)
 
 ## A controller as a class
 
@@ -78,45 +123,49 @@ are the routes.
 
 ```qlang-ref
 #[web.Controller("/tasks")]
-#[web.Guard("auth")]
 struct TaskController
 end
 
 impl TaskController
   #[web.Get("/")]
-  public fun list(self, who: Me, tasks: Tasks, #[web.Query] done: bool?) -> array<Task>
-    tasks.for_user(who.id, done)
+  public fun list(self, #[web.Query] done: bool?) -> array<Task>
+    tasks.filter(fun(t: Task) -> bool done == none or t.done == done end)
   end
 
   #[web.Post("/")]
   #[web.Status(201)]
-  public fun create(self, #[web.Body] input: NewTask, who: Me, tasks: Tasks) -> Task
-    tasks.add(who.id, input.title)
+  public fun create(self, #[web.Body] input: NewTask) -> Task
+    let task = Task { id: tasks.len() + 1, title: input.title, done: false }
+    tasks.push(task)
+    task
   end
 end
 ```
 
 ```qlang-ref
-app.controller(controllers.TaskController {})
+app.controller(TaskController {})
 ```
 
-`#[web.Controller("/tasks")]` gives the prefix, `#[web.Guard]` on the structure applies to all its methods. The
-instance lives as long as the application: **what changes with each request comes in as a parameter of the
-method** (the user, a repository), not in fields. If a provider knows how to build the controller:
+`#[web.Controller("/tasks")]` gives the prefix (`GET /tasks`, `POST /tasks`). A `#[web.Guard("auth")]` on the structure
+would apply to all its methods (guards are the subject of page 4). The instance lives as long as the application:
+**what changes with each request comes in as a parameter of the method**, never in fields. Once the routes have
+services (page 3), the controller will receive them the same way, and a provider will be able to build it:
 `app.controller_from_container<TaskController>()`.
 
 **One letter apart**: `app.controllers(Reflect.callables(module))` (plural) adds the **functions** of a module that carry
 a route annotation; `app.controller(instance)` (singular) adds the methods of **one** controller, an instance of a
 struct. Giving an array to the singular one stops with a message that says so.
 
-Functions or classes? Both mix in the same application; the example keeps the account routes as functions and
-the task routes as a class.
+Functions or classes? Both mix in the same application; the full example (`examples/tasks` of the package) keeps the
+account routes as functions and the task routes as a class.
 
 ## Prefixes and groups
 
 `app.prefix("/api")` applies to the routes added **afterwards**; you change it or clear it between two groups:
 
 ```qlang-ref
+import "api_routes.q" as api_routes          -- a file that holds annotated functions
+
 app.prefix("/api")
 app.controllers(Reflect.callables(api_routes))
 app.prefix("")

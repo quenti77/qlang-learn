@@ -5,7 +5,13 @@ group: "Web applications"
 
 # Web guide 4: accounts and security
 
-This page adds accounts to the task API: signing up, signing in, staying signed in, and protecting routes.
+This page adds accounts to the task API: signing up, signing in, staying signed in, and protecting routes. It reuses
+the types and services of page 3 (`User`, `UserRow`, `Users`, `Me`, `Credentials`) and these imports:
+
+```qlang-ref
+import "@std/web/app.q" as web
+import "@std/web/session.q" as session
+```
 
 ## Passwords
 

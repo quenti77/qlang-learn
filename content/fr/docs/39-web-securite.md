@@ -6,7 +6,13 @@ group: "Applications web"
 # Guide web 4 : comptes et sécurité
 
 Cette page ajoute les comptes à l'API de tâches : s'inscrire, se connecter, rester connecté, et protéger des
-routes.
+routes. Elle reprend les types et les services de la page 3 (`User`, `UserRow`, `Users`, `Me`, `Credentials`) et
+ces importations :
+
+```qlang-ref
+import "@std/web/app.q" as web
+import "@std/web/session.q" as session
+```
 
 ## Les mots de passe
 
