@@ -105,6 +105,10 @@ méthodes. L'instance vit autant que l'application : **ce qui change à chaque r
 méthode** (l'utilisateur, un dépôt), pas dans des champs. Si un fournisseur sait construire le contrôleur :
 `app.controller_from_container<TaskController>()`.
 
+**Un `s` de différence** : `app.controllers(Reflect.callables(module))` (pluriel) ajoute les **fonctions** d'un module qui
+portent une annotation de route ; `app.controller(instance)` (singulier) ajoute les méthodes d'**un** contrôleur, une
+instance de structure. Donner un tableau à la version singulière s'arrête sur un message qui le dit.
+
 Fonctions ou classes ? Les deux se mélangent dans la même application ; l'exemple garde les routes de compte en
 fonctions et celles des tâches en classe.
 

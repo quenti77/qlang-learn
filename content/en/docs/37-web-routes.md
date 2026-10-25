@@ -105,6 +105,10 @@ instance lives as long as the application: **what changes with each request come
 method** (the user, a repository), not in fields. If a provider knows how to build the controller:
 `app.controller_from_container<TaskController>()`.
 
+**One letter apart**: `app.controllers(Reflect.callables(module))` (plural) adds the **functions** of a module that carry
+a route annotation; `app.controller(instance)` (singular) adds the methods of **one** controller, an instance of a
+struct. Giving an array to the singular one stops with a message that says so.
+
 Functions or classes? Both mix in the same application; the example keeps the account routes as functions and
 the task routes as a class.
 
