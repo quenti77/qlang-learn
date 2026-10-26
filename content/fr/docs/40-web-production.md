@@ -70,6 +70,7 @@ l'API. `@std/cli.q` :
 
 ```qlang-ref
 import "@std/cli.q" as cli
+import "@std/web/container.q" as di
 
 #[cli.Command("tasks:purge", "Supprime les tâches terminées")]
 fun purge(tasks: Tasks, console: cli.Console, #[cli.Opt(description: "ne rien supprimer")] dry: bool) -> int
@@ -77,7 +78,7 @@ fun purge(tasks: Tasks, console: cli.Console, #[cli.Opt(description: "ne rien su
   0
 end
 
-let program = cli.Cli.new(Reflect.callables(providers))     -- les mêmes services que l'application
+let program = cli.Cli.new(Reflect.callables(providers).concat(di.services_of(Reflect.constructors(providers))))     -- les mêmes services que l'application
 program.named("tasks")
 program.add(Reflect.callables(commands))
 program.main()

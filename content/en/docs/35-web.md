@@ -119,6 +119,9 @@ let problems = app.validate()     -- missing services, cycles, routes hidden by 
 A service is built once (a *singleton*). `#[Scoped]` makes one per request, `#[Transient]` a new one
 each time. Outside a route, `app.container.get<Posts>()` gives a service.
 
+A structure marked `#[di.Service]` is a service without a provider: its fields are its dependencies
+(`app.services(Reflect.constructors(providers))`); see the "Services and data" page of the guide.
+
 ## Validation
 
 Rules are annotations on the fields; a `#[web.Body]` is checked before your function runs.
@@ -199,6 +202,7 @@ values come from.
 
 ```qlang-ref
 import "@std/cli.q" as cli
+import "@std/web/container.q" as di
 
 #[cli.Command("greet", "Says hello")]
 fun greet(#[cli.Arg] name: string, #[cli.Opt(short: "l")] loud: bool, console: cli.Console) -> int
@@ -206,7 +210,7 @@ fun greet(#[cli.Arg] name: string, #[cli.Opt(short: "l")] loud: bool, console: c
   0
 end
 
-let program = cli.Cli.new(Reflect.callables(providers))   -- the services the commands need
+let program = cli.Cli.new(Reflect.callables(providers).concat(di.services_of(Reflect.constructors(providers))))   -- the services the commands need
 program.add(Reflect.callables(commands))
 program.main()
 ```
