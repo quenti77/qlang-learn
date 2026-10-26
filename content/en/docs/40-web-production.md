@@ -70,6 +70,7 @@ Migrations, data import, a scheduled task: these are **commands**, with the same
 
 ```qlang-ref
 import "@std/cli.q" as cli
+import "@std/web/container.q" as di
 
 #[cli.Command("tasks:purge", "Deletes the finished tasks")]
 fun purge(tasks: Tasks, console: cli.Console, #[cli.Opt(description: "delete nothing")] dry: bool) -> int
@@ -77,7 +78,7 @@ fun purge(tasks: Tasks, console: cli.Console, #[cli.Opt(description: "delete not
   0
 end
 
-let program = cli.Cli.new(Reflect.callables(providers))     -- the same services as the application
+let program = cli.Cli.new(Reflect.callables(providers).concat(di.services_of(Reflect.constructors(providers))))     -- the same services as the application
 program.named("tasks")
 program.add(Reflect.callables(commands))
 program.main()

@@ -14,13 +14,16 @@ vérifie tout le graphe avant la première requête.
 
 ```qlang-ref
 -- providers.q
+import "@std/web/container.q" as di
+
 struct Config
   public database: string
   public secret: string
 end
 
+#[di.Service]
 struct Tasks
-  public db: Db
+  db: Db
 end
 
 struct User
@@ -60,8 +63,9 @@ struct Me
   public email: string
 end
 
+#[di.Service]
 struct Users
-  public db: Db
+  db: Db
 end
 
 fun make_config() -> Config
@@ -72,13 +76,6 @@ fun make_db(config: Config) -> Db
   Db.connect(config.database).unwrap()
 end
 
-fun make_users(db: Db) -> Users
-  Users { db: db }
-end
-
-fun make_tasks(db: Db) -> Tasks
-  Tasks { db: db }
-end
 ```
 
 Les structures du début sont celles que **les pages suivantes réutilisent** : `Task` et `User` sont ce que l'API
@@ -87,10 +84,27 @@ qui fait la requête (rempli par une garde, page 4), `Users` et `Tasks` les serv
 
 ```qlang-ref
 let app = web.App.new(Reflect.callables(providers))
+app.services(Reflect.constructors(providers))
 ```
 
-Un paramètre `tasks: Tasks` d'une route reçoit le service construit par `make_tasks`, qui a reçu `Db`, qui a
-reçu `Config`. Le nom des fonctions n'a pas d'importance, **seul le type rendu compte**.
+Un paramètre `tasks: Tasks` d'une route reçoit le service `Tasks`, construit avec le `Db` fourni par `make_db`, qui
+a reçu `Config`. Deux façons de déclarer un service :
+
+- **une fonction** (`make_config`, `make_db`) : elle rend le service, ses paramètres sont ce dont elle a besoin. Le
+  nom n'a pas d'importance, **seul le type rendu compte**. C'est pour ce qui demande du code (lire l'environnement,
+  ouvrir une connexion).
+- **une structure marquée `#[di.Service]`** (`Users`, `Tasks`) : ses **champs** sont ses dépendances et le conteneur
+  la construit tout seul, comme l'autowiring de Laravel. Les champs peuvent rester privés.
+  `app.services(Reflect.constructors(providers))` prend toutes les structures marquées d'un fichier ; une structure
+  sans la marque n'est pas un service.
+
+Pour une interface (un trait), dis laquelle des implémentations est le service :
+
+```qlang-ref
+app.bind<Mailer, ResendMailer>()      -- qui demande un `Mailer` reçoit un `ResendMailer`
+```
+
+Un test fait `app.container.set(autre)` pour en mettre une autre.
 
 ### Durées de vie
 

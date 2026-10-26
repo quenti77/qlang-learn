@@ -14,13 +14,16 @@ first request.
 
 ```qlang-ref
 -- providers.q
+import "@std/web/container.q" as di
+
 struct Config
   public database: string
   public secret: string
 end
 
+#[di.Service]
 struct Tasks
-  public db: Db
+  db: Db
 end
 
 struct User
@@ -60,8 +63,9 @@ struct Me
   public email: string
 end
 
+#[di.Service]
 struct Users
-  public db: Db
+  db: Db
 end
 
 fun make_config() -> Config
@@ -72,13 +76,6 @@ fun make_db(config: Config) -> Db
   Db.connect(config.database).unwrap()
 end
 
-fun make_users(db: Db) -> Users
-  Users { db: db }
-end
-
-fun make_tasks(db: Db) -> Tasks
-  Tasks { db: db }
-end
 ```
 
 The structures at the start are the ones **the following pages reuse**: `Task` and `User` are what the API returns,
@@ -87,10 +84,27 @@ in by a guard, page 4), `Users` and `Tasks` the services that talk to the databa
 
 ```qlang-ref
 let app = web.App.new(Reflect.callables(providers))
+app.services(Reflect.constructors(providers))
 ```
 
-A parameter `tasks: Tasks` of a route receives the service built by `make_tasks`, which received `Db`, which
-received `Config`. The name of the functions does not matter, **only the returned type does**.
+A parameter `tasks: Tasks` of a route receives the `Tasks` service, built with the `Db` that `make_db` provides,
+which received `Config`. Two ways to declare a service:
+
+- **a function** (`make_config`, `make_db`): it returns the service, its parameters are what it needs. The name
+  does not matter, **only the returned type does**. Use it for what needs code (reading the environment, opening a
+  connection).
+- **a structure marked `#[di.Service]`** (`Users`, `Tasks`): its **fields** are its dependencies and the container
+  builds it by itself, like Laravel's autowiring. The fields can stay private.
+  `app.services(Reflect.constructors(providers))` takes every marked structure of a file; a structure without
+  the mark is not a service.
+
+For an interface (a trait), say which implementation is the service:
+
+```qlang-ref
+app.bind<Mailer, ResendMailer>()      -- whoever asks for a `Mailer` gets a `ResendMailer`
+```
+
+A test calls `app.container.set(other)` to put another one in.
 
 ### Lifetimes
 
