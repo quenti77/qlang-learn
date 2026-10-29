@@ -23,14 +23,14 @@ ses tests : ce que tu lis marche.
 Pour le contexte (PHP, Laravel, Symfony...) : un framework web de qlang est **un paquet écrit en qlang**,
 pas une partie du langage. `qlang serve` lit les requêtes HTTP et appelle ta fonction
 `handle(req: Request) -> Response` ; le paquet `web` y ajoute les routes, l'injection de dépendances et le
-reste. Tu as besoin de `qlang` 0.56 ou plus.
+reste. Tu as besoin de `qlang` 0.58 ou plus.
 
 ## Créer le projet
 
 ```sh
 mkdir tasks && cd tasks
 qlang init .
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.10.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.11.0
 ```
 
 (Depuis `qlang` 0.56, `qlang add std` seul suffit : le nom est cherché dans l'index des paquets et la dernière version est prise. `qlang search` liste l'index.)
