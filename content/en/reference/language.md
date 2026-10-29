@@ -1525,7 +1525,7 @@ the **execution environment** (the terminal, a web server…).
 | ------------------------ | --------------------------------------------------------------------- |
 | `print(x)`               | shows `x` followed by a new line (`print()`: an empty line)           |
 | `write(x)`               | shows `x` without a new line                                          |
-| `eprint(x)`, `ewrite(x)` | like `print` and `write`, on the error output (never mixed with the results; a host with no error output drops them) |
+| `eprint(x)`, `ewrite(x)` | like `print` and `write`, on the error output (never mixed with the results; a host with no error output drops them). See [Output and error output](#output-and-error-output) |
 | `read()`                 | reads a line and returns a `string` (without the new line)            |
 | `read_all()`             | reads all the remaining lines, joined by new lines (none after the last one) |
 | `exit(code?)`            | ends the program right away with this exit code (0 by default); nothing runs after it |
@@ -1546,6 +1546,23 @@ the **execution environment** (the terminal, a web server…).
 `print` and `write` accept any value (see [Conversions](#conversions)): arrays are shown as
 `[1, 2, 3]`, and strings inside an array are in quotes. `read()` always returns a `string`;
 for a number: `int.parse(read())`.
+
+#### Output and error output
+
+A program has two outputs. The **output** (`print`, `write`) carries what the program
+*produces*: it is the one you redirect to a file or pass to another program
+(`qlang run x.q | jq`). The **error output** (`eprint`, `ewrite`, and the `Log` journal) carries
+everything that speaks *about* the program: journal, warnings, progress. Despite its name, it is
+not reserved for errors: a `Log.info` goes there too. Severity is given by the journal level
+(the `level` field with `--log-format json`), not by the stream.
+
+```sh
+qlang run report.q > report.txt     # the journal stays in the terminal
+qlang run report.q 2> report.log    # the journal goes to a file
+```
+
+Docker, systemd and Kubernetes read both streams: a program that logs on the error output has
+no file or rotation to manage.
 
 ### Built-in methods
 
@@ -2630,7 +2647,7 @@ Log.write("info", "old style", { "user": "ada" })   -- flat text fields
 ```
 
 The `qlang` command writes one line per call on the **error output** (not on the output: the
-journal does not mix with the results):
+journal does not mix with the results; see [Output and error output](#output-and-error-output)):
 
 ```
 2026-10-23T18:50:33.145Z INFO  started
