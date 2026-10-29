@@ -30,7 +30,25 @@ end
 If `read()` has no more lines to read, the program stops with an error. In an environment with
 no keyboard (such as a web server), `read` does not exist: this is detected at compile time.
 
+## Two outputs: `print` and `eprint`
+
+A program has two outputs. `print` and `write` go to the **output**: what the program
+*produces*, which can be redirected or piped to another program. `eprint` and `ewrite` go to the
+**error output**: everything that speaks *about* the program (warnings, progress, logs).
+
+Despite its name, the error output is not reserved for errors. An informational message belongs
+there precisely because it must not be mixed with the results. In a terminal:
+
+```sh
+qlang run report.q > report.txt     # the eprint lines stay on screen
+qlang run report.q 2> report.log    # the eprint lines go to a file
+```
+
+The log `Log.info(...)`, `Log.error(...)` (covered in the web documentation) also writes to the
+error output, for the same reason. On this site, the page only shows the output.
+
 ## Remember
 
 - `read()` always returns a `string`: convert it with `int.parse` or `to_int()`.
 - Think about the case where the input is not a number: the result is an `int?`.
+- `print` writes the results, `eprint` writes the rest (logs, warnings): the error output is not only for errors.
