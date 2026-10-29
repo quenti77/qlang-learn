@@ -138,6 +138,9 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 | `--compress` | gzip des réponses texte |
 | `--static DIR` | sert les fichiers statiques d'un dossier |
 | `--max-steps N`, `--max-memory MB` | bornes contre un programme qui s'emballe |
+| `--max-connections N`, `--max-body TAILLE`, `--max-headers TAILLE` | connexions simultanées (64), corps de requête (1 Mo), ligne et en-têtes (64 Ko) ; au-delà, `503`, `413`, `431` |
+| `--read-timeout S`, `--idle-timeout S` | temps laissé pour envoyer toute la requête (20 s, sinon `408`) et silence toléré sur une connexion persistante (5 s) |
+| `--no-access-log` | n'écrit pas la ligne de chaque requête |
 | `--log-format json`, `--log-level` | le journal sur la sortie d'erreur, un objet JSON par ligne |
 | `--dev`, `--watch` | **développement seulement** |
 
