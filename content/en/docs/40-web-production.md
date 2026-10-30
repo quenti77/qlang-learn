@@ -159,8 +159,20 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 | `--log-format json`, `--log-level` | the log on the error output, one JSON object per line |
 | `--dev`, `--watch` | **development only** |
 
-- **HTTPS and protection**: `qlang serve` speaks HTTP; put it behind a reverse proxy (nginx, Caddy...) that does
-  TLS, limits request sizes and adds timeouts. Then turn on `sessions_with(secret, true)`.
+- **HTTPS and protection**: `qlang serve` speaks plain HTTP, on purpose; put it behind a reverse proxy (Caddy,
+  nginx, Traefik...) that holds the certificate and does TLS, limits request sizes and adds timeouts. Start qlang
+  with `--bind 127.0.0.1` and have the proxy **replace** `X-Forwarded-For` and `X-Forwarded-Proto` (Caddy's
+  `reverse_proxy` does; nginx: `proxy_set_header X-Forwarded-For $remote_addr;` `proxy_set_header
+  X-Forwarded-Proto $scheme;`). In the program, `@std/web/proxy.q` gives `is_https(req)`, `client_ip(req)` and
+  `redirect_to_https()`, and `sessions_with(secret, true)` adds `Secure` to the cookie.
+- **Sending a file**: `Response.file("reports/may.pdf")` (or `Response.download(path, "may.pdf")` to force a save)
+  lets the server read the file piece by piece: a big file does not fill the memory and the worker is free at once.
+  `404` when it is missing, `403` outside `--root`. Check yourself who may download it, and never build the path
+  from what the client wrote without cleaning it (`Path.normalize`). There is no `Range` yet (resuming).
+- **Docker**: the official image `ghcr.io/quenti77/qlang` only holds `qlang` and runs as an unprivileged user:
+  `docker run --rm -v "$PWD":/app -p 8080:8080 ghcr.io/quenti77/qlang:latest serve main.q --bind 0.0.0.0`.
+- **Updates**: `qlang self-update` replaces qlang by the latest release after checking its checksum; `qlang =
+  "0.65"` in the `[package]` of `qlang.toml` refuses to start with an older qlang.
 - **Configuration** by environment variables (`env.get`), read in a `Config` provider; no secret in the code.
 - **Database**: a SQLite file suits a single server; PostgreSQL or MySQL (`Db.connect("postgres://...")`,
   `mysql://...?sslmode=...`) beyond that. Run migrations with `db:migrate`, not at each start of each worker.
