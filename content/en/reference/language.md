@@ -90,6 +90,20 @@ it has no `export`) with their signature and comment, then the `public` fields, 
 variants of their types. `qlang doc` alone documents the project (without the test files nor the `examples` folder);
 `qlang doc lib.q` one file; `-o API.md` writes to a file.
 
+Two tags, at the start of a line of the comment, are laid out: `@param name text` (one per parameter) and
+`@return text` (or `@returns`). A line that does not start one continues the tag above it. The rest of the
+comment is the description.
+
+```
+--" Adds two numbers.
+  @param a the first one
+  @param b the second one, possibly negative
+  @return their sum --"
+fun add(a: int, b: int) -> int
+  a + b
+end
+```
+
 ---
 
 ## 3. Values and types
@@ -122,6 +136,8 @@ capital letter by convention.
   number.
 - An `int` does not exceed 64 bits: a computation that goes out of this range is an error
   ("integer overflow"), never a silently wrong result.
+- The smallest `int`, `-9223372036854775808`, can be written as a literal (also in a `case`). The digits
+  without the `-` (`9223372036854775808`) stay an error (`L005`).
 
 ### Strings
 
@@ -988,7 +1004,9 @@ functions of the file, with their annotations. Types stay static: you read descr
 | `Reflect.methods<Users>()` | `array<FunctionInfo>` of the methods of the `impl`s of `Users` (`has_self` tells whether it takes `self`) |
 | `Reflect.find_method<Users, fun(Request) -> Response>(value, "list")` | the method `list` of `value`, already bound to it, if its type (without `self`) is that one, otherwise `none` |
 | `Reflect.type_info<T>()` | the shape of a type, as a `TypeInfo`: `kind` (`int`, `string`, `array`, `map`, `struct`, `enum`...), `name`, `nullable`, `item` (element of an array, value of a map), `fields` (the fields `Json.of` writes: `FieldType` with the JSON `name`, `field`, `info`, `annotations`), `variants`, `recursive`; enough to write a schema. `ParamInfo.type_info()` and `Callable.return_info()` give that of a parameter and of the result |
+| `Reflect.declared(m)` | `Reflect.callables(m)` then `Reflect.constructors(m)`: everything `m` declares, in one array of `Callable` (what `App.boot` of `qlang-std` reads) |
 | `Reflect.bound_callables<Users>(value)` | the public methods of `Users` (with `self`, without type parameters), already bound to `value`, as an `array<Callable>`: this is what makes controllers as classes possible |
+| `Reflect.bound_callables_of(value)` | like `bound_callables`, for an `Any`: the public methods of the struct it holds, bound to it (none if it is not a struct). Finds the routes of a controller whose type is not known when writing |
 
 An annotation that is read is an `AnnotationInfo`: `name` (its structure's) and `args`, the
 arguments by field name, as `Json` (default values are filled in; numbers are floats). Every
@@ -1144,6 +1162,27 @@ print(Dog { }.greet())   -- Hello, Rex!
 
 Inside the default body, `self` has the type of the trait itself: it can call the trait's
 other methods (abstract or default), but it cannot access fields.
+
+### A trait that extends others
+
+`trait B extends A` (or `extends A, C`): whoever implements `B` must also implement `A` (otherwise `T136`). A
+value of type `B`, or a generic parameter `T: B`, also has the methods of `A`, and fits where an `A` is expected.
+
+```
+trait Named
+  fun name(self) -> string
+end
+
+trait Greeter extends Named
+  fun greet(self) -> string
+    "hello {self.name()}"
+  end
+end
+
+fun hello(g: Greeter) -> string
+  g.greet() + " / " + g.name()     -- name() comes from Named
+end
+```
 
 ### A trait as a type
 
@@ -2585,6 +2624,9 @@ replaces it entirely (creating it if needed). Both return a `Result`: a
 missing file or a permission error gives a `Result::err`, never a program
 crash. `fs.read_bytes(path)` and `fs.write_bytes(path, bytes)` do the same with
 [`bytes`](#bytes-sequences-of-bytes) (an image, an archive).
+`fs.create_dir(folder)` creates a folder and the missing ones above it (nothing happens if it exists);
+`fs.exists(path)` says whether a file or a folder is there (`Result<bool, Error>`). With `--root` they stay inside
+the folder: a `..` after a folder that does not exist yet is refused.
 
 ```
 let r = fs.read("config.json")
@@ -2788,14 +2830,8 @@ The source code itself cannot exceed 200 levels of nesting.
 
 - **Standard library:** it covers everyday needs (strings, arrays, dictionaries, `Set`, tuples,
   maths, encodings, files, network, processes, tests). The rest lives in packages: see
-  `qlang-std` (CSV, templates, TOML); YAML, mail and S3 are not written.
+  `qlang-std` (CSV, templates, TOML, mail, S3, service container); YAML is not written.
 - **Dictionaries:** no keys of type array or structure (see above), and no `<` comparison.
-- **Smallest integer:** `-9223372036854775808` cannot be written as a literal (the unsigned
-  digits exceed 64 bits).
 - **Identifiers:** ASCII only (`a-z`, `A-Z`, `0-9`, `_`), whereas strings and comments accept
   all Unicode characters.
-- **Traits that require others** (a trait that assumes another is also implemented): not
-  planned for now.
 - **Generic anonymous functions:** not planned.
-- **Format of documentation comments:** the text stays free (`qlang doc` copies it as is). To be
-  planned, depending on use: a light format such as `@param` / `@return`.
