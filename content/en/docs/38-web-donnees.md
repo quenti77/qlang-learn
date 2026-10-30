@@ -291,6 +291,40 @@ app.container.set(commands.Seeders { list: seeders })      -- then `db:seed` run
 
 Each seeder runs in a transaction: if it fails, it is undone and the next ones do not run.
 
+## Pages, resources and authorization
+
+`paginate` splits a listing into pages and gives the total; `Page.to_json` turns it into the body of an API
+(`data`, `meta` and, with a path, the `links` to the first, last, previous and next pages):
+
+```qlang-ref
+import "@std/web/query.q" as q
+import "@std/web/resource.q" as res
+
+let page = q.Query.table("posts").order_by("id", "desc").paginate_request(db, req, 20, 100).unwrap()
+-- ?page=2&per_page=50; never more than 100 rows a page
+let short = res.Resource.only(["id", "title"])
+page.to_json_with("/posts", short.shape())       -- {"data": [...], "meta": {...}, "links": {...}}
+```
+
+A **resource** chooses what an API shows of a model: `only` lists the fields, `hide` shows everything but
+those (a `password_hash` never leaks by accident), `rename` changes a name and `add` adds a computed field.
+One model can have a short view for the list and a full one for the page of one item.
+
+A **policy** (`@std/web/policy.q`) answers "can this user do this to that item?" with rules written once.
+An ability nobody defined is refused:
+
+```qlang-ref
+import "@std/web/policy.q" as policy
+
+let posts = policy.Policy<User, Post>.create()
+posts.before(fun(u: User, ability: string) -> bool? if u.admin then true else none end end)
+posts.allow("update", fun(u: User, p: Post) -> bool p.author_id == u.id end)
+
+posts.can(user, "update", post)                  -- bool
+posts.authorize(user, "update", post)            -- Result<bool, Problem>: a 403 a handler can return
+posts.filter(user, "view", all_posts)            -- only the ones the user may view
+```
+
 ## Validation
 
 Rules are **annotations on the fields** of the body structure; they are checked before your function runs, and

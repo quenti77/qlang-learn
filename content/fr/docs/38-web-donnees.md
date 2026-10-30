@@ -293,6 +293,40 @@ app.container.set(commands.Seeders { list: seeders })      -- puis `db:seed` les
 
 Chaque seeder tourne dans une transaction : s'il échoue, il est défait et les suivants ne tournent pas.
 
+## Pages, ressources et autorisations
+
+`paginate` découpe un listing en pages et donne le total ; `Page.to_json` en fait le corps d'une API (`data`, `meta`
+et, avec un chemin, les `links` vers la première, la dernière, la précédente et la suivante page) :
+
+```qlang-ref
+import "@std/web/query.q" as q
+import "@std/web/resource.q" as res
+
+let page = q.Query.table("posts").order_by("id", "desc").paginate_request(db, req, 20, 100).unwrap()
+-- ?page=2&per_page=50 ; jamais plus de 100 lignes par page
+let short = res.Resource.only(["id", "title"])
+page.to_json_with("/posts", short.shape())       -- {"data": [...], "meta": {...}, "links": {...}}
+```
+
+Une **ressource** choisit ce qu'une API montre d'un modèle : `only` liste les champs, `hide` montre tout sauf
+ceux-là (un `password_hash` ne part jamais par erreur), `rename` change un nom et `add` ajoute un champ calculé.
+Un même modèle peut avoir une vue courte pour la liste et une vue complète pour la page d'un élément.
+
+Une **politique** (`@std/web/policy.q`) répond à « cet utilisateur peut-il faire ça à cet élément ? » avec des
+règles écrites une fois. Une capacité non définie est refusée :
+
+```qlang-ref
+import "@std/web/policy.q" as policy
+
+let posts = policy.Policy<User, Post>.create()
+posts.before(fun(u: User, ability: string) -> bool? if u.admin then true else none end end)
+posts.allow("update", fun(u: User, p: Post) -> bool p.author_id == u.id end)
+
+posts.can(user, "update", post)                  -- bool
+posts.authorize(user, "update", post)            -- Result<bool, Problem> : un 403 qu'un handler peut rendre
+posts.filter(user, "view", all_posts)            -- seulement ceux que l'utilisateur peut voir
+```
+
 ## La validation
 
 Les règles sont des **annotations sur les champs** de la structure du corps ; elles sont vérifiées avant que ta
