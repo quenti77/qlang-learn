@@ -187,3 +187,55 @@ for (const [what, re] of [['chapters', /^## \d+\. /gm], ['sections', /^### /gm],
 }
 const reference = (file) => fs.readFileSync(path.join(root, 'content', 'en', 'reference', file), 'utf8');
 generate('en', reference('language.md'), reference('readme.md'));
+
+// The reference of qlang-std: one page per module, from its API.md (the items) and the comment at the
+// top of each file (the guide of the module). STD_VERSION names the tag; QLANG_STD_REPO takes a local clone.
+const stdVersion = fs.readFileSync(path.join(root, 'STD_VERSION'), 'utf8').trim();
+const stdRaw = async (file) => {
+  if (process.env.QLANG_STD_REPO) return fs.readFileSync(path.join(path.resolve(root, process.env.QLANG_STD_REPO), file), 'utf8');
+  const res = await fetch(`https://raw.githubusercontent.com/quenti77/qlang-std/v${stdVersion}/${file}`);
+  if (!res.ok) {
+    console.error(`cannot download ${file} of qlang-std v${stdVersion}: ${res.status}`);
+    process.exit(1);
+  }
+  return res.text();
+};
+const stdApi = await stdRaw('API.md');
+const stdModules = stdApi.split(/^(?=# [\w/.]+\.q$)/m).filter((m) => /^# [\w/.]+\.q$/m.test(m.split('\n')[0]));
+const stdPages = [];
+for (const [i, chunk] of stdModules.entries()) {
+  const name = chunk.split('\n')[0].slice(2).trim();
+  const source = await stdRaw(name);
+  const header = source.match(/^--"([\s\S]*?)--"\n/);
+  const guide = header ? header[1].replace(/^\s*# .*\n/, '').trim() : '';
+  const items = chunk.split('\n').slice(1).join('\n').trim();
+  stdPages.push({ name, slug: `${50 + i}-std-${name.replace(/\.q$/, '').replace(/[/.]/g, '-').replace(/_/g, '-')}`, guide, items });
+}
+const fence = (text) => {
+  let open = false;
+  return text
+    .split('\n')
+    .map((line) => {
+      if (!/^```(\w*)$/.test(line)) return line;
+      open = !open;
+      return open ? '```' + (line.slice(3) === '' ? 'qlang-ref' : line.slice(3)) : '```';
+    })
+    .join('\n');
+};
+const STD_TEXT = {
+  fr: { group: 'Bibliothèque standard (@std)', how: 'À importer avec', note: "Cette page vient du code de `qlang-std` : les commentaires sont en anglais.", items: 'Éléments' },
+  en: { group: 'Standard library (@std)', how: 'Import with', note: 'This page comes from the code of `qlang-std`.', items: 'Items' },
+};
+for (const lang of ['fr', 'en']) {
+  const t = STD_TEXT[lang];
+  const outDir = path.join(root, 'content', lang, 'docs-generated');
+  for (const page of stdPages) {
+    const body = [
+      `${t.how} \`import ... from "@std/${page.name}"\`. ${t.note}`,
+      page.guide ? fence(page.guide) : '',
+      page.items ? `## ${t.items}\n\n${fence(page.items.replace(/^## /gm, '### '))}` : '',
+    ].filter(Boolean).join('\n\n');
+    fs.writeFileSync(path.join(outDir, `${page.slug}.md`), `---\ntitle: ${JSON.stringify(page.name)}\ngroup: ${JSON.stringify(t.group)}\n---\n\n# ${page.name}\n\n${body}\n`);
+  }
+  console.log(`qlang-std ${stdVersion} (${lang}): ${stdPages.length} pages generated`);
+}
