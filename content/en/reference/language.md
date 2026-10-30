@@ -2570,6 +2570,13 @@ Options of `qlang serve app.q`:
     (`text/event-stream`). The worker that answers serves only this connection while it lasts
     (give enough `--workers`); if the client leaves, the stream stops at the next piece. Between
     two pieces, `time.sleep` waits.
+  - **Sending a file**: `Response.file(path)` sends the file of the disk in 64 KB pieces
+    (`Content-Length` from its size, `Content-Type` from its extension, else
+    `application/octet-stream`); the server reads it itself, so a big file does not fill the memory and
+    the worker is free at once. `Response.download(path, "report.pdf")` adds
+    `Content-Disposition: attachment`. `404` when the file does not exist, `403` outside `--root`. No
+    `Range` for now. The program must check who may download it, and never build `path` from what the
+    client wrote without cleaning it (`Path.normalize`).
   - **WebSocket**: `Response.websocket(WebSocketHandler { ... })`, returned to a request that asks for
     `Upgrade: websocket`, turns the connection into a WebSocket (otherwise `426`). The handler has
     `on_message(c: WebSocket, m: WsMessage)` (required), `on_open(c)`, `on_close(c)` and `on_tick(c)`
