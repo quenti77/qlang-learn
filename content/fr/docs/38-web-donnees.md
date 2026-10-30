@@ -253,6 +253,46 @@ end
 L'exemple migre au démarrage (pratique avec SQLite). Pour une base partagée, préfère les commandes
 `db:migrate`, `db:rollback` et `db:status` de la page 5, lancées par toi plutôt que par chaque worker.
 
+**Une connexion coupée** (la base redémarre, un délai d'inactivité, un répartiteur de charge) est rouverte
+toute seule par `qlang serve`, et l'instruction qui l'a révélée est rejouée une fois : pas besoin de redémarrer le
+serveur. Dans une transaction, elle ne l'est pas (ce qui y a été fait est perdu) : l'erreur le dit. Chaque worker
+a sa propre connexion : `--workers 8` ouvre 8 connexions vers la base.
+
+## Des données de test : usines et graines
+
+`@std/web/seed.q` remplit une base sans écrire dix `INSERT`. Une **usine** fabrique des lignes dont les valeurs
+changent d'une ligne à l'autre (la fonction d'un champ reçoit le **numéro de la ligne**, 1, 2, 3...) ; un **état**
+est une variation nommée :
+
+```qlang-ref
+import "@std/web/seed.q" as seed
+
+let users = seed.Factory.table("users")
+users.field("email", fun(n: int) -> Json Json.string("user{n}@example.com") end)
+users.field("role", fun(n: int) -> Json Json.string("member") end)
+users.state("admin", {"role": Json.string("admin")})
+
+users.create(db)                                  -- une ligne ; rend la ligne insérée
+users.create_state(db, "admin", {})               -- un administrateur
+users.create_with(db, {"email": Json.string("ada@example.com")})   -- une valeur choisie
+users.create_many(db, 25)                         -- 25 lignes
+users.make()                                      -- la ligne seulement, sans l'enregistrer
+```
+
+Dans un test, c'est la préparation d'une ligne ; pour une base de développement, un **seeder** (une fonction
+nommée qui remplit la base) lancé par `qlang run console.q -- db:seed` (`--only nom` pour un seul) :
+
+```qlang-ref
+let seeders = [
+  seed.Seeder { name: "users", run: fun(d: Db) -> Result<bool, Error>
+    seed.done(users.create_many(d, 10))
+  end },
+]
+app.container.set(commands.Seeders { list: seeders })      -- puis `db:seed` les exécute
+```
+
+Chaque seeder tourne dans une transaction : s'il échoue, il est défait et les suivants ne tournent pas.
+
 ## La validation
 
 Les règles sont des **annotations sur les champs** de la structure du corps ; elles sont vérifiées avant que ta

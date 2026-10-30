@@ -124,6 +124,21 @@ chaque requête (`?lang=`, cookie, `Accept-Language`) et donne un paramètre `la
   les machines), `cache.remember<T>(clé, secondes, fonction)`, `cache.increment(clé, secondes)` (un compteur, atomique
   avec Redis).
 
+## Déboguer en développement
+
+`qlang serve main.q --watch --dev` : quand ton code échoue pendant une requête, la réponse `500` est une **page
+d'erreur détaillée** : le message et le code, la ligne fautive avec celles autour, la pile des appels, la requête
+(sans les cookies ni les jetons) et le **SQL exécuté, avec la durée de chaque requête**. Le format suit l'en-tête
+`Accept` : une page HTML pour un navigateur, du JSON pour `curl -H 'Accept: application/json'`, du texte sinon.
+
+Une requête SQL exécutée au moins trois fois avec le même texte est le signe d'un **N+1** (une requête par ligne
+au lieu d'une pour toutes) : le serveur écrit `N+1? GET /posts ran the same statement 12 times ...` dans sa sortie
+d'erreur, et une réponse réussie porte `Server-Timing: db;dur=...`. Les relations de `@std/web/relations.q`
+(page 3) existent pour les éviter.
+
+La page montre le code de ton programme : `--dev` est **refusé** si `--bind` n'est pas une adresse locale (sauf
+`--dev-public`), et sans `--dev` la réponse ne dit rien de plus que `Internal Server Error`.
+
 ## Mettre en production
 
 ```sh
@@ -151,6 +166,9 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 - **Base** : un fichier SQLite convient à un seul serveur ; PostgreSQL ou MySQL (`Db.connect("postgres://...")`,
   `mysql://...?sslmode=...`) au-delà. Lance les migrations avec `db:migrate`, pas à chaque démarrage de chaque
   worker.
+- **Erreurs** : une erreur du programme va dans le journal avec sa pile ; avec `--log-format json`, c'est **une
+  ligne** `{"level":"error","message":...,"context":{"code","location","stack":[...],"method","url"}}`, sans le
+  code source, que ton outil de journaux peut chercher et regrouper.
 - **Journal** : `Log.info/warning/error` et les autres niveaux de PSR-3, avec un contexte JSON facultatif (`Log.error("échec", {"commande": 42})`) ; le middleware
   `logging()` écrit une ligne par requête.
 - **Processus** : lance `qlang serve` sous systemd, Docker ou un équivalent qui le relance ; un déploiement

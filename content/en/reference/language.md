@@ -2489,10 +2489,17 @@ Options of `qlang serve app.q`:
 | `--max-steps N`    | the number of evaluation steps **per request**                                          |
 | `--static FOLDER`  | serves the files of this folder as they are, **before** calling the program             |
 | `--compress`       | gzips text answers for clients that accept it                                           |
-| `--dev`            | the detail of an error of the program is in the 500 response (never in production)      |
+| `--dev`            | an error of the program shows a detailed page (see below); refused outside `localhost` (never in production)      |
 | `--workers N`      | N interpreters (from 1 to 64) that answer in parallel                                   |
 | `--root FOLDER`    | limits `import` and `fs` to this folder                                                 |
 | `--seed N`         | fixes the randomness (each worker takes `N` plus its number)                            |
+| `--dev-public`     | allows `--dev` on an address that is not local (only you can reach the server) |
+| `--max-connections N` | simultaneous open connections (64 by default, 1 to 10000); the next ones get `503` |
+| `--max-body SIZE`  | size of a request body (1 MB by default; `512k`, `8m` or a number of bytes); beyond it, `413` |
+| `--max-headers SIZE` | size of the request line and headers (64 KB by default); beyond it, `431`             |
+| `--read-timeout S` | seconds a client has to send its **whole** request (20 by default); beyond it, `408` (protects from slowloris) |
+| `--idle-timeout S` | seconds of silence after which a kept connection is closed (5 by default)              |
+| `--no-access-log`  | does not write the line of every request (`GET /x -> 200 (1 ms)`) to the error output |
 
 - **Static files** (`--static public`): for `GET` and `HEAD`, if the path designates a file of
   the folder (or `index.html` for a folder), it is served with its type (`.html`, `.css`,
@@ -2503,6 +2510,18 @@ Options of `qlang serve app.q`:
   variables, and takes requests from a shared queue: a slow request no longer blocks the
   others. What must be shared (a counter, data) goes in a database or in files, not in a
   variable.
+- **The `--dev` error page**: when the program fails during a request, the server answers `500` with the message
+  and the code of the error, the line of code and the ones around it, the call stack, the request (without the
+  `Cookie`, `Authorization`, `X-CSRF-Token` and `X-API-Key` headers) and the SQL that ran with the time of each
+  statement. The format follows the `Accept` header: an **HTML** page for a browser, **JSON** (`error`, `request`,
+  `queries`) for a client that asks for `application/json`, text otherwise. If an SQL statement runs at least three
+  times with the same text (the sign of an "N+1"), a line `N+1? GET /posts ran the same statement 12 times ...` is
+  written to the error output, and a successful answer carries `Server-Timing: db;dur=...`. Since the page shows the
+  program's code, `--dev` is **refused** if `--bind` is not a local address (unless `--dev-public`), and without
+  `--dev` the answer says nothing more than `Internal Server Error`.
+- **The log of an error** (without `--dev` too): as text, the diagnostic with its stack (`called from ...`); with
+  `--log-format json`, **one line** `{"level":"error","message":...,"context":{"code","location","stack":[...],"method","url"}}`,
+  without the source code, which can be searched and grouped.
 - **Stopping**: Ctrl-C or a `TERM` signal stops the server cleanly: requests already accepted
   get their answer (5 seconds at most), new ones get `503`.
 - **The server** is simple: HTTP/1.1 with no TLS, at most 64 simultaneous connections, body limited
@@ -2554,7 +2573,11 @@ server's certificate is always verified against the public authorities
 accepted without host-side configuration. A server that is not on this machine (anything but
 `localhost`, `127.0.0.1`, `::1` or a socket) **requires** an `sslmode` in the URL: without it, the
 connection is refused rather than sending the password in the clear by accident
-(`?sslmode=disable` confirms that you want that). With `--root`, the file of a `sqlite://`
+(`?sslmode=disable` confirms that you want that). **A connection that the database server drops** (a restart,
+an idle timeout, a load balancer) is **reopened by itself** from the same URL, and the statement that revealed it
+is run again once; inside a transaction (`begin` ... `commit`) it is not (what was done there is lost): the error
+says so. Each `qlang serve` worker has its own connection per `Db.connect`: `--workers 8` opens 8 connections to the
+database. With `--root`, the file of a `sqlite://`
 database must be inside the folder; the SQL itself is not confined (`ATTACH DATABASE` reaches
 any readable file).
 
