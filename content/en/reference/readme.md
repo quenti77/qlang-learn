@@ -1,6 +1,6 @@
 ## Installation
 
-No need for Rust: you download a program that is already compiled (Linux and macOS).
+No need for Rust: you download a program that is already compiled (Linux, macOS and Windows).
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/quenti77/qlang/main/install.sh | sh
@@ -10,19 +10,34 @@ The `qlang` program is installed in `~/.local/bin`, and the script tells you if 
 added to the `PATH`. Each download is checked against the checksum (`SHA256SUMS`) published
 with the version.
 
-**Windows**: there is no precompiled program for now. You have to build it: install Rust
-([rustup.rs](https://rustup.rs), version 1.88 or newer), then
+**Windows** (PowerShell):
 
 ```powershell
-cargo install --git https://github.com/quenti77/qlang qlang-cli
+irm https://raw.githubusercontent.com/quenti77/qlang/main/install.ps1 | iex
 ```
 
-(`--force` to update). The VS Code extension (`qlang.vsix`, on the
-[Releases](https://github.com/quenti77/qlang/releases) page) is installed with
-`code --install-extension qlang.vsix`.
+The program goes to `%LOCALAPPDATA%\qlang\bin` (added to the user's `PATH`), after the checksum is
+checked. The script has only been run in CI, not on many machines yet: say so if something sticks. The
+VS Code extension (`qlang.vsix`, on the [Releases](https://github.com/quenti77/qlang/releases) page) is
+installed with `code --install-extension qlang.vsix`.
 
-**Updating**: run the same command again. It says `Updated: qlang 0.1.0 -> qlang 0.2.0`, or
-`Already up to date`.
+**Docker**: a light image (just the `qlang` program, unprivileged user), for Linux amd64 and arm64:
+
+```sh
+docker run --rm -v "$PWD":/app -p 8080:8080 ghcr.io/quenti77/qlang:latest serve app.q --bind 0.0.0.0
+```
+
+**Package managers**: each release also publishes `qlang.rb` (Homebrew), `qlang.json` (Scoop) and
+`PKGBUILD` (AUR), ready to copy into a tap, a bucket or an AUR repository; those repositories do not
+exist yet, so `brew install` and `scoop install` are not possible yet.
+
+**Updating**: `qlang self-update` (or run the installation command again). It downloads the latest
+version, checks the checksum and replaces the program; `qlang self-update --version 0.63.0` installs a
+specific version (older ones too), `qlang self-update --check` only says whether a newer one exists.
+
+**Version per project**: `qlang = "0.64"` in the `[package]` of `qlang.toml` asks for at least that
+version; with an older qlang the project refuses to start and says to run `qlang self-update`.
+`qlang init` writes it for you.
 
 **Options**:
 
