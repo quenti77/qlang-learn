@@ -23,17 +23,21 @@ ses tests : ce que tu lis marche.
 Pour le contexte (PHP, Laravel, Symfony...) : un framework web de qlang est **un paquet écrit en qlang**,
 pas une partie du langage. `qlang serve` lit les requêtes HTTP et appelle ta fonction
 `handle(req: Request) -> Response` ; le paquet `web` y ajoute les routes, l'injection de dépendances et le
-reste. Tu as besoin de `qlang` 0.58 ou plus.
+reste. Tu as besoin de `qlang` 0.60 ou plus.
 
 ## Créer le projet
 
 ```sh
 mkdir tasks && cd tasks
 qlang init .
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.11.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.12.0
 ```
 
 (Depuis `qlang` 0.56, `qlang add std` seul suffit : le nom est cherché dans l'index des paquets et la dernière version est prise. `qlang search` liste l'index.)
+
+> **Raccourci.** `qlang init --web tasks` crée d'un coup un projet web prêt à lancer (`main.q`, `app.q`,
+> `providers.q`, `controllers.q`, un test) et installe `std` ; `qlang serve main.q --watch --dev` le sert,
+> `qlang test` le teste. Ce guide l'écrit à la main pour que tu voies chaque morceau.
 
 `qlang init` crée `qlang.toml` ; `qlang add` y inscrit la dépendance `std` et la télécharge (les fichiers sont
 dans `.qlang/packages`, la version exacte dans `qlang.lock`). On l'importe ensuite par `@std/...` :
@@ -95,7 +99,10 @@ export build
 ```
 
 `Reflect.callables(controllers)` donne toutes les fonctions du fichier ; `app.controllers` garde celles qui
-portent une annotation de route. Enfin `main.q`, que `qlang serve` appelle :
+portent une annotation de route. (Plus court : `web.App.boot(Reflect.declared(providers).concat(Reflect.declared(controllers)))`
+lit tout ce que les modules déclarent — fournisseurs, services `#[di.Service]`, routes, structures
+`#[web.Controller]` — et s'arrête avec la liste des erreurs de câblage ; rien n'est à enregistrer à la main,
+c'est ce que fait `qlang init --web`.) Enfin `main.q`, que `qlang serve` appelle :
 
 ```qlang-ref
 -- main.q

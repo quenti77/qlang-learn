@@ -66,6 +66,14 @@ Dans une route : `session.session_of(req)` donne la session, avec `get(clé)`, `
 `csrf_token()`. Les changements sont écrits dans le cookie `qs` par le middleware (`HttpOnly`, `SameSite=Lax`).
 **Derrière HTTPS**, utilise `session.sessions_with(secret, true)` pour ajouter l'attribut `Secure`.
 
+- **Elle expire.** Le cookie signé porte sa propre date de fin : une session sans activité pendant deux heures est
+  oubliée, et un vieux cookie copié ne marche plus. `session.sessions_using(secret, session.Options { secure: true,
+  lifetime: 1800, same_site: "Strict" })` choisit la durée (en secondes), `Secure` et `SameSite`.
+- **Change d'identité à la connexion.** Appelle `s.regenerate()` quand l'utilisateur se connecte ou se déconnecte :
+  le jeton CSRF et l'identifiant (`s.id()`) changent, donc ceux vus avant ne servent plus (fixation de session).
+- **Redonner ce qu'il a tapé.** Après une erreur de validation : `s.flash_input(form)` puis une redirection ;
+  la page du formulaire lit `s.old("titre")` (une seule fois ; les champs `password...` ne sont jamais gardés).
+
 Le secret vient de l'environnement (`TASKS_SECRET`), jamais du code ; le changer déconnecte tout le monde.
 
 ## Les gardes : protéger des routes
@@ -193,7 +201,11 @@ end
 Un navigateur envoie les cookies tout seul, même depuis le site d'un autre : pour une application à **pages et
 formulaires** (pas pour une API appelée avec un jeton), ajoute `app.use(session.csrf_protect())`. Elle refuse
 (`403`) un `POST`, `PUT`, `PATCH` ou `DELETE` qui ne répète pas le jeton de la session dans l'en-tête
-`X-CSRF-Token` ou le champ de formulaire `_csrf` ; donne le jeton à la page avec `session.csrf_token()`.
+`X-CSRF-Token` ou le champ de formulaire `_csrf` (aussi dans un formulaire avec fichiers) ; donne le jeton à la page
+avec `session.csrf_token()`, ou écris le champ caché d'un coup avec `session.csrf_field()` (`<input type="hidden"
+name="_csrf" ...>`). `session.csrf_protect_except(["/api/", "/webhooks/"])` laisse tranquilles les chemins qui
+s'authentifient autrement. Les deux ensemble, avec des cookies sûrs, en une ligne :
+`session.protect(app, secret, session.Options {})`.
 
 ## Jetons d'API
 
