@@ -18,7 +18,7 @@ en qlang ; il demande `qlang` 0.56 ou plus.
 Dans le dossier du projet :
 
 ```sh
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.14.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.15.0
 ```
 
 Puis, dans un fichier `.q` :

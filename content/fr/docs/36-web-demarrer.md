@@ -30,7 +30,7 @@ reste. Tu as besoin de `qlang` 0.60 ou plus.
 ```sh
 mkdir tasks && cd tasks
 qlang init .
-qlang add std --git https://github.com/quenti77/qlang-std --tag v0.14.0
+qlang add std --git https://github.com/quenti77/qlang-std --tag v0.15.0
 ```
 
 (Depuis `qlang` 0.56, `qlang add std` seul suffit : le nom est cherché dans l'index des paquets et la dernière version est prise. `qlang search` liste l'index.)
