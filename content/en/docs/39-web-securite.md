@@ -65,6 +65,14 @@ In a route: `session.session_of(req)` gives the session, with `get(key)`, `set(k
 written in the cookie `qs` by the middleware (`HttpOnly`, `SameSite=Lax`). **Behind HTTPS**, use
 `session.sessions_with(secret, true)` to add the `Secure` attribute.
 
+- **It expires.** The signed cookie carries its own end date: a session with no activity for two hours is
+  forgotten, and an old copied cookie no longer works. `session.sessions_using(secret, session.Options { secure: true,
+  lifetime: 1800, same_site: "Strict" })` chooses the duration (in seconds), `Secure` and `SameSite`.
+- **Change identity on sign in.** Call `s.regenerate()` when the user signs in or out: the CSRF token and the
+  identifier (`s.id()`) change, so the ones seen before are useless (session fixation).
+- **Show again what was typed.** After a validation error: `s.flash_input(form)` then a redirect; the form page reads
+  `s.old("title")` (once; `password...` fields are never kept).
+
 The secret comes from the environment (`TASKS_SECRET`), never from the code; changing it signs everybody out.
 
 ## Guards: protecting routes
@@ -189,8 +197,11 @@ expired tokens.
 
 A browser sends cookies by itself, even from another site: for an application with **pages and forms** (not for
 an API called with a token), add `app.use(session.csrf_protect())`. It refuses (`403`) a `POST`, `PUT`, `PATCH`
-or `DELETE` that does not repeat the session token in the `X-CSRF-Token` header or the `_csrf` form field; give
-the token to the page with `session.csrf_token()`.
+or `DELETE` that does not repeat the session token in the `X-CSRF-Token` header or the `_csrf` form field (also in a
+form with files); give the token to the page with `session.csrf_token()`, or write the hidden field in one go with
+`session.csrf_field()` (`<input type="hidden" name="_csrf" ...>`). `session.csrf_protect_except(["/api/", "/webhooks/"])`
+leaves alone the paths that authenticate another way. Both together, with safe cookies, in one line:
+`session.protect(app, secret, session.Options {})`.
 
 ## API tokens
 

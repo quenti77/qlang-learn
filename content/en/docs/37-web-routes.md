@@ -229,7 +229,28 @@ end
 ```
 
 `Part.name`, `filename` (`none` for an ordinary field), `content_type` and `data` (`bytes`; `text()` for text).
-Write the file with `fs.write_bytes(path, p.data)` after checking the name and the size.
+To avoid checking everything by hand, `@std/web/upload.q` reads the form and applies your rules:
+
+```qlang-ref
+import "@std/web/upload.q" as up
+
+#[web.Post("/avatar")]
+fun avatar(req: Request) -> Result<string, web.Problem>
+  let rules = up.Rules { max_size: 2097152, types: ["image/png", "image/jpeg"], required: true }
+  let sent = up.receive(req, rules)
+  if sent.is_err() then
+    return Result<string, web.Problem>.Err(sent.unwrap_err())     -- 400, 413, 415 or 422
+  end
+  let saved = sent.unwrap().files[0].save("storage/avatars")      -- random name
+  Result<string, web.Problem>.Ok(saved.unwrap())
+end
+```
+
+The **type is read from the content** of the file (PNG, JPEG, GIF, WebP, PDF, ZIP, gzip), not from the
+`Content-Type` the browser announces, which anyone can change; `save` never uses the name that was sent
+(`../../etc/passwd`). The size of a request is bounded by `qlang serve --max-body` (1 MB by default:
+`--max-body 20m` for photos). The text fields of the same form are in `sent.unwrap().fields`.
+To test: `client.post_multipart("/avatar", {"name": "Ada"}, [testing.TestFile { ... }])`.
 
 ## Error pages, a custom 404
 
