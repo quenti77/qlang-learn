@@ -73,6 +73,19 @@ written in the cookie `qs` by the middleware (`HttpOnly`, `SameSite=Lax`). **Beh
 - **Show again what was typed.** After a validation error: `s.flash_input(form)` then a redirect; the form page reads
   `s.old("title")` (once; `password...` fields are never kept).
 
+- **On the server, when the cookie is not enough.** `session.Options { store: ... }` keeps the data on the server,
+  in any `cache.Store`: a database (`cache.DbStore.new(db, "sessions")`, installed once with `install()`) or Redis
+  (`cache.RedisStore.new(redis, "app:")`). The cookie then only carries a signed random identifier: no size limit,
+  an immediate sign-out everywhere (`clear()` deletes the row), and `regenerate()` really retires the old
+  identifier. Every worker sees the same sessions.
+
+```qlang-ref
+import "@std/web/cache.q" as cache
+
+let store = cache.DbStore.new(db, "sessions")
+app.use(session.sessions_using(config.secret, session.Options { store: store, secure: true }))
+```
+
 The secret comes from the environment (`TASKS_SECRET`), never from the code; changing it signs everybody out.
 
 ## Guards: protecting routes

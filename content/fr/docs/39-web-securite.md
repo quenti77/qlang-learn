@@ -74,6 +74,19 @@ Dans une route : `session.session_of(req)` donne la session, avec `get(clé)`, `
 - **Redonner ce qu'il a tapé.** Après une erreur de validation : `s.flash_input(form)` puis une redirection ;
   la page du formulaire lit `s.old("titre")` (une seule fois ; les champs `password...` ne sont jamais gardés).
 
+- **Côté serveur, quand le cookie ne suffit plus.** `session.Options { store: ... }` garde les données sur le
+  serveur, dans n'importe quel `cache.Store` : une base de données (`cache.DbStore.new(db, "sessions")`, à
+  installer une fois avec `install()`) ou Redis (`cache.RedisStore.new(redis, "app:")`). Le cookie ne porte plus
+  qu'un identifiant aléatoire signé : pas de limite de taille, déconnexion immédiate partout (`clear()` efface la
+  ligne), et `regenerate()` retire vraiment l'ancien identifiant. Tous les workers voient les mêmes sessions.
+
+```qlang-ref
+import "@std/web/cache.q" as cache
+
+let store = cache.DbStore.new(db, "sessions")
+app.use(session.sessions_using(config.secret, session.Options { store: store, secure: true }))
+```
+
 Le secret vient de l'environnement (`TASKS_SECRET`), jamais du code ; le changer déconnecte tout le monde.
 
 ## Les gardes : protéger des routes

@@ -159,8 +159,21 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 | `--log-format json`, `--log-level` | le journal sur la sortie d'erreur, un objet JSON par ligne |
 | `--dev`, `--watch` | **développement seulement** |
 
-- **HTTPS et protection** : `qlang serve` parle HTTP ; mets-le derrière un proxy inverse (nginx, Caddy...) qui fait
-  TLS, limite la taille des requêtes et ajoute des délais. Active alors `sessions_with(secret, true)`.
+- **HTTPS et protection** : `qlang serve` parle HTTP, c'est un choix assumé ; mets-le derrière un proxy inverse
+  (Caddy, nginx, Traefik...) qui garde le certificat et fait TLS, limite la taille des requêtes et ajoute des
+  délais. Démarre qlang avec `--bind 127.0.0.1`, et fais **remplacer** `X-Forwarded-For` et `X-Forwarded-Proto` par le
+  proxy (Caddy `reverse_proxy` le fait ; nginx : `proxy_set_header X-Forwarded-For $remote_addr;`
+  `proxy_set_header X-Forwarded-Proto $scheme;`). Côté programme, `@std/web/proxy.q` donne `is_https(req)`,
+  `client_ip(req)` et `redirect_to_https()`, et `sessions_with(secret, true)` ajoute `Secure` au cookie.
+- **Envoyer un fichier** : `Response.file("rapports/mai.pdf")` (ou `Response.download(chemin, "mai.pdf")` pour
+  forcer l'enregistrement) laisse le serveur lire le fichier par morceaux : un gros fichier ne remplit pas la
+  mémoire et le worker est libre tout de suite. `404` s'il manque, `403` hors de `--root`. Vérifie toi-même qui a le
+  droit de le télécharger, et ne fabrique jamais le chemin avec ce que le client a écrit sans le nettoyer
+  (`Path.normalize`). Il n'y a pas encore de `Range` (reprise).
+- **Docker** : l'image officielle `ghcr.io/quenti77/qlang` ne contient que `qlang`, tourne en utilisateur non
+  root : `docker run --rm -v "$PWD":/app -p 8080:8080 ghcr.io/quenti77/qlang:latest serve main.q --bind 0.0.0.0`.
+- **Mises à jour** : `qlang self-update` remplace qlang par la dernière version après avoir vérifié sa somme de
+  contrôle ; `qlang = "0.65"` dans le `[package]` de `qlang.toml` refuse de démarrer avec un qlang plus ancien.
 - **Configuration** par variables d'environnement (`env.get`), lue dans un fournisseur `Config` ; aucun secret dans
   le code.
 - **Base** : un fichier SQLite convient à un seul serveur ; PostgreSQL ou MySQL (`Db.connect("postgres://...")`,
