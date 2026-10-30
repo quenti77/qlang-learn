@@ -251,6 +251,46 @@ end
 The example migrates at startup (handy with SQLite). For a shared database, prefer the commands `db:migrate`,
 `db:rollback` and `db:status` of page 5, run by you rather than by every worker.
 
+**A dropped connection** (the database restarts, an idle timeout, a load balancer) is reopened by `qlang serve`
+by itself, and the statement that revealed it is run again once: no need to restart the server. Inside a
+transaction it is not (what was done there is lost): the error says so. Each worker has its own connection:
+`--workers 8` opens 8 connections to the database.
+
+## Test data: factories and seeds
+
+`@std/web/seed.q` fills a database without writing ten `INSERT`s. A **factory** builds rows whose values change
+from one row to the next (the function of a field receives the **number of the row**, 1, 2, 3...); a **state** is
+a named variation:
+
+```qlang-ref
+import "@std/web/seed.q" as seed
+
+let users = seed.Factory.table("users")
+users.field("email", fun(n: int) -> Json Json.string("user{n}@example.com") end)
+users.field("role", fun(n: int) -> Json Json.string("member") end)
+users.state("admin", {"role": Json.string("admin")})
+
+users.create(db)                                  -- one row; gives the inserted row
+users.create_state(db, "admin", {})               -- an administrator
+users.create_with(db, {"email": Json.string("ada@example.com")})   -- one chosen value
+users.create_many(db, 25)                         -- 25 rows
+users.make()                                      -- the row only, not saved
+```
+
+In a test it prepares a row; for a development database, a **seeder** (a named function that fills the database)
+run by `qlang run console.q -- db:seed` (`--only name` for one):
+
+```qlang-ref
+let seeders = [
+  seed.Seeder { name: "users", run: fun(d: Db) -> Result<bool, Error>
+    seed.done(users.create_many(d, 10))
+  end },
+]
+app.container.set(commands.Seeders { list: seeders })      -- then `db:seed` runs them
+```
+
+Each seeder runs in a transaction: if it fails, it is undone and the next ones do not run.
+
 ## Validation
 
 Rules are **annotations on the fields** of the body structure; they are checked before your function runs, and

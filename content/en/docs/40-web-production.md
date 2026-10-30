@@ -124,6 +124,21 @@ parameter. See the "Web applications" page for details. The validation messages 
   machine), `cache.remember<T>(key, seconds, function)`, `cache.increment(key, seconds)` (a counter, atomic with
   Redis).
 
+## Debugging in development
+
+`qlang serve main.q --watch --dev`: when your code fails during a request, the `500` answer is a **detailed error
+page**: the message and the code, the failing line with the ones around it, the call stack, the request (without
+cookies or tokens) and the **SQL that ran, with the time of each statement**. The format follows the `Accept`
+header: an HTML page for a browser, JSON for `curl -H 'Accept: application/json'`, text otherwise.
+
+An SQL statement run at least three times with the same text is the sign of an **N+1** (one query per row instead
+of one for all): the server writes `N+1? GET /posts ran the same statement 12 times ...` to its error output, and a
+successful answer carries `Server-Timing: db;dur=...`. The relations of `@std/web/relations.q` (page 3) exist to
+avoid them.
+
+The page shows the code of your program: `--dev` is **refused** if `--bind` is not a local address (unless
+`--dev-public`), and without `--dev` the answer says nothing more than `Internal Server Error`.
+
 ## Going to production
 
 ```sh
@@ -149,6 +164,9 @@ TASKS_DB=sqlite://tasks.db TASKS_SECRET=... \
 - **Configuration** by environment variables (`env.get`), read in a `Config` provider; no secret in the code.
 - **Database**: a SQLite file suits a single server; PostgreSQL or MySQL (`Db.connect("postgres://...")`,
   `mysql://...?sslmode=...`) beyond that. Run migrations with `db:migrate`, not at each start of each worker.
+- **Errors**: an error of the program goes to the log with its stack; with `--log-format json` it is **one line**
+  `{"level":"error","message":...,"context":{"code","location","stack":[...],"method","url"}}`, without the source
+  code, which your log tool can search and group.
 - **Log**: `Log.info/warning/error` and the other PSR-3 levels, with an optional JSON context (`Log.error("failed", {"order": 42})`); the `logging()`
   middleware writes one line per request.
 - **Process**: run `qlang serve` under systemd, Docker or an equivalent that restarts it; a deployment replaces
