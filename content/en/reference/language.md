@@ -2052,6 +2052,34 @@ print(b.at(1))               -- 195 (none outside the bytes)
 - An `extern fun` can take and return `bytes`; to an external program (`--extern`,
   `qlang.toml`) they travel as base64.
 
+### Paths and formatting: `Path` and `Format`
+
+`Path` handles paths **written as text**, with `/` between the parts (on Windows too); it does not touch the disk.
+
+| Call | Result |
+| --- | --- |
+| `Path.join("uploads", name)`, `Path.join_all(["a", "", "b/", "../c"])` | the parts put end to end and normalised (`a/c`); an absolute part starts again; empty parts are ignored |
+| `Path.normalize("a//b/./c/../d/")` | `a/b/d`; `""` gives `.`; a `..` that cannot go up stays at the start of a relative path and disappears at the root |
+| `Path.base("/a/b.txt")`, `Path.dir("/a/b.txt")` | `b.txt`; `/a` (`dir("b.txt")` is `.`) |
+| `Path.ext("a.tar.gz")`, `Path.stem("a.tar.gz")` | `gz` (no dot, `""` for `.bashrc`); `a.tar` |
+| `Path.with_ext("a/b.txt", "md")` | `a/b.md` (`""` removes the extension) |
+| `Path.is_absolute(p)` | `true` for `/a` and `C:/a` |
+| `Path.matches("src/**/*.q", text)` | the pattern of `fs.glob`, without the disk |
+
+`Format` lays out numbers and text for people.
+
+| Call | Result |
+| --- | --- |
+| `Format.number(1234567.891, 2)` | `1,234,567.89`; `number_with(n, 2, ",", " ")` chooses the point and the separator (`1 234 567,89`) |
+| `Format.int(1234567)` | `1,234,567`; `int_with(n, " ")` chooses the separator |
+| `Format.bytes(1536)` | `1.5 KB` (units of 1024: `B`, `KB`, `MB`, `GB`, `TB`, `PB`) |
+| `Format.sprintf("%-8s|%05.1f", [Any.of("ab"), Any.of(3.14159)])` | `ab      \|003.1` |
+
+`sprintf` understands `%s` (any value, written as it prints), `%d`, `%f` (6 decimals by default), `%x`, `%X`, `%o`, `%b`
+and `%%`; between the `%` and the letter: `-` (left), `0` (zeros in front), `+` (always a sign), a width and
+`.precision` (decimals for `%f`, longest length for `%s`). A value that does not fit its `%`, or a missing or extra one,
+is a `panic` that says which: it is a mistake of the program, like a wrong index.
+
 ### Secrets: `Crypto` and `Password`
 
 `random` is a generator you can fix (`--seed`): good for tests, **never** for a secret. `Crypto`
@@ -2612,7 +2640,10 @@ end
 - **`close()`** closes the connection; `Result<bool, Error>`.
 - **`begin()`**, **`commit()`** and **`rollback()`**: a transaction (`Result<bool,
   Error>`). The statements between `begin()` and `commit()`/`rollback()` are grouped;
-  `rollback()` undoes everything done since `begin()`.
+  `rollback()` undoes everything done since `begin()`. **They nest**: a `begin()` inside a `begin()` is a savepoint
+  (`SAVEPOINT`), and each `commit()` or `rollback()` closes the last open `begin()`: an inner `rollback()` undoes only
+  what the inner `begin()` started. `db.transaction(fun() -> Result<T, Error> ... end)` does it all: commit if the function
+  gives `ok`, rollback if it gives `err` (which it gives back too), and a savepoint inside another transaction.
 
 ```
 db.begin()
@@ -2650,6 +2681,29 @@ crash. `fs.read_bytes(path)` and `fs.write_bytes(path, bytes)` do the same with
 `fs.create_dir(folder)` creates a folder and the missing ones above it (nothing happens if it exists);
 `fs.exists(path)` says whether a file or a folder is there (`Result<bool, Error>`). With `--root` they stay inside
 the folder: a `..` after a folder that does not exist yet is refused.
+
+**Walking and reading in pieces.** `fs.list(folder)` gives the names (sorted) of what it holds; `fs.is_dir(path)`
+says whether it is a folder; `fs.glob("src/**/*.q")` gives the paths that match the pattern (`*`: any characters but
+`/`, `**`: any characters including `/`, `**/` may also match no folder, `?`: one character, `[a-c]` / `[!a-c]`: a set),
+sorted, starting from the folder before the first wildcard. For a big file, **`fs.lines(path)`** opens it without
+loading it: `lines.next()` gives each line (without its line break, `\r\n` included) then `none`; `lines.close()` closes
+it before the end (at the end it closes by itself). `fs.each_line(path, fun(line: string) ... end)` calls a function
+for each line and gives their number; `fs.read_lines(path)` gives all the lines as an array (the file is then all in
+memory). A line longer than 16 MB, or that is not text, is an error; at most 64 files are open this way at once.
+All of this stays inside the folder of `--root`.
+
+```
+let total = 0
+fs.each_line("journal.log", fun(line: string)
+  if line.contains("ERROR") then
+    total += 1
+  end
+end).unwrap()
+
+for path in fs.glob("src/**/*.q").unwrap() do
+  print(Path.stem(path))
+end
+```
 
 ```
 let r = fs.read("config.json")

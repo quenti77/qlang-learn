@@ -273,7 +273,7 @@ users.state("admin", {"role": Json.string("admin")})
 users.create(db)                                  -- one row; gives the inserted row
 users.create_state(db, "admin", {})               -- an administrator
 users.create_with(db, {"email": Json.string("ada@example.com")})   -- one chosen value
-users.create_many(db, 25)                         -- 25 rows
+users.create_many(db, 25)                         -- 25 rows, all or none
 users.make()                                      -- the row only, not saved
 ```
 

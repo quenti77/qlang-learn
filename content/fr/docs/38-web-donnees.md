@@ -275,7 +275,7 @@ users.state("admin", {"role": Json.string("admin")})
 users.create(db)                                  -- une ligne ; rend la ligne insérée
 users.create_state(db, "admin", {})               -- un administrateur
 users.create_with(db, {"email": Json.string("ada@example.com")})   -- une valeur choisie
-users.create_many(db, 25)                         -- 25 lignes
+users.create_many(db, 25)                         -- 25 lignes, tout ou rien
 users.make()                                      -- la ligne seulement, sans l'enregistrer
 ```
 
