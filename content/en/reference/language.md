@@ -1579,6 +1579,7 @@ the **execution environment** (the terminal, a web server…).
 | `assert_some(x)`, `assert_none(x)` | for a test: the value of a nullable that must not be `none` / checks that it is |
 | `assert_contains(array, v)`, `assert_contains_text(text, piece)` | for a test: `v` is in the array / `piece` is in the text |
 | `assert_close(a, b)`, `assert_within(a, b, tolerance)` | for a test: two `float`s equal within the tolerance (one billionth by default; relative as soon as `b` exceeds 1) |
+| `Panic.guard(f)`         | runs `f` so that a failure in it (`panic`, `assert`, `unwrap` of an error, index out of range...) does not stop the program: `none` when `f` finished, else a `Caught` with `code`, `message` and `places` (`file:line`, innermost first). Step and memory limits are not caught. Made for test runners (`qlang-test`) |
 | `int.parse(s)`           | returns an `int?`: `none` if `s` is not a valid integer               |
 | `float.parse(s)`         | returns a `float?`                                                    |
 
@@ -1958,6 +1959,31 @@ end
 - **Errors**: `datetime.of(2026, 2, 29)` (a date that does not exist) is an `R064` error;
   going outside the years 1 to 9999 (`add_days`…) is an `R065` error.
 
+### Time zones: `Zone`
+
+A `datetime` is always an instant in UTC. A `Zone` of the IANA database (`Europe/Paris`, `America/New_York`,
+`UTC`...) says what a clock on the wall of that place reads at that instant, summer time included, and the
+other way round. It needs the `qlang` command (`T250` elsewhere, in the browser for instance).
+
+| | |
+| --- | --- |
+| `Zone.of("Europe/Paris")` | a `Result<Zone, Error>`: `err` for an unknown name |
+| `z.offset_seconds(t)` | the offset from UTC at that instant, in seconds (7200 in Paris in summer) |
+| `z.abbreviation(t)` | `CET`, `CEST`, `EST`... (a number such as `+03` for zones that have none) |
+| `z.wall(t)` | the wall clock reading, as a `datetime` whose fields are those of the clock (`z.wall(t).hour()` is the local hour); it is not the instant: do not compare it with instants |
+| `z.format(t, "YYYY-MM-DD HH:mm")` | `t` written with the clock of the zone |
+| `z.local(2026, 10, 11, 9, 0, 0)` | the instant at which a clock in the zone reads that date and time |
+
+```
+let paris = Zone.of("Europe/Paris").unwrap()
+let t = datetime.of(2026, 7, 1, 12, 0, 0)          -- 12:00 UTC
+print(paris.format(t, "YYYY-MM-DD HH:mm"))          -- 2026-07-01 14:00
+print(paris.abbreviation(t))                        -- CEST
+```
+
+An hour that does not exist (clocks go forward: 02:30 on 29 March 2026 in Paris) is read with the offset
+before the change; an hour that happens twice (clocks go back) is the first one.
+
 ### Regular expressions
 
 The `regex` namespace offers the usual regular expression operations, from two
@@ -2108,6 +2134,33 @@ Password.needs_rehash(hash).unwrap()             -- true if the settings have ag
 - After a successful login, `needs_rehash` tells whether to hash again (and store the new one).
 - Only the `qlang` command offers `Password` and `Crypto` (another host: error `T250` before
   running; a test host may answer from its seed, never for real secrets).
+
+### Compression and archives: `Gzip`, `Zip`, `Tar`
+
+Compress and decompress bytes, and read or write archives **in memory** (the disk goes through
+`fs.read_bytes` / `fs.write_bytes`). They need the `qlang` command (`T250` elsewhere).
+
+| | |
+| --- | --- |
+| `Gzip.compress(data)`, `Gzip.compress_level(data, 0..9)` | gzip `bytes` |
+| `Gzip.decompress(data)`, `Gzip.decompress_max(data, max)` | a `Result<bytes, Error>`; at most 256 MB decompressed by default |
+| `Zip.read(data)`, `Zip.read_max(data, max)` | the files of a zip archive: `Result<array<ArchiveEntry>, Error>` (folders are left out) |
+| `Zip.write(entries)` | a `Result<bytes, Error>` |
+| `Tar.read(data)`, `Tar.read_max`, `Tar.write(entries)`, `Tar.write_gz(entries)` | the same for `.tar`; `read` also reads a `.tar.gz` |
+
+An `ArchiveEntry` has a `name` (the path inside the archive) and `data` (`bytes`).
+
+```
+let files = [ArchiveEntry { name: "docs/a.txt", data: "hello".to_bytes() }]
+let zip = Zip.write(files).unwrap()
+for e in Zip.read(zip).unwrap() do
+  print("{e.name}: {e.data.len()} bytes")
+end
+```
+
+Two protections: a name that would leave the folder it is extracted into (`../x`, `/etc/passwd`, `C:\x`) is
+refused when reading and when writing, and the decompressed content is capped (a small archive can hold
+gigabytes). No passwords or encryption in zip files.
 
 ## 16. Prelude: `Result`, `Error` and JSON
 
@@ -2950,7 +3003,7 @@ The source code itself cannot exceed 200 levels of nesting.
 
 - **Standard library:** it covers everyday needs (strings, arrays, dictionaries, `Set`, tuples,
   maths, encodings, files, network, processes, tests). The rest lives in packages: see
-  `qlang-std` (CSV, templates, TOML, mail, S3, service container); YAML is not written.
+  `qlang-std` (CSV, templates, TOML, YAML, XML, mail, S3, service container).
 - **Dictionaries:** no keys of type array or structure (see above), and no `<` comparison.
 - **Identifiers:** ASCII only (`a-z`, `A-Z`, `0-9`, `_`), whereas strings and comments accept
   all Unicode characters.
