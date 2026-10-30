@@ -153,6 +153,8 @@ for (const { slug, title, chapter, group } of pages) {
       if (chapterAnchors.has(anchor)) return `](../${target}/)`;
       return target === slug ? m : `](../${target}/#${anchor})`;
     })
+    // the stability and migration documents are pages of the site
+    .replace(/\]\((stability|migration)\.md\)/g, (m, f) => (f === 'stability' ? '](../97-stabilite/)' : '](../98-migration/)'))
     // links to the language reference, and to files of the repository
     .replace(/\]\(docs\/language\.md(?:#([^)]+))?\)/g, (m, anchor) => {
       const target = anchor && pageOfLanguage(anchor);

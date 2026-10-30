@@ -6,7 +6,9 @@ languages (Rust, TypeScript, Lua) while staying sober.
 
 This document describes the language as it is implemented. The grammar
 [`qlang.g4`](../qlang.g4) gives an indicative overview of the syntax, and the
-[README](../README.md) explains how to use it (terminal, JSON, HTTP).
+[README](../README.md) explains how to use it (terminal, JSON, HTTP). What is **stable**, **provisional** or
+**experimental**, and how a function is deprecated (`#[deprecated("…")]`, warning `W001`, `--deny-warnings`), is told
+in [stability.md](stability.md); breaking changes are in [migration.md](migration.md).
 
 ## Contents
 
@@ -988,6 +990,11 @@ end
   (`T292` unknown name, too many or given twice; `T293` missing argument; `T294` not a literal;
   `T002` wrong type), and that `#[annotation]` is on a structure with no type parameter, no parent
   and no `static` field (`T291`, `T295`). An annotation on a statement is an error (`P051`).
+
+**`#[deprecated("use X")]`** is a predefined annotation (not a struct to declare): it marks a function or a method as
+deprecated. A call from **another module** produces the warning `W001` ("`f` is deprecated: use X") at the call,
+without stopping the program; `--deny-warnings` on `qlang check`, `run` or `test` turns it into an error. Without a
+text, it is the error `T292`. The whole cycle (announce, warn, remove) is in [stability.md](stability.md).
 
 ### Reflection
 
