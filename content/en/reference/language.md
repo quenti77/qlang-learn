@@ -148,7 +148,7 @@ let a = "Hello"
 let b = "line 1\nline 2"
 ```
 
-Escapes: `\n` `\t` `\r` `\0` `\\` `\"` `\{` `\}`.
+Escapes: `\n` `\t` `\r` `\0` `\e` (the ESC character, for terminal sequences) `\\` `\"` `\{` `\}`.
 
 **Interpolation.** An expression between braces is evaluated and inserted into the string.
 It is a convenience: concatenation with `+` works too.
@@ -1972,7 +1972,7 @@ print(regex.replace_all("a1 b2", "\\d", "#"))          --> "a# b#"
 print(regex.split("a,b,,c", ","))                     --> ["a", "b", "", "c"]
 ```
 
-A qlang string only allows the escapes `\n \t \r \0 \\ \" \{ \}`: a `\d` or
+A qlang string only allows the escapes `\n \t \r \0 \e \\ \" \{ \}`: a `\d` or
 `\w` from the regex syntax must be written `\\d`, `\\w`... in the pattern
 text (a single literal `\` in the string).
 
@@ -2835,6 +2835,42 @@ end
   it.
 - A program that is run is **not limited** by `--root` nor by qlang's limits (steps, memory);
   it is stopped if it runs for more than a minute, and at most 16 MB of each stream is kept.
+
+### Prelude: the terminal
+
+`Term` is for programs that draw a screen (a terminal interface). It needs the `qlang` command run from a
+terminal: elsewhere (JSON protocol, browser) using it is a compile-time error (`T250`), and in a pipe or
+a file only `size`, `colors` and `write` answer.
+
+```
+Term.session(fun() -> bool
+  Term.mouse(true)
+  while true do
+    let ev = Term.event(250).unwrap()           -- 250 ms at most
+    if ev.kind == "key" and ev.key == "q" then
+      break
+    end
+    Term.frame("\e[1;1H{ev.kind} {ev.key}   ")
+  end
+  true
+end)
+```
+
+- `Term.is_tty()`, `Term.size()` (`Size`: `cols`, `rows`; `COLUMNS` and `LINES`, else 80 by 24, outside a
+  terminal), `Term.colors()` (0, 16, 256 or 16777216; 0 with `NO_COLOR`, outside a terminal or with `TERM=dumb`).
+- `Term.write(text)` writes as it is and shows it at once; `Term.frame(text)` wraps the screen in a
+  synchronised update (no flicker); `Term.clear()`, `Term.title(text)`. Build the whole screen as one text and
+  write it in one go; `\e` is the escape character (`"\e[31mred\e[0m"`).
+- `Term.raw(true)`: keys arrive without waiting for Enter and are not shown (Ctrl-C is then a key, `key` `"c"`
+  with `ctrl`, not a signal). `Term.alt_screen`, `Term.hide_cursor`, `Term.mouse`, `Term.paste` (a paste
+  arrives as one event) and `Term.focus` take `true` or `false`.
+- `Term.event(wait_ms)` gives an `Event`: `kind` is `"key"` (`key`: the character or `"Enter"`, `"Tab"`, `"Esc"`,
+  `"Backspace"`, `"Delete"`, `"Up"`..., `"F1"`...`"F12"`, with `ctrl`, `alt`, `shift`), `"mouse"` (`action`:
+  `down`, `up`, `drag`, `move`, `scroll_up`...; `button`; `x`, `y` from 0), `"resize"` (`x`, `y`: the columns
+  and the rows), `"paste"`, `"focus"` (`text`) or `"timeout"`. A negative wait lasts for ever.
+- `Term.session(f)` prepares the screen (raw mode, alternate screen, hidden cursor), calls `f` and puts the
+  terminal back as it was, whatever happens; the `qlang` command does it too if the program fails or stops
+  in the middle, before it writes the error.
 
 ---
 
