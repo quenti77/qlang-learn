@@ -619,3 +619,193 @@ print(random.int(1, 6) >= 1)
 
 @ time.now
 print(time.now() > 0)
+
+@ exit
+print("before")
+exit(0)
+print("never shown")
+
+@ panic_guard
+let caught = panic_guard(fun() panic("boom") end)
+print(caught != none)
+
+@ int.tan
+print(0.tan())
+
+@ int.asin
+print(0.asin())
+
+@ int.acos
+print(1.acos())
+
+@ int.atan
+print(0.atan())
+
+@ int.atan2
+print(0.atan2(1))
+
+@ int.log
+print(8.log(2))
+
+@ float.sin
+print(0.0.sin())
+
+@ float.cos
+print(0.0.cos())
+
+@ float.tan
+print(0.0.tan())
+
+@ float.asin
+print(0.0.asin())
+
+@ float.acos
+print(1.0.acos())
+
+@ float.atan
+print(0.0.atan())
+
+@ float.atan2
+print(0.0.atan2(1.0))
+
+@ float.log
+print(8.0.log(2.0))
+
+@ int.MAX
+print(int.MAX)
+
+@ int.MIN
+print(int.MIN)
+
+@ float.PI
+print(float.PI)
+
+@ float.E
+print(float.E)
+
+@ float.INFINITY
+print(float.INFINITY)
+print(float.INFINITY > 1.0e300)
+
+@ float.NAN
+print(float.NAN.is_nan())
+print(float.NAN == float.NAN)
+
+@ uuid.version
+print(uuid.v4().version())
+print(uuid.v7().version())
+
+@ uuid.v4
+let id = uuid.v4()
+print(id.version())
+print("{id}".len())
+
+@ uuid.v7
+print(uuid.v7().version())
+
+@ uuid.parse
+let id = uuid.parse("123e4567-e89b-42d3-a456-426614174000")
+print(id != none)
+print(uuid.parse("not a uuid") == none)
+
+@ ulid.new
+print("{ulid.new()}".len())
+
+@ ulid.time
+print(ulid.at(1700000000000).time())
+
+@ ulid.at
+print(ulid.at(1700000000000).time())
+
+@ ulid.parse
+print(ulid.parse("01ARZ3NDEKTSV4RRFFQ69G5FAV") != none)
+print(ulid.parse("nope") == none)
+
+@ datetime.now
+print(datetime.now().year() >= 2023)
+
+@ datetime.of
+print(datetime.of(2024, 2, 29, 12, 30, 0).format("%Y-%m-%d %H:%M"))
+
+@ datetime.at
+print(datetime.at(86400000).format("%Y-%m-%d"))
+
+@ datetime.parse
+let d = datetime.parse("2024-03-15T10:30:00Z")
+print(d != none)
+print(datetime.parse("tomorrow") == none)
+
+@ time.sleep
+time.sleep(10)
+print("woke up")
+
+@ random.float
+let x = random.float()
+print(x >= 0.0 and x < 1.0)
+
+@ random.bytes
+print(random.bytes(8).len())
+
+@ regex.captures
+print(regex.captures("(\\w+)@(\\w+)\\.com", "ana@example.com"))
+
+@ Base64.encode_url
+print(Base64.encode_url("subjects?_d"))
+
+@ Base64.encode_bytes
+print(Base64.encode_bytes("hi".to_bytes()))
+
+@ Base64.encode_url_bytes
+print(Base64.encode_url_bytes("hi".to_bytes()))
+
+@ Base64.decode_bytes
+print((Base64.decode_bytes("aGk=") ?? bytes.empty()).to_array())
+
+@ Hex.encode_bytes
+print(Hex.encode_bytes("AB".to_bytes()))
+
+@ Hex.decode_bytes
+print((Hex.decode_bytes("4142") ?? bytes.empty()).to_array())
+
+@ Url.encode_bytes
+print(Url.encode_bytes("a b".to_bytes()))
+
+@ Url.decode_bytes
+print((Url.decode_bytes("a%20b") ?? bytes.empty()).to_string())
+
+@ Hash.sha256_bytes
+print(Hash.sha256_bytes("abc".to_bytes()))
+
+@ Hash.sha1_bytes
+print(Hash.sha1_bytes("abc".to_bytes()))
+
+@ Hash.md5_bytes
+print(Hash.md5_bytes("abc".to_bytes()))
+
+@ Hash.sha256_raw
+print(Hash.sha256_raw("abc".to_bytes()).len())
+
+@ Hash.hmac_sha256_bytes
+print(Hash.hmac_sha256_bytes("key".to_bytes(), "message".to_bytes()))
+
+@ Hash.hmac_sha256_raw
+print(Hash.hmac_sha256_raw("key".to_bytes(), "message".to_bytes()).len())
+
+@ bytes.empty
+print(bytes.empty().len())
+
+@ bytes.from_array
+print((bytes.from_array([72, 105]) ?? bytes.empty()).to_string())
+
+@ Reflect.type_name
+print(Reflect.type_name<int>())
+print(Reflect.type_name<array<string>>())
+
+@ Reflect.struct_info
+struct Point
+  public x: int
+  public y: int
+end
+let info = Reflect.struct_info<Point>()
+print(info.name)
+print(info.fields.map(fun(f: FieldInfo) -> string f.name end))
