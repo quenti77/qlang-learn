@@ -90,7 +90,7 @@ memory at 22 MB from start to end, with no error.
   queue grow.
 - **Work in parallel**: `Worker.spawn(file, input)` runs a file in a separate interpreter, which you wait for with
   `wait(ms)` and can cancel (`cancel()`). `Shared` provides atomic integer counters that every worker sees, without
-  going through Redis. See the [language reference](../23-bibliotheque-standard/).
+  going through Redis. See the [language reference](../23-standard-library/).
 - **Slow work outside the request**: put it in the job queue (`@std/queue.q`) to answer at once.
 - **Large files**: `Response.file(path)` lets the server read them piece by piece, without loading them in memory or
   occupying the worker.
