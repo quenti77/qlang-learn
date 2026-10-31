@@ -99,8 +99,24 @@ CHANGELOG lui-même.
 
 ## Ce que la 1.0 promettra (proposition)
 
-Le sous-ensemble figé serait : la syntaxe et la sémantique du langage, les types de base et les collections,
-`Result`/`Error`, `Json.of/to`, les modules et `import`/`export`, les commandes `run`/`check`/`fmt`/`test`, et les
-codes d'erreur. Resteraient hors de la promesse : la réflexion, `extern`, le serveur HTTP et sa bibliothèque web, `Term`,
-et tout ce qui est jeune. La définition *exécutable* de cette promesse serait la suite de conformité du langage
-(voir l'[issue #128](https://github.com/quenti77/qlang/issues/128)) : **une ligne n'est promise que quand un test de conformité la couvre**.
+La 1.0 figera un **sous-ensemble** dont la définition exécutable est la suite de conformité
+([qlang-conformance](https://github.com/quenti77/qlang-conformance)) : **une ligne n'est promise que quand des cas de
+conformance la couvrent**.
+
+| Promesse | Cas de conformance |
+| --- | --- |
+| Variables, constantes, opérateurs, nombres, commentaires | `variables_and_const`, `arithmetic`, `comparisons_and_logic`, `number_formatting`, `comments`, `conversions` |
+| `if`, `while`, `for`, `break`, `continue`, `match` | `control_flow`, `for_with_two_variables`, `match_expressions` |
+| Fonctions, fermetures, génériques | `functions_and_closures`, `closures`, `named_arguments`, `generics` |
+| Chaînes, tableaux, dictionnaires, ensembles, tuples | `strings`, `string_library`, `arrays`, `maps`, `sets`, `tuples` |
+| Valeurs optionnelles, `Result` et `?` | `nullables`, `optionals`, `results` |
+| Structures, traits, énumérations, héritage | `structs`, `traits`, `enums`, `inheritance` |
+| `Json.parse`, `Json.of`, `Json.to` ; modules | `json`, `modules` |
+| Les codes des erreurs courantes | les dossiers `compile_*`, `runtime_errors`, `arithmetic_errors` |
+| Les commandes `run`, `check`, `fmt`, `test` | pas dans la suite de conformité (elle ne couvre que le langage) : tests d'intégration de `qlang` |
+
+Hors de la promesse : la réflexion, `extern`, le serveur HTTP et la bibliothèque web, `Term`, les tâches et les traces,
+et tout ce qui est marqué provisoire ou expérimental. Chaque version de qlang a son tag dans le dépôt de conformité
+(`v0.X.Y` = la suite de qlang `0.X.Y`). Un paquet dit le niveau de ses fichiers dans `[stability]` de son `qlang.toml` ;
+`qlang doc` l'écrit sous le titre de chaque fichier et `qlang doc --require-levels` échoue pour un fichier sans niveau.
+

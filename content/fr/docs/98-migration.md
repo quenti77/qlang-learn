@@ -12,6 +12,20 @@ rubrique **Cassant**, et le changement figure ici.
 Pour trouver ce qui pourrait casser **avant** de monter de version : lancer `qlang check --deny-warnings` (ou
 `qlang test --deny-warnings`) sur le projet avec la version actuelle ; ce qui est déprécié apparaît en `W001`.
 
+## `qlang migrate`
+
+`qlang migrate` réécrit la partie **mécanique** d'un changement cassant : un renommage de `Type.nom`. Il remplace les
+noms **dans le code** (jamais dans une chaîne ni un commentaire) et vérifie que le résultat a exactement les mêmes
+jetons, aux noms renommés près, avant d'écrire.
+
+```sh
+qlang migrate --rules     # les renommages connus, avec la version qui les annonce
+qlang migrate --check     # liste les fichiers qui changeraient, sans les toucher (code 1 : pour la CI)
+qlang migrate             # réécrit
+```
+
+Aujourd'hui une règle : `Log.warn` → `Log.warning` (0.69). Ce qui n'est pas un renommage reste décrit ci-dessous.
+
 ## 0.69 : `Log.warn` est déprécié (pas encore retiré)
 
 - **Avant** : `Log.warn("message")`.

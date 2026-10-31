@@ -1569,6 +1569,8 @@ the **execution environment** (the terminal, a web server…).
 
 ### Built-in functions
 
+*Level: stable.*
+
 | Function                 | Role                                                                  |
 | ------------------------ | --------------------------------------------------------------------- |
 | `print(x)`               | shows `x` followed by a new line (`print()`: an empty line)           |
@@ -1598,6 +1600,8 @@ for a number: `int.parse(read())`.
 
 #### Numbers shared between workers: `Shared`
 
+*Level: provisional.*
+
 The workers of `qlang serve` share nothing, but `Shared` gives **integers that every worker of the process sees and changes atomically**: exact counters (requests served, tasks running, a common limit) without going through Redis.
 
 | Call | Result |
@@ -1610,6 +1614,8 @@ The workers of `qlang serve` share nothing, but `Shared` gives **integers that e
 The numbers live in the memory of the process: lost on exit, **not shared between machines** (use Redis for that). A name is 1 to 128 bytes, at most 10,000 names; an integer overflow is an error. It needs the `qlang` command (`T250` elsewhere).
 
 #### Work in parallel: `Worker`
+
+*Level: experimental.*
 
 A **task** is a file of your project that a separate interpreter runs at the same time as the program. It shares nothing with it (same model as the workers of `qlang serve`): the two talk by sending each other `Json` values. It needs the `qlang` command (`T250` elsewhere); at most 64 tasks at the same time.
 
@@ -1643,7 +1649,34 @@ let result = w.wait(5000).unwrap()            -- 144, or none if not finished af
 
 Good to know: the file is looked up from the folder where `qlang` runs (and must be inside `--root` if there is one); the task has the permissions of the program (`--allow-process`…), its own memory and its own database connections; it runs the top of its file again; a task waiting in a blocking call (`time.sleep`, a slow query) stops when the call returns. A `print` in a task writes to the same output as the program.
 
+#### Distributed traces: `Trace` and OpenTelemetry
+
+*Level: experimental.*
+
+`qlang serve --otlp-endpoint http://collector:4318` (or the `OTEL_EXPORTER_OTLP_ENDPOINT` variable) sends the **traces** of
+the requests to an OpenTelemetry collector (OTLP over HTTP, JSON; `--service-name` or `OTEL_SERVICE_NAME` names the
+service, `qlang` by default):
+
+- every request is a server **span** (`GET /path`), a child of the caller when the request carries a `traceparent`
+  header ([W3C Trace Context](https://www.w3.org/TR/trace-context/)), the root of a new trace otherwise;
+- every `http.send` / `http.send_all` call of the program is a client span **and leaves with a `traceparent`** (unless the
+  program set one itself), so the chain of services stays one trace; the address kept has no query parameters and no
+  credentials;
+- every `Log.*` line of the request carries `trace_id` and `span_id` (in JSON as in text);
+- `Trace.span("name", fun() ... end)` wraps a piece of the program in a span of your own, `Trace.attr("key", "value")` notes
+  something on the span being run, `Trace.id()` gives the trace id (for an error page: "give us this id"),
+  `Trace.traceparent()` the header value to give to a service called by other means than `http` (a queue message, for
+  example).
+
+Spans leave in batches, in the background, every second; a missing collector neither slows nor breaks any request (one
+warning, once). Without `--otlp-endpoint` nothing is exported, but a `traceparent` that arrives is still passed on to
+the calls and the logs: a service in the middle of a chain does not cut it. The sampling flag received is respected (a
+caller that does not sample: nothing is sent); otherwise everything is sampled. At most 1000 spans per request. It needs
+the `qlang` command (`T250` elsewhere).
+
 #### Output and error output
+
+*Level: stable.*
 
 A program has two outputs. The **output** (`print`, `write`) carries what the program
 *produces*: it is the one you redirect to a file or pass to another program
@@ -1661,6 +1694,8 @@ Docker, systemd and Kubernetes read both streams: a program that logs on the err
 no file or rotation to manage.
 
 ### Built-in methods
+
+*Level: stable.*
 
 The library is deliberately small, and will grow with use.
 
@@ -1780,6 +1815,8 @@ global names (`PI`, `min`…) that you might want to use yourself.
 
 ### Dictionaries
 
+*Level: stable.*
+
 A dictionary (`map<K, V>`) associates values with **keys**. Keys are `int`s, `float`s,
 `string`s, `bool`s or values of an enumeration: types that are compared by value. Keys keep
 their **insertion order**.
@@ -1856,6 +1893,8 @@ An index out of bounds (`xs[5]` for 3 elements, a negative index) is a run-time 
 
 ### Sets
 
+*Level: stable.*
+
 A `Set<T>` is a set of values **without duplicates**, which keeps the order of insertion. It is
 a prelude type (no `import`):
 
@@ -1896,6 +1935,8 @@ start). It is shown as `Set(1, 2, 3)`.
 
 ### Time and randomness
 
+*Level: provisional.*
+
 The core of the language reads neither the clock nor a random source: like `read`, they come
 from the **environment**. A program that calls them while they are missing is refused
 **before** it runs (error `T250`).
@@ -1924,6 +1965,8 @@ tokens.
 still possible: `let time = 5` works, and `time` then designates that variable.
 
 ### Identifiers: `uuid` and `ulid`
+
+*Level: provisional.*
 
 Two types to identify something uniquely. Both are 128 bits and are distinct from `string`:
 you cannot pass one for the other.
@@ -1965,6 +2008,8 @@ in their text form (`id as string` gives that string). For the reverse, `uuid.pa
 `ulid.parse` check the text.
 
 ### Dates and times: `datetime`
+
+*Level: provisional.*
 
 A `datetime` is an **instant**: a date and a time, always in **UTC** (no time zones, so the
 same results everywhere). It goes from year 1 to year 9999. It is a type of its own, like
@@ -2017,6 +2062,8 @@ end
 
 ### Time zones: `Zone`
 
+*Level: provisional.*
+
 A `datetime` is always an instant in UTC. A `Zone` of the IANA database (`Europe/Paris`, `America/New_York`,
 `UTC`...) says what a clock on the wall of that place reads at that instant, summer time included, and the
 other way round. It needs the `qlang` command (`T250` elsewhere, in the browser for instance).
@@ -2041,6 +2088,8 @@ An hour that does not exist (clocks go forward: 02:30 on 29 March 2026 in Paris)
 before the change; an hour that happens twice (clocks go back) is the first one.
 
 ### Regular expressions
+
+*Level: provisional.*
 
 The `regex` namespace offers the usual regular expression operations, from two
 strings (`text`, `pattern`):
@@ -2076,6 +2125,8 @@ with `Result`.
 
 ### Encodings and hashes
 
+*Level: provisional.*
+
 Four namespaces work on text (its UTF-8 bytes); a decoding into text returns `none` if the result
 is not valid UTF-8. For arbitrary data, see [`bytes`](#bytes-sequences-of-bytes): each function has
 a `*_bytes` variant:
@@ -2097,6 +2148,8 @@ print(Base64.decode("TWFu"))     -- Man
 These names start with a capital letter so that a variable `url` or `hash` does not hide them.
 
 ### `bytes`: sequences of bytes
+
+*Level: provisional.*
 
 `bytes` is a sequence of bytes that never changes: a file, a request body, a digest. It is not
 text (text is valid UTF-8) and not an array of integers.
@@ -2136,6 +2189,8 @@ print(b.at(1))               -- 195 (none outside the bytes)
 
 ### Paths and formatting: `Path` and `Format`
 
+*Level: provisional.*
+
 `Path` handles paths **written as text**, with `/` between the parts (on Windows too); it does not touch the disk.
 
 | Call | Result |
@@ -2163,6 +2218,8 @@ and `%%`; between the `%` and the letter: `-` (left), `0` (zeros in front), `+` 
 is a `panic` that says which: it is a mistake of the program, like a wrong index.
 
 ### Secrets: `Crypto` and `Password`
+
+*Level: provisional.*
 
 `random` is a generator you can fix (`--seed`): good for tests, **never** for a secret. `Crypto`
 asks the operating system's secure source for bytes.
@@ -2193,6 +2250,8 @@ Password.needs_rehash(hash).unwrap()             -- true if the settings have ag
 
 ### Compression and archives: `Gzip`, `Zip`, `Tar`
 
+*Level: provisional.*
+
 Compress and decompress bytes, and read or write archives **in memory** (the disk goes through
 `fs.read_bytes` / `fs.write_bytes`). They need the `qlang` command (`T250` elsewhere).
 
@@ -2221,6 +2280,8 @@ gigabytes). No passwords or encryption in zip files.
 ## 16. Prelude: `Result`, `Error` and JSON
 
 ### Prelude: `Result` and `Error`
+
+*Level: stable.*
 
 Two types are available in every file, **without an `import`**:
 
@@ -2268,6 +2329,8 @@ end
 
 #### Propagating an error with `?`
 
+*Level: stable.*
+
 In a function that itself returns a `Result`, `expr?` gives the value of an `Ok`, and **leaves
 the function with the error** if it is an `Err`:
 
@@ -2289,6 +2352,8 @@ end
   only that function is left.
 
 ### Prelude: JSON
+
+*Level: stable.*
 
 **Encoding.** The `ToJson` trait describes a type that knows how to turn
 itself into JSON text:
@@ -2372,6 +2437,8 @@ implements `ToJson`, so it can go into a `json_object`.
 
 ### Converting: `Json.of` and `Json.to`
 
+*Level: stable.*
+
 No need to write `to_json` and `from_json` by hand for the usual cases: two functions read the
 **shape of the type**.
 
@@ -2418,6 +2485,8 @@ print(r.unwrap().name)    -- Bob
 ## 17. Prelude: network, databases and the system
 
 ### Prelude: `http`
+
+*Level: provisional.*
 
 `http.send(req)` sends an HTTP request and waits for the response. `Request`
 and `Response` are provided by the prelude (no need to declare them):
@@ -2492,6 +2561,8 @@ end
 ```
 
 ### Answering HTTP requests
+
+*Level: provisional.*
 
 A program can also **serve** requests: `qlang serve app.q` listens on a port (8080 by default,
 on `127.0.0.1`), runs the file **once**, then calls its `handle` function for every request it
@@ -2580,6 +2651,8 @@ development, not for production.
 
 #### The router
 
+*Level: provisional.*
+
 When there are several pages, a `Router` avoids a big `match` on the path: you declare the
 routes, then `handle` hands it the request.
 
@@ -2632,6 +2705,7 @@ Options of `qlang serve app.q`:
 | `--seed N`         | fixes the randomness (each worker takes `N` plus its number)                            |
 | `--request-timeout S` | time a request may last before it is stopped with error `R905` (30 by default; `0`: no limit). The clock is read every few thousand steps: a program that only waits (`time.sleep`, a slow SQL query) stops when it gets control back. Does not apply to a streamed response or to WebSockets |
 | `--max-queue N` | how many requests may wait for a free worker (`0` by default: only `--max-connections` bounds it). Beyond that the answer is an immediate `503` with `Retry-After: 1`, instead of letting the queue grow |
+| `--otlp-endpoint URL` | sends the traces of the requests to an OpenTelemetry collector (see "Distributed traces"); `--service-name NAME` names the service |
 | `--db-pool N` | at most N real connections to PostgreSQL or MySQL for the whole process, shared by the workers (default: one connection per `Db.connect` and per worker). A `Db` takes one for each SQL query and gives it back; during a transaction (`begin` until `commit`/`rollback`) it keeps the same one. If all N are busy, the query waits up to 30 s, then fails. Session settings (`SET`, temporary tables) do not survive from one query to the next outside a transaction. SQLite is not concerned |
 | `--dev-public`     | allows `--dev` on an address that is not local (only you can reach the server) |
 | `--max-connections N` | simultaneous open connections (64 by default, 1 to 10000); the next ones get `503` |
@@ -2708,6 +2782,8 @@ Options of `qlang serve app.q`:
     program already chose an encoding. Off by default (a proxy does it just as well).
 
 ### Prelude: `Db`
+
+*Level: provisional.*
 
 `Db.connect(url)` opens a database connection; the URL's scheme picks the
 driver: `sqlite://path/to/file.db`,
@@ -2792,6 +2868,8 @@ end
 
 ### Prelude: files and environment
 
+*Level: provisional.*
+
 `fs.read(path)` reads a file's whole content, `fs.write(path, content)`
 replaces it entirely (creating it if needed). Both return a `Result`: a
 missing file or a permission error gives a `Result::err`, never a program
@@ -2855,6 +2933,8 @@ way imports do.
 
 ### Prelude: `Redis`
 
+*Level: provisional.*
+
 `Redis.connect(url)` opens a connection to a Redis server (RESP2 protocol): `redis://[user:password@]host[:port][/database]`, or `rediss://` for TLS (the certificate is checked with Mozilla's roots, as for Postgres). A server that is not on this machine needs `rediss://`, or `?tls=disable` to confirm that you want it in clear. Only the `qlang` command offers it (another host: error `T250`).
 
 | Call | Result |
@@ -2870,6 +2950,8 @@ way imports do.
 A connection does one thing at a time (each command waits for its answer, 30 s at most, except `BLPOP`, which waits as long as it was asked to): take one for the commands and another to listen. A `Subscription` does not run commands. Numbers come back as `float`, like for `Db`.
 
 ### Prelude: the `Log` journal
+
+*Level: provisional.*
 
 `Log` writes the program's journal with the levels of PSR-3 (PHP), lowest first: `debug`, `info`,
 `notice`, `warning` (or `warn`), `error`, `critical`, `alert`, `emergency`. Each level is a function
@@ -2924,6 +3006,8 @@ parentheses: each statement there fits on its line.
 
 ### Prelude: running a program
 
+*Level: provisional.*
+
 `Process.run(command, arguments)` runs a program of the machine, waits for it to end and
 returns a `Result<ProcessOutput, Error>`; `ProcessOutput` has three public fields: `status` (the
 exit code, −1 if a signal stopped it), `stdout` and `stderr` (what it wrote, as text).
@@ -2956,6 +3040,8 @@ end
   it is stopped if it runs for more than a minute, and at most 16 MB of each stream is kept.
 
 ### Prelude: the terminal
+
+*Level: experimental.*
 
 `Term` is for programs that draw a screen (a terminal interface). It needs the `qlang` command run from a
 terminal: elsewhere (JSON protocol, browser) using it is a compile-time error (`T250`), and in a pipe or

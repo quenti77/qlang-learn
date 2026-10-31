@@ -105,7 +105,7 @@ export function docPages(lang) {
       return { lang: l, slug: name.replace(/\.md$/, ''), title: mod.frontmatter.title, group: mod.frontmatter.group, headings: outline(mod), Content: mod.Content };
     })
     .filter((x) => x.lang === lang)
-    .sort((a, b) => a.slug.localeCompare(b.slug));
+    .sort((a, b) => a.slug.localeCompare(b.slug, undefined, { numeric: true }));
 }
 
 /** The pages of the documentation by group, in order: [{ name, pages }]. */
