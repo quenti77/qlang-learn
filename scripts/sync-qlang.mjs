@@ -154,7 +154,7 @@ for (const { slug, title, chapter, group } of pages) {
       return target === slug ? m : `](../${target}/#${anchor})`;
     })
     // the stability and migration documents are pages of the site
-    .replace(/\]\((stability|migration)\.md\)/g, (m, f) => (f === 'stability' ? '](../97-stabilite/)' : '](../98-migration/)'))
+    .replace(/\]\((stability|migration|registry|editors)\.md\)/g, (m, f) => `](../${{ stability: '97-stabilite', migration: '98-migration', registry: '91-paquets', editors: '50-editeurs' }[f]}/)`)
     // links to the language reference, and to files of the repository
     .replace(/\]\(docs\/language\.md(?:#([^)]+))?\)/g, (m, anchor) => {
       const target = anchor && pageOfLanguage(anchor);
