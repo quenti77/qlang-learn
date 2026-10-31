@@ -1649,6 +1649,24 @@ let result = w.wait(5000).unwrap()            -- 144, or none if not finished af
 
 Good to know: the file is looked up from the folder where `qlang` runs (and must be inside `--root` if there is one); the task has the permissions of the program (`--allow-process`…), its own memory and its own database connections; it runs the top of its file again; a task waiting in a blocking call (`time.sleep`, a slow query) stops when the call returns. A `print` in a task writes to the same output as the program.
 
+#### Waiting for a slow answer: the model and its choices
+
+A qlang program waits for an answer (`http.send`, `Db.query`, `Redis.get`, `Process.run`, `time.sleep`) **by blocking its
+interpreter**: there is no `async` / `await`. The values of the interpreter cannot be shared between threads (see
+`Worker`), so giving control back while waiting would mean rewriting evaluation in continuations; the choice made is to
+**multiply interpreters** rather than make them non-blocking:
+
+- **Several calls at once inside a request**: `http.send_all(requests)` sends them together; a `Worker` (a file run in a
+  separate interpreter) can make an SQL or Redis request while the program goes on, then `wait(ms)` takes its result.
+- **The server is not stalled by a few slow requests**: `qlang serve --workers 4 --max-workers 32` starts 4 interpreters
+  and adds more (up to 32) while all are busy and requests are waiting; the added ones leave after 30 s of inactivity.
+  Each has its own copy of the program, its connections and its module state, like the starting workers; `--db-pool N`
+  bounds the real connections to the database, `--max-queue N` refuses requests when the line is full, `--request-timeout S`
+  stops a request that lasts too long (when it gets control back).
+- **What stays blocking, on purpose**: `Process.run` (one minute at most) occupies its interpreter; so does a
+  `Redis.subscribe` while it listens; a WebSocket is served by the interpreter that accepted it, between two requests.
+  For these, a dedicated `Worker` or a separate process (`qlang run` of a loop) is the right shape.
+
 #### Distributed traces: `Trace` and OpenTelemetry
 
 *Level: experimental.*
@@ -2705,6 +2723,7 @@ Options of `qlang serve app.q`:
 | `--seed N`         | fixes the randomness (each worker takes `N` plus its number)                            |
 | `--request-timeout S` | time a request may last before it is stopped with error `R905` (30 by default; `0`: no limit). The clock is read every few thousand steps: a program that only waits (`time.sleep`, a slow SQL query) stops when it gets control back. Does not apply to a streamed response or to WebSockets |
 | `--max-queue N` | how many requests may wait for a free worker (`0` by default: only `--max-connections` bounds it). Beyond that the answer is an immediate `503` with `Retry-After: 1`, instead of letting the queue grow |
+| `--max-workers N` | with `--workers W` (the starting W), up to N interpreters (from W to 256): one more is started when a request arrives and all are busy, and it ends after 30 s with nothing to do (`QLANG_WORKER_IDLE_MS` changes this delay). By default N = W: nothing changes |
 | `--otlp-endpoint URL` | sends the traces of the requests to an OpenTelemetry collector (see "Distributed traces"); `--service-name NAME` names the service |
 | `--db-pool N` | at most N real connections to PostgreSQL or MySQL for the whole process, shared by the workers (default: one connection per `Db.connect` and per worker). A `Db` takes one for each SQL query and gives it back; during a transaction (`begin` until `commit`/`rollback`) it keeps the same one. If all N are busy, the query waits up to 30 s, then fails. Session settings (`SET`, temporary tables) do not survive from one query to the next outside a transaction. SQLite is not concerned |
 | `--dev-public`     | allows `--dev` on an address that is not local (only you can reach the server) |
