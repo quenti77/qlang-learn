@@ -1594,6 +1594,53 @@ the **execution environment** (the terminal, a web server…).
 `[1, 2, 3]`, and strings inside an array are in quotes. `read()` always returns a `string`;
 for a number: `int.parse(read())`.
 
+#### Numbers shared between workers: `Shared`
+
+The workers of `qlang serve` share nothing, but `Shared` gives **integers that every worker of the process sees and changes atomically**: exact counters (requests served, tasks running, a common limit) without going through Redis.
+
+| Call | Result |
+| --- | --- |
+| `Shared.add("hits", 1)` | adds (negative allowed) and returns the new value: `Result<int, Error>` |
+| `Shared.get("hits")` | the value (`0` for a name never written) |
+| `Shared.set("limit", 100)` | sets the value: `Result<int, Error>` |
+| `Shared.compare_set("leader", 0, 1)` | sets `1` only if the value is `0`, in one step: `Result<bool, Error>` (only one worker gets `true`) |
+
+The numbers live in the memory of the process: lost on exit, **not shared between machines** (use Redis for that). A name is 1 to 128 bytes, at most 10,000 names; an integer overflow is an error. It needs the `qlang` command (`T250` elsewhere).
+
+#### Work in parallel: `Worker`
+
+A **task** is a file of your project that a separate interpreter runs at the same time as the program. It shares nothing with it (same model as the workers of `qlang serve`): the two talk by sending each other `Json` values. It needs the `qlang` command (`T250` elsewhere); at most 64 tasks at the same time.
+
+```
+-- square.q: the task's file
+fun run()
+  let n = (Worker.input().get("n") ?? Json.null()).as_number()
+  Worker.finish(Json.number(n * n))
+end
+```
+
+```
+let w = Worker.spawn("square.q", Json.of({"n": 12})).unwrap()
+let result = w.wait(5000).unwrap()            -- 144, or none if not finished after 5 s
+```
+
+| Program side | Role |
+| --- | --- |
+| `Worker.spawn(file, input)` | starts the `fun run()` of the file: `Result<Worker, Error>` |
+| `w.wait(ms)` | the result (`Worker.finish`, `null` otherwise), waiting at most `ms`: `none` if it is still running; `err` if the task failed (the message says why). **Only once**: the task is then forgotten |
+| `w.send(value)` / `w.recv(ms)` | send to the task / take the next value it emitted (`none` after `ms`) |
+| `w.cancel()` | asks it to stop: `Worker.cancelled()` becomes true for the task, **and it is stopped** (error `R906`) at the next check (every few thousand steps), even in a loop that never looks |
+| `w.is_done()` | whether the task has finished |
+
+| Task side | Role |
+| --- | --- |
+| `Worker.input()` | what the program gave to `spawn` |
+| `Worker.emit(value)` / `Worker.next(ms)` | send to the program / wait for what it sent (`none` after `ms`, or when a stop is requested) |
+| `Worker.cancelled()` | whether a stop is requested (`cancel()`, or the server is stopping) |
+| `Worker.finish(value)` | sets the result of `wait` |
+
+Good to know: the file is looked up from the folder where `qlang` runs (and must be inside `--root` if there is one); the task has the permissions of the program (`--allow-process`…), its own memory and its own database connections; it runs the top of its file again; a task waiting in a blocking call (`time.sleep`, a slow query) stops when the call returns. A `print` in a task writes to the same output as the program.
+
 #### Output and error output
 
 A program has two outputs. The **output** (`print`, `write`) carries what the program
@@ -2581,6 +2628,9 @@ Options of `qlang serve app.q`:
 | `--workers N`      | N interpreters (from 1 to 64) that answer in parallel                                   |
 | `--root FOLDER`    | limits `import` and `fs` to this folder                                                 |
 | `--seed N`         | fixes the randomness (each worker takes `N` plus its number)                            |
+| `--request-timeout S` | time a request may last before it is stopped with error `R905` (30 by default; `0`: no limit). The clock is read every few thousand steps: a program that only waits (`time.sleep`, a slow SQL query) stops when it gets control back. Does not apply to a streamed response or to WebSockets |
+| `--max-queue N` | how many requests may wait for a free worker (`0` by default: only `--max-connections` bounds it). Beyond that the answer is an immediate `503` with `Retry-After: 1`, instead of letting the queue grow |
+| `--db-pool N` | at most N real connections to PostgreSQL or MySQL for the whole process, shared by the workers (default: one connection per `Db.connect` and per worker). A `Db` takes one for each SQL query and gives it back; during a transaction (`begin` until `commit`/`rollback`) it keeps the same one. If all N are busy, the query waits up to 30 s, then fails. Session settings (`SET`, temporary tables) do not survive from one query to the next outside a transaction. SQLite is not concerned |
 | `--dev-public`     | allows `--dev` on an address that is not local (only you can reach the server) |
 | `--max-connections N` | simultaneous open connections (64 by default, 1 to 10000); the next ones get `503` |
 | `--max-body SIZE`  | size of a request body (1 MB by default; `512k`, `8m` or a number of bytes); beyond it, `413` |

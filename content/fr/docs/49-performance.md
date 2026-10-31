@@ -89,6 +89,12 @@ laissent la mémoire du serveur à 22 Mo du début à la fin, sans erreur.
 - **Les bornes** : `--max-body`, `--max-headers`, `--read-timeout`, `--idle-timeout` et `--max-connections`, pour qu'un
   client lent ou volumineux ne bloque pas les autres. `--max-steps` et `--max-memory` protègent d'un programme qui
   s'emballe.
+- **`--request-timeout S`** (30 par défaut) et **`--max-queue N`** : le premier arrête une requête trop longue (erreur
+  `R905`), le second répond `503` tout de suite quand plus de N requêtes attendent un worker, au lieu de laisser la file
+  grandir.
+- **Le travail en parallèle** : `Worker.spawn(fichier, entrée)` exécute un fichier dans un interpréteur à part, que l'on
+  attend avec `wait(ms)` et que l'on peut annuler (`cancel()`). `Shared` fournit des compteurs entiers atomiques que
+  tous les workers voient, sans passer par Redis. Voir la [référence du langage](../23-bibliotheque-standard/).
 - **Du travail lent hors de la requête** : mettez-le dans la file de tâches (`@std/queue.q`) pour répondre tout de suite.
 - **Des fichiers volumineux** : `Response.file(chemin)` laisse le serveur les lire par morceaux, sans les charger en
   mémoire ni occuper le worker.

@@ -85,6 +85,12 @@ memory at 22 MB from start to end, with no error.
 - **`--compress`**: gzip for text responses of 1 KB or more, at the price of a little computation.
 - **The limits**: `--max-body`, `--max-headers`, `--read-timeout`, `--idle-timeout` and `--max-connections`, so that a
   slow or large client does not block the others. `--max-steps` and `--max-memory` protect against a runaway program.
+- **`--request-timeout S`** (30 by default) and **`--max-queue N`**: the first stops a request that lasts too long (error
+  `R905`), the second answers `503` at once when more than N requests are waiting for a worker, instead of letting the
+  queue grow.
+- **Work in parallel**: `Worker.spawn(file, input)` runs a file in a separate interpreter, which you wait for with
+  `wait(ms)` and can cancel (`cancel()`). `Shared` provides atomic integer counters that every worker sees, without
+  going through Redis. See the [language reference](../23-bibliotheque-standard/).
 - **Slow work outside the request**: put it in the job queue (`@std/queue.q`) to answer at once.
 - **Large files**: `Response.file(path)` lets the server read them piece by piece, without loading them in memory or
   occupying the worker.
