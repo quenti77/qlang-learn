@@ -1,0 +1,621 @@
+# Examples of the reference of the prelude. A block starts with `@ owner.name` (a method of a built-in type, a
+# function of a namespace, or a global function) and holds a program: the site runs it and shows what it prints.
+
+@ print
+print("Hello")
+print(1 + 2)
+print([1, 2])
+
+@ write
+write("a")
+write("b")
+print("")
+
+@ panic
+let r = Panic.guard(fun() panic("no") end)
+print(r != none)
+
+@ assert
+assert(1 + 1 == 2, "arithmetic broke")
+print("fine")
+
+@ string.len
+print("héllo".len())
+
+@ string.is_empty
+print("".is_empty())
+print("a".is_empty())
+
+@ string.upper
+print("hello".upper())
+
+@ string.lower
+print("HeLLo".lower())
+
+@ string.trim
+print("[" + "  hi  ".trim() + "]")
+
+@ string.trim_start
+print("[" + "  hi  ".trim_start() + "]")
+
+@ string.trim_end
+print("[" + "  hi  ".trim_end() + "]")
+
+@ string.capitalize
+print("ada lovelace".capitalize())
+
+@ string.reverse
+print("abc".reverse())
+
+@ string.contains
+print("banana".contains("nan"))
+print("banana".contains("x"))
+
+@ string.starts_with
+print("banana".starts_with("ban"))
+
+@ string.ends_with
+print("banana".ends_with("na"))
+
+@ string.index_of
+print("banana".index_of("an"))
+print("banana".index_of("x") == none)
+
+@ string.last_index_of
+print("banana".last_index_of("an"))
+
+@ string.count
+print("banana".count("an"))
+
+@ string.replace
+print("banana".replace("an", "AN"))
+
+@ string.split
+print("a,b,c".split(","))
+
+@ string.repeat
+print("ab".repeat(3))
+
+@ string.chars
+print("abc".chars())
+
+@ string.lines
+print("one\ntwo\nthree".lines())
+
+@ string.words
+print("  the quick  brown fox ".words())
+
+@ string.pad_left
+print("7".pad_left(3, "0"))
+
+@ string.pad_right
+print("[" + "ab".pad_right(5, ".") + "]")
+
+@ string.is_digit
+print("123".is_digit())
+print("12a".is_digit())
+
+@ string.is_alpha
+print("abc".is_alpha())
+print("ab1".is_alpha())
+
+@ string.is_blank
+print("   ".is_blank())
+
+@ string.code
+print("A".code())
+
+@ string.to_int
+print("42".to_int())
+print("x".to_int() == none)
+
+@ string.to_float
+print("2.5".to_float())
+
+@ string.substring
+print("hello".substring(1, 3))
+
+@ string.strip_prefix
+print("v1.2".strip_prefix("v"))
+
+@ string.strip_suffix
+print("file.q".strip_suffix(".q"))
+
+@ string.snake_case
+print("HelloWorld again".snake_case())
+
+@ string.camel_case
+print("hello_world again".camel_case())
+
+@ string.kebab_case
+print("HelloWorld again".kebab_case())
+
+@ string.title_case
+print("hello big world".title_case())
+
+@ string.eq_ignore_case
+print("HeLLo".eq_ignore_case("hello"))
+
+@ string.to_bytes
+print("hé".to_bytes().len())
+
+@ int.char
+print(65.char())
+
+@ int.abs
+print((-5).abs())
+
+@ int.min
+print(3.min(7))
+
+@ int.max
+print(3.max(7))
+
+@ int.pow
+print(2.pow(10))
+
+@ int.sqrt
+print(16.sqrt())
+
+@ int.to_hex
+print(255.to_hex())
+
+@ int.to_oct
+print(8.to_oct())
+
+@ int.to_bin
+print(5.to_bin())
+
+@ int.signum
+print((-9).signum())
+print(0.signum())
+
+@ int.clamp
+print(15.clamp(0, 10))
+
+@ int.sin
+print(0.sin())
+
+@ int.cos
+print(0.cos())
+
+@ int.exp
+print(0.exp())
+
+@ int.ln
+print(1.ln())
+
+@ int.log10
+print(1000.log10())
+
+@ int.log2
+print(8.log2())
+
+@ int.to_radians
+print(180.to_radians() > 3.14)
+
+@ int.to_degrees
+print(0.to_degrees())
+
+@ float.abs
+print((-2.5).abs())
+
+@ float.min
+print(1.5.min(0.5))
+
+@ float.max
+print(1.5.max(0.5))
+
+@ float.pow
+print(2.0.pow(0.5) > 1.41)
+
+@ float.sqrt
+print(2.25.sqrt())
+
+@ float.floor
+print(2.7.floor())
+
+@ float.ceil
+print(2.1.ceil())
+
+@ float.round
+print(2.5.round())
+print(2.4.round())
+
+@ float.to_fixed
+print(3.14159.to_fixed(2))
+
+@ float.signum
+print((-0.5).signum())
+
+@ float.clamp
+print(1.5.clamp(0.0, 1.0))
+
+@ float.trunc
+print((-2.7).trunc())
+
+@ float.is_nan
+print(float.NAN.is_nan())
+print(1.5.is_nan())
+
+@ float.is_infinite
+print(1.0.is_infinite())
+
+@ float.ln
+print(1.0.ln())
+
+@ float.exp
+print(0.0.exp())
+
+@ float.log10
+print(100.0.log10())
+
+@ float.log2
+print(4.0.log2())
+
+@ float.to_degrees
+print(0.0.to_degrees())
+
+@ float.to_radians
+print(0.0.to_radians())
+
+@ array.len
+print([1, 2, 3].len())
+
+@ array.is_empty
+let xs: array<int> = []
+print(xs.is_empty())
+
+@ array.push
+let xs = [1, 2]
+xs.push(3)
+print(xs)
+
+@ array.pop
+let xs = [1, 2, 3]
+print(xs.pop())
+print(xs)
+
+@ array.insert
+let xs = [1, 3]
+xs.insert(1, 2)
+print(xs)
+
+@ array.remove
+let xs = ["a", "b", "c"]
+print(xs.remove(1))
+print(xs)
+
+@ array.clear
+let xs = [1, 2]
+xs.clear()
+print(xs.len())
+
+@ array.contains
+print([1, 2, 3].contains(2))
+
+@ array.index_of
+print(["a", "b"].index_of("b"))
+print(["a", "b"].index_of("z") == none)
+
+@ array.reverse
+let xs = [1, 2, 3]
+xs.reverse()
+print(xs)
+
+@ array.join
+print([1, 2, 3].join("-"))
+
+@ array.sort
+let xs = [3, 1, 2]
+xs.sort()
+print(xs)
+
+@ array.min
+print([3, 1, 2].min())
+
+@ array.max
+print([3, 1, 2].max())
+
+@ array.sum
+print([1, 2, 3].sum())
+
+@ array.slice
+print([1, 2, 3, 4].slice(1, 3))
+
+@ array.map
+print([1, 2, 3].map(fun(x: int) -> int x * 10 end))
+
+@ array.filter
+print([1, 2, 3, 4].filter(fun(x: int) -> bool x mod 2 == 0 end))
+
+@ array.reduce
+print([1, 2, 3].reduce(0, fun(total: int, x: int) -> int total + x end))
+
+@ array.any
+print([1, 2, 3].any(fun(x: int) -> bool x > 2 end))
+
+@ array.all
+print([1, 2, 3].all(fun(x: int) -> bool x > 2 end))
+
+@ array.find
+print([1, 2, 3].find(fun(x: int) -> bool x > 1 end))
+
+@ array.each
+[1, 2].each(fun(x: int) print("item {x}") end)
+
+@ array.sort_by
+let words = ["bb", "a", "ccc"]
+words.sort_by(fun(a: string, b: string) -> int a.len() - b.len() end)
+print(words)
+
+@ array.unique
+print([1, 2, 1, 3, 2].unique())
+
+@ array.flatten
+print([[1, 2], [3]].flatten())
+
+@ array.first
+print([7, 8].first())
+
+@ array.last
+print([7, 8].last())
+
+@ array.concat
+print([1, 2].concat([3]))
+
+@ array.take
+print([1, 2, 3, 4].take(2))
+
+@ array.drop
+print([1, 2, 3, 4].drop(2))
+
+@ array.swap
+let xs = [1, 2, 3]
+xs.swap(0, 2)
+print(xs)
+
+@ array.chunk
+print([1, 2, 3, 4, 5].chunk(2))
+
+@ array.repeat
+print([0].repeat(3))
+
+@ map.len
+print({"a": 1, "b": 2}.len())
+
+@ map.is_empty
+let m: map<string, int> = {}
+print(m.is_empty())
+
+@ map.clear
+let m = {"a": 1}
+m.clear()
+print(m.len())
+
+@ map.has
+print({"a": 1}.has("a"))
+print({"a": 1}.has("b"))
+
+@ map.get
+let m = {"a": 1}
+print(m.get("a", 0))
+print(m.get("z", 0))
+
+@ map.remove
+let m = {"a": 1, "b": 2}
+print(m.remove("a"))
+print(m)
+
+@ map.keys
+print({"a": 1, "b": 2}.keys())
+
+@ map.values
+print({"a": 1, "b": 2}.values())
+
+@ map.merge
+print({"a": 1}.merge({"b": 2}))
+
+@ map.filter
+print({"a": 1, "b": 5}.filter(fun(k: string, v: int) -> bool v > 2 end))
+
+@ map.map_values
+print({"a": 1, "b": 2}.map_values<int>(fun(k: string, v: int) -> int v * 10 end))
+
+@ Set.add
+let s = Set.of([1, 2])
+s.add(3)
+print(s.len())
+
+@ Set.contains
+print(Set.of([1, 2]).contains(2))
+
+@ Set.remove
+let s = Set.of([1, 2])
+print(s.remove(1))
+print(s.len())
+
+@ Set.len
+print(Set.of([1, 1, 2]).len())
+
+@ Set.is_empty
+let s: Set<int> = Set.of([])
+print(s.is_empty())
+
+@ Set.clear
+let s = Set.of([1, 2])
+s.clear()
+print(s.len())
+
+@ Set.to_array
+print(Set.of([3, 1, 3]).to_array())
+
+@ Set.union
+print(Set.of([1, 2]).union(Set.of([2, 3])).to_array())
+
+@ Set.intersect
+print(Set.of([1, 2]).intersect(Set.of([2, 3])).to_array())
+
+@ Set.difference
+print(Set.of([1, 2]).difference(Set.of([2, 3])).to_array())
+
+@ Set.is_subset
+print(Set.of([1]).is_subset(Set.of([1, 2])))
+
+@ Set.equals
+print(Set.of([1, 2]).equals(Set.of([2, 1])))
+
+@ datetime.year
+print(datetime.at(0).year())
+
+@ datetime.month
+print(datetime.at(0).month())
+
+@ datetime.day
+print(datetime.at(0).day())
+
+@ datetime.hour
+print(datetime.at(3600000).hour())
+
+@ datetime.minute
+print(datetime.at(60000).minute())
+
+@ datetime.second
+print(datetime.at(5000).second())
+
+@ datetime.weekday
+print(datetime.at(0).weekday())
+
+@ datetime.ms
+print(datetime.at(1500).ms())
+
+@ datetime.add_days
+print(datetime.at(0).add_days(1).format("%Y-%m-%d"))
+
+@ datetime.add_hours
+print(datetime.at(0).add_hours(5).hour())
+
+@ datetime.add_minutes
+print(datetime.at(0).add_minutes(90).hour())
+
+@ datetime.add_seconds
+print(datetime.at(0).add_seconds(30).second())
+
+@ datetime.add_months
+print(datetime.at(0).add_months(2).format("%Y-%m-%d"))
+
+@ datetime.add_years
+print(datetime.at(0).add_years(1).year())
+
+@ datetime.start_of_day
+print(datetime.at(90000000).start_of_day().format("%Y-%m-%d %H:%M"))
+
+@ datetime.days_until
+print(datetime.at(0).days_until(datetime.at(172800000)))
+
+@ datetime.format
+print(datetime.at(0).format("%Y-%m-%d %H:%M:%S"))
+
+@ bytes.len
+print("abc".to_bytes().len())
+
+@ bytes.is_empty
+print(bytes.empty().is_empty())
+
+@ bytes.at
+print("A".to_bytes().at(0))
+
+@ bytes.slice
+print("hello".to_bytes().slice(1, 3).to_string())
+
+@ bytes.concat
+print("ab".to_bytes().concat("cd".to_bytes()).to_string())
+
+@ bytes.to_string
+print("héllo".to_bytes().to_string())
+
+@ bytes.to_array
+print("AB".to_bytes().to_array())
+
+@ bytes.hex
+print("AB".to_bytes().hex())
+
+@ bytes.base64
+print("hello".to_bytes().base64())
+
+@ bytes.find
+print("hello".to_bytes().find("ll".to_bytes()))
+
+@ bytes.contains
+print("hello".to_bytes().contains("ell".to_bytes()))
+
+@ bytes.starts_with
+print("hello".to_bytes().starts_with("he".to_bytes()))
+
+@ bytes.ends_with
+print("hello".to_bytes().ends_with("lo".to_bytes()))
+
+@ int.parse
+print(int.parse("42"))
+print(int.parse("x") == none)
+
+@ float.parse
+print(float.parse("2.5"))
+
+@ uuid.NIL
+print(uuid.NIL)
+
+@ regex.matches
+print(regex.matches("[0-9]+", "abc123"))
+print(regex.matches("^[0-9]+$", "abc123"))
+
+@ regex.find
+print(regex.find("[0-9]+", "abc123def"))
+
+@ regex.find_all
+print(regex.find_all("[0-9]+", "a1b22c333"))
+
+@ regex.replace
+print(regex.replace("[0-9]+", "a1b22", "#"))
+
+@ regex.replace_all
+print(regex.replace_all("[0-9]+", "a1b22", "#"))
+
+@ regex.split
+print(regex.split(",\\s*", "a, b,c"))
+
+@ Base64.encode
+print(Base64.encode("hello"))
+
+@ Base64.decode
+print(Base64.decode("aGVsbG8="))
+
+@ Hex.encode
+print(Hex.encode("AB"))
+
+@ Hex.decode
+print(Hex.decode("4142"))
+
+@ Url.encode
+print(Url.encode("a b&c"))
+
+@ Url.decode
+print(Url.decode("a%20b%26c"))
+
+@ Hash.sha256
+print(Hash.sha256("abc"))
+
+@ Hash.sha1
+print(Hash.sha1("abc"))
+
+@ Hash.md5
+print(Hash.md5("abc"))
+
+@ Hash.hmac_sha256
+print(Hash.hmac_sha256("key", "message"))
+
+@ random.int
+print(random.int(1, 6) >= 1)
+
+@ time.now
+print(time.now() > 0)

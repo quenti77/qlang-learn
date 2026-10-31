@@ -12,6 +12,20 @@ section, and the change appears here.
 To find what might break **before** upgrading: run `qlang check --deny-warnings` (or `qlang test --deny-warnings`) on
 the project with the current version; what is deprecated shows up as `W001`.
 
+## `qlang migrate`
+
+`qlang migrate` rewrites the **mechanical** part of a breaking change: a rename of `Type.name`. It replaces names
+**in code** (never inside a string or a comment) and checks that the result has exactly the same tokens, the renamed
+names aside, before writing.
+
+```sh
+qlang migrate --rules     # the known renames, with the version that announces them
+qlang migrate --check     # lists the files that would change, without touching them (code 1: for CI)
+qlang migrate             # rewrites
+```
+
+Today there is one rule: `Log.warn` → `Log.warning` (0.69). What is not a rename stays described below.
+
 ## 0.69: `Log.warn` is deprecated (not removed yet)
 
 - **Before**: `Log.warn("message")`.

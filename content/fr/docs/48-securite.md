@@ -56,6 +56,15 @@ Un programme qlang ne peut que ce que son hôte lui laisse :
 | Durée et mémoire | `--max-steps`, `--max-memory` | arrêt `R904` |
 | Réseau, base de données, variables d'environnement | accordés au programme dès qu'il tourne avec la commande `qlang` ; absents du protocole JSON et du navigateur | |
 
+## Fuzzing
+
+Le compilateur, le formateur et ce que `qlang serve` lit sur le réseau sont attaqués par des programmes et des requêtes
+générés au hasard : un test de mutation chaque semaine, et `cargo-fuzz` (guidé par la couverture) sur huit cibles — le
+lexer, le parser, le compilateur, le formateur, l'interpréteur sous de petites limites, les requêtes HTTP, les chemins
+de `--static` (qui ne doivent jamais sortir du dossier) et les trames WebSocket. Les cibles sont dans le dossier `fuzz/`
+de `qlang`, et `docs/security.md` dit comment les lancer ; un plantage trouvé par la CI est gardé comme artefact. Les
+premières exécutions n'ont rien trouvé : ce n'est pas une preuve, juste un filet de plus.
+
 À savoir :
 
 - `--root` ne borne **pas** un programme lancé avec `--allow-process` : une commande lancée voit

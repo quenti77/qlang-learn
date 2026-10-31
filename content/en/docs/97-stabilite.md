@@ -95,11 +95,26 @@ Every CHANGELOG version that breaks something has a **Cassant** section at the t
 adapt*. The breaking changes of recent versions are collected in [the migration guide](../98-migration/). Versions
 before this rule did not always mark their breaking changes: their complete list is the CHANGELOG itself.
 
-## What 1.0 will promise (proposal)
+## What 1.0 will promise
 
-The frozen subset would be: the syntax and semantics of the language, the basic types and collections,
-`Result`/`Error`, `Json.of/to`, modules and `import`/`export`, the `run`/`check`/`fmt`/`test` commands, and the error
-codes. Left out of the promise: reflection, `extern`, the HTTP server and its web library, `Term`, and everything that
-is young. The *executable* definition of that promise would be the language conformance suite (see
-[issue #128](https://github.com/quenti77/qlang/issues/128)): **a line is only promised once a conformance test covers
-it**.
+1.0 will freeze a **subset** whose executable definition is the conformance suite
+([qlang-conformance](https://github.com/quenti77/qlang-conformance)): **a line is only promised when conformance cases
+cover it**.
+
+| Promise | Conformance cases |
+| --- | --- |
+| Variables, constants, operators, numbers, comments | `variables_and_const`, `arithmetic`, `comparisons_and_logic`, `number_formatting`, `comments`, `conversions` |
+| `if`, `while`, `for`, `break`, `continue`, `match` | `control_flow`, `for_with_two_variables`, `match_expressions` |
+| Functions, closures, generics | `functions_and_closures`, `closures`, `named_arguments`, `generics` |
+| Strings, arrays, maps, sets, tuples | `strings`, `string_library`, `arrays`, `maps`, `sets`, `tuples` |
+| Optional values, `Result` and `?` | `nullables`, `optionals`, `results` |
+| Structures, traits, enums, inheritance | `structs`, `traits`, `enums`, `inheritance` |
+| `Json.parse`, `Json.of`, `Json.to`; modules | `json`, `modules` |
+| The codes of the common errors | the `compile_*`, `runtime_errors` and `arithmetic_errors` folders |
+| The `run`, `check`, `fmt` and `test` commands | not in the conformance suite (it only covers the language): integration tests of `qlang` |
+
+Outside the promise: reflection, `extern`, the HTTP server and the web library, `Term`, tasks and traces, and everything
+marked provisional or experimental. Each version of qlang has its tag in the conformance repository (`v0.X.Y` = the
+suite of qlang `0.X.Y`). A package states the level of its files in `[stability]` of its `qlang.toml`; `qlang doc`
+writes it under the title of each file and `qlang doc --require-levels` fails for a file without one.
+

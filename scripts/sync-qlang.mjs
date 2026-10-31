@@ -241,3 +241,148 @@ for (const lang of ['fr', 'en']) {
   }
   console.log(`qlang-std ${stdVersion} (${lang}): ${stdPages.length} pages generated`);
 }
+
+// The reference of the prelude: what the language provides without an import (the global functions, the
+// methods of the built-in types, `Hash.sha256`, the types of the prelude). `qlang doc --prelude` writes it as
+// `reference.json`, attached to each release (from 0.80); QLANG_REFERENCE_JSON takes a local file. The examples
+// are in reference/examples.txt: each one is RUN with the wasm of the site, and its output is shown.
+{
+  const referenceVersion = fs.readFileSync(path.join(root, 'QLANG_VERSION'), 'utf8').trim();
+  let referenceText = null;
+  if (process.env.QLANG_REFERENCE_JSON) {
+    referenceText = fs.readFileSync(path.resolve(root, process.env.QLANG_REFERENCE_JSON), 'utf8');
+  } else if (process.env.QLANG_REPO) {
+    console.log('prelude reference skipped: set QLANG_REFERENCE_JSON to the output of `qlang doc --prelude`');
+  } else {
+    const res = await fetch(`https://github.com/quenti77/qlang/releases/download/v${referenceVersion}/reference.json`);
+    if (res.ok) referenceText = await res.text();
+    else console.log(`prelude reference skipped: qlang v${referenceVersion} has no reference.json (from 0.80)`);
+  }
+  if (referenceText) await generatePreludeReference(JSON.parse(referenceText));
+}
+
+async function generatePreludeReference(ref) {
+  const { load } = await import('../src/vendor/qlang.mjs');
+  const qlang = await load(fs.readFileSync(wasmOut));
+
+  // reference/examples.txt: blocks that start with `@ owner.name`
+  const examples = new Map();
+  let current = null;
+  for (const line of fs.readFileSync(path.join(root, 'reference', 'examples.txt'), 'utf8').split('\n')) {
+    if (line.startsWith('@ ')) {
+      current = { key: line.slice(2).trim(), lines: [] };
+      examples.set(current.key, current);
+    } else if (current) current.lines.push(line);
+  }
+  const problems = [];
+  for (const ex of examples.values()) {
+    ex.code = ex.lines.join('\n').trim() + '\n';
+    const answer = qlang.handle({
+      files: { 'main.q': ex.code },
+      now: 1_700_000_000_000,
+      seed: 1,
+      limits: { max_steps: 5_000_000, max_depth: 250 },
+    });
+    if (!answer.ok) problems.push(`${ex.key}: ${answer.diagnostics.map((d) => `${d.code} ${d.message}`).join('; ')}`);
+    ex.output = answer.output.replace(/\n$/, '');
+  }
+  if (problems.length) {
+    console.error(`reference/examples.txt: ${problems.length} example(s) fail:\n  ${problems.join('\n  ')}`);
+    process.exit(1);
+  }
+  const used = new Set();
+
+  const TEXT = {
+    fr: {
+      group: 'Référence du prélude',
+      intro: "Ce que le langage fournit sans `import`. Les explications et les signatures viennent du compilateur (`qlang doc --prelude`, version {v}) : elles sont en anglais, comme dans l'éditeur. Chaque exemple est exécuté à la génération du site : ce qu'il affiche est ce que fait vraiment qlang {v}.",
+      prints: 'Affiche',
+      methods: 'Méthodes',
+      functions: 'Fonctions',
+      fields: 'Champs',
+      variants: 'Variantes',
+      global: 'Fonctions globales',
+    },
+    en: {
+      group: 'Prelude reference',
+      intro: 'What the language provides without an `import`. The explanations and signatures come from the compiler (`qlang doc --prelude`, version {v}), the same as in the editor. Every example is run when the site is built: what it prints is what qlang {v} really does.',
+      prints: 'Prints',
+      methods: 'Methods',
+      functions: 'Functions',
+      fields: 'Fields',
+      variants: 'Variants',
+      global: 'Global functions',
+    },
+  };
+
+  const exampleOf = (key) => {
+    const ex = examples.get(key);
+    if (!ex) return '';
+    used.add(key);
+    return { code: ex.code, output: ex.output };
+  };
+  // one entry: heading, signature, explanation, example with its output
+  const entry = (t, key, e, level = '###') => {
+    const lines = [`${level} ${e.name}`, '', '```qlang-ref', e.signature, '```'];
+    if (e.doc) lines.push('', e.doc);
+    const ex = exampleOf(key);
+    if (ex) {
+      lines.push('', '```qlang-ref', ex.code.trimEnd(), '```', '', `${t.prints}:`, '', '```', ex.output, '```');
+    }
+    return lines.join('\n');
+  };
+
+  const pages = [];
+  pages.push({ name: 'functions', title: 'print, panic, assert…', body: (t) => ref.functions.map((f) => entry(t, f.name, f)).join('\n\n') });
+  const mergedNamespaces = new Set(ref.builtin.map((b) => b.name));
+  for (const b of ref.builtin) {
+    const ns = ref.namespaces.find((n) => n.name === b.name);
+    pages.push({
+      name: b.name,
+      title: b.name,
+      body: (t) => {
+        const parts = [];
+        if (ns) {
+          parts.push(`## ${t.functions}`, ns.entries.map((e) => entry(t, `${b.name}.${e.name}`, e)).join('\n\n'));
+        }
+        if (b.methods.length) parts.push(`## ${t.methods}`, b.methods.map((m) => entry(t, `${b.name}.${m.name}`, m)).join('\n\n'));
+        return parts.join('\n\n');
+      },
+    });
+  }
+  for (const n of ref.namespaces.filter((n) => !mergedNamespaces.has(n.name))) {
+    pages.push({ name: n.name, title: n.name, body: (t) => n.entries.map((e) => entry(t, `${n.name}.${e.name}`, e)).join('\n\n') });
+  }
+  for (const ty of ref.types.filter((x) => !mergedNamespaces.has(x.name))) {
+    pages.push({
+      name: ty.name,
+      title: ty.name,
+      body: (t) => {
+        const parts = [];
+        if (ty.doc) parts.push(ty.doc);
+        if (ty.variants.length) parts.push(`## ${t.variants}`, ty.variants.map((v) => `- \`${v.signature}\`${v.doc ? ` — ${v.doc}` : ''}`).join('\n'));
+        if (ty.fields.length) parts.push(`## ${t.fields}`, ty.fields.map((f) => `- \`${f.signature}\`${f.doc ? ` — ${f.doc}` : ''}`).join('\n'));
+        if (ty.methods.length) parts.push(`## ${t.methods}`, ty.methods.map((m) => entry(t, `${ty.name}.${m.name}`, m)).join('\n\n'));
+        return parts.join('\n\n');
+      },
+    });
+  }
+  for (const lang of ['fr', 'en']) {
+    const t = TEXT[lang];
+    const outDir = path.join(root, 'content', lang, 'docs-generated');
+    for (const old of fs.readdirSync(outDir)) if (/^1\d\d-ref-/.test(old)) fs.unlinkSync(path.join(outDir, old));
+    pages.forEach((page, i) => {
+      const slug = `${100 + i}-ref-${page.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+      const body = [t.intro.replaceAll('{v}', ref.version), page.body(t)].filter(Boolean).join('\n\n');
+      fs.writeFileSync(path.join(outDir, `${slug}.md`), `---\ntitle: ${JSON.stringify(page.title)}\ngroup: ${JSON.stringify(t.group)}\n---\n\n# ${page.title}\n\n${body}\n`);
+    });
+    console.log(`prelude reference ${ref.version} (${lang}): ${pages.length} pages generated`);
+  }
+  const unused = [...examples.keys()].filter((k) => !used.has(k));
+  if (unused.length) {
+    console.error(`reference/examples.txt: no such function for ${unused.join(', ')}`);
+    process.exit(1);
+  }
+  const total = ref.functions.length + ref.builtin.reduce((n, b) => n + b.methods.length, 0) + ref.namespaces.reduce((n, x) => n + x.entries.length, 0);
+  console.log(`prelude reference: ${used.size} of ${total} functions and methods have an example`);
+}
