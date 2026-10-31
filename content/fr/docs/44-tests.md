@@ -107,8 +107,37 @@ fait échouer le test (pour qu'un oubli se voie).
 
 `QLANG_TEST_JUNIT=rapport.xml` écrit un JUnit XML, `QLANG_TEST_TAP=rapport.tap` un rapport TAP.
 
+## Doubles de traits
+
+Un double de trait est une structure qui l'implémente et note ses appels dans un `Spy` :
+
+```
+trait Mailer
+  fun send(self, to: string) -> bool
+end
+
+struct FakeMailer
+  public calls: t.Spy
+  public works: bool
+end
+
+impl Mailer for FakeMailer
+  public fun send(self, to: string) -> bool
+    self.calls.calls.push(to)
+    self.works
+  end
+end
+```
+
+Il n'y a pas de fabrication automatique : un programme qlang ne peut pas construire un type à l'exécution.
+
+## Groupes et couverture
+
+`qlang test --group lent` (ou `QLANG_TEST_GROUP=lent`) ne lance que les cas marqués par `group("lent", f)`, et
+`--skip-group lent` les laisse de côté. `qlang test --coverage` dit, par fichier source, quelles lignes portant une
+instruction ont été exécutées et lesquelles ne l'ont pas été (`--coverage-lcov c.info` écrit un fichier LCOV). C'est de
+la couverture de lignes, avec l'interpréteur « simple » (plus lent).
+
 ## Ce qui n'y est pas
 
-- **La couverture de code** : elle demande que l'interpréteur compte les lignes.
-- **Des doubles automatiques pour les traits** : seules les fonctions se remplacent (`fake0/1/2`).
-- Les `fun test_...` continuent de marcher, à côté.
+- Les `fun test_...` continuent de marcher, à côté (ils ne sont pas dépréciés).

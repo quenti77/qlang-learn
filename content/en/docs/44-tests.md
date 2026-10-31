@@ -107,8 +107,37 @@ test (so that a forgotten one is noticed).
 
 `QLANG_TEST_JUNIT=report.xml` writes a JUnit XML file, `QLANG_TEST_TAP=report.tap` a TAP report.
 
+## Trait doubles
+
+A double of a trait is a struct that implements it and records its calls in a `Spy`:
+
+```
+trait Mailer
+  fun send(self, to: string) -> bool
+end
+
+struct FakeMailer
+  public calls: t.Spy
+  public works: bool
+end
+
+impl Mailer for FakeMailer
+  public fun send(self, to: string) -> bool
+    self.calls.calls.push(to)
+    self.works
+  end
+end
+```
+
+There is no automatic fake: a qlang program cannot build a type at run time.
+
+## Groups and coverage
+
+`qlang test --group slow` (or `QLANG_TEST_GROUP=slow`) runs only the cases marked with `group("slow", f)`, and
+`--skip-group slow` leaves them out. `qlang test --coverage` says, per source file, which lines holding a statement were
+run and which were not (`--coverage-lcov c.info` writes an LCOV file). It is line coverage, with the plain interpreter
+(slower).
+
 ## What is not there
 
-- **Code coverage**: it needs the interpreter to count lines.
-- **Automatic doubles for traits**: only functions can be replaced (`fake0/1/2`).
-- The `fun test_...` functions keep working, side by side.
+- `fun test_...` keeps working, side by side (they are not deprecated).
