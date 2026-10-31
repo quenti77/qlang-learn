@@ -3095,6 +3095,15 @@ end)
 - `Term.session(f)` prepares the screen (raw mode, alternate screen, hidden cursor), calls `f` and puts the
   terminal back as it was, whatever happens; the `qlang` command does it too if the program fails or stops
   in the middle, before it writes the error.
+- **Testing a program in a terminal**: `Term.script(events, columns, rows)` (with the `qlang` command, so under `qlang test`)
+  installs a **played terminal**: the program believes it is in a terminal of that size, `Term.event` gives it the
+  `Event { kind: "key", key: "q" }` of the list one after the other and then answers `"timeout"` **at once** (it never
+  waits), `Term.is_tty()` is true and `Term.colors()` is 256. Nothing reaches the real terminal: everything written is kept,
+  `Term.screen()` gives it back (escape sequences included), and `Term.end_script()` goes back to the real terminal.
+- **Windows**: `Term` relies on the Windows console (keys, mouse, size, raw mode); the program switches on the processing
+  of escape sequences before writing, so that `Term.write("\e[31m…")` works as elsewhere. This part has only been tried by
+  the CI (without a real console): a try in Windows Terminal is the test that is missing.
+
 
 ---
 

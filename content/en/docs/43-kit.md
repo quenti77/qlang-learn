@@ -60,7 +60,8 @@ Each generator writes a file where it belongs and says what it did:
 | --- | --- | --- |
 | `controller` | `controllers/blog_posts.q` and its test `tests/blog_posts_test.q` | added to `App.boot(...)` in `app.q` |
 | `model` | `models/blog_post.q` | a struct and the queries that read it |
-| `migration` | `migrations/<date>_<name>.q` | `create_x_table` creates the table, any other name gives a blank migration |
+| `migration` | `migrations/<date>_<name>.q` | `create_x_table` creates the table, any other name gives a blank migration; added to the list in `migrations.q` (created if needed), whose `all()` gives the migrator its migrations |
+| `provider` | `providers/<name>.q` | a service and the function `make_<name>` that builds it; added to `App.boot(...)` of `app.q` |
 | `job` | `jobs/<name>.q` | a struct and its handler |
 | `middleware`, `policy`, `resource` | `middleware/`, `policies/`, `resources/` | something to fill in |
 | `factory`, `seeder` | `factories/`, `seeders/` | for `db:seed` |

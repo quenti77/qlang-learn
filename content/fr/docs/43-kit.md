@@ -62,7 +62,8 @@ Chaque générateur écrit un fichier à sa place et dit ce qu'il a fait :
 | --- | --- | --- |
 | `controller` | `controllers/blog_posts.q` et son test `tests/blog_posts_test.q` | ajouté à `App.boot(...)` de `app.q` |
 | `model` | `models/blog_post.q` | une structure et les requêtes qui la lisent |
-| `migration` | `migrations/<date>_<nom>.q` | `create_x_table` crée la table, un autre nom donne une migration vide |
+| `migration` | `migrations/<date>_<nom>.q` | `create_x_table` crée la table, un autre nom donne une migration vide ; ajoutée à la liste de `migrations.q` (créé au besoin), dont `all()` donne les migrations au migrateur |
+| `provider` | `providers/<nom>.q` | un service et la fonction `make_<nom>` qui le construit ; ajouté à `App.boot(...)` de `app.q` |
 | `job` | `jobs/<nom>.q` | une structure et son gestionnaire |
 | `middleware`, `policy`, `resource` | `middleware/`, `policies/`, `resources/` | de quoi remplir |
 | `factory`, `seeder` | `factories/`, `seeders/` | pour `db:seed` |
