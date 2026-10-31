@@ -33,8 +33,8 @@ Today nothing is "guaranteed 1.0": *stable* means "we will treat it as if 1.0 we
 | `datetime`, `uuid`, `ulid`, `regex`, `Hash`, `Base64`, `Hex`, `Url`, `Crypto`, `Password`, `Format`, `Path` | provisional |
 | `fs`, `env`, `http`, `Db`, `Redis`, `Process`, `Log` | provisional |
 | Operator overloading, type aliases, annotations (`#[annotation]`), `Any` | provisional |
-| `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard` | provisional (recent) |
-| `Reflect` (constructors, `callable`), `extern fun` and providers, `Term` | **experimental** |
+| `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard`, `Shared` | provisional (recent) |
+| `Reflect` (constructors, `callable`), `extern fun` and providers, `Term`, `Worker` (tasks) | **experimental** |
 | Reserved words (`step`, `from`, `then`, `catch`, `public`, `end`...) | more may be **added** (announced as "Cassant") |
 | Text of the error messages | **not promised** |
 | Error codes (`Pxxx`, `Txxx`, `Rxxx`, `Wxxx`) | a published code keeps its meaning: it is not renumbered; new ones appear |
@@ -49,7 +49,7 @@ their part: an added key is not a breaking change, a removed or renamed key is.
 | `qlang run`, `check`, `fmt`, `test` (existing options) | **stable** (options are added, none is removed without a cycle) |
 | `qlang serve` (options, the `handle` protocol) | provisional; `Response.stream` / `sse` / `file` provisional; WebSocket **experimental** |
 | `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `self-update` | provisional |
-| `qlang init --web` | **experimental** |
+| `qlang init --web`, `qlang test --coverage` / `--group`, `qlang lint`, `qlang repl`, `qlang dap`, `qlang fmt --stdin` | **experimental** |
 | `qlang.toml`: `[package]` (`name`, `version`, `entry`, `main`, `qlang`) and `[dependencies]` | provisional |
 | `qlang.toml`: `[externs]` | **experimental** |
 | `qlang.lock` | provisional (readable format, do not edit it) |
@@ -63,7 +63,7 @@ their part: an added key is not a breaking change, a removed or renamed key is.
 | `web/app.q`, `web/session.q`, `web/validate.q`, `web/migrate.q`, `web/query.q`, `web/cache.q`, `web/middleware.q`, `web/health.q`, `web/limit.q`, `web/auth.q`, `web/upload.q`, `web/testing.q` | provisional |
 | `queue.q`, `schedule.q`, `mail.q`, `notify.q`, `s3.q` | provisional |
 | `web/container.q` (injection), `web/openapi.q`, `web/ws.q`, `web/relations.q`, `web/policy.q`, `web/resource.q`, `web/seed.q`, `web/queue_admin.q`, `web/metrics.q`, `web/events.q`, `web/commands.q`, `web/locale.q`, `web/refresh.q`, `web/proxy.q`, `web/accounts.q` | **experimental** |
-| `qlang-test` (package), `kit` | **experimental** (0.1.x) |
+| `qlang-test` (package), `kit` | **experimental** (0.x) |
 
 While the std is at 0.x, none of its modules is *stable*; a breaking change in a *provisional* module is written in
 the CHANGELOG of `qlang-std`.

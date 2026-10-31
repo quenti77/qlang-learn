@@ -996,6 +996,8 @@ deprecated. A call from **another module** produces the warning `W001` ("`f` is 
 without stopping the program; `--deny-warnings` on `qlang check`, `run` or `test` turns it into an error. Without a
 text, it is the error `T292`. The whole cycle (announce, warn, remove) is in [stability.md](stability.md).
 
+**`#[used]`** is predefined too and has no effect on the program: in front of a function, it tells `qlang lint` that the function is reached in a way it cannot see (found by name, through reflection). It takes no argument (`T292`).
+
 ### Reflection
 
 `Reflect` describes, at run time, what the checker knows: a structure, an enumeration, the
@@ -1842,7 +1844,7 @@ print(a.filter(fun(k: string, v: int) -> bool v > 1 end)) -- {"y": 2}
   they have the same keys with equal values, whatever the insertion order.
 - **Why no array or structure keys?** A key must always designate the same entry, but an
   array or a structure is a shared reference that can be modified after being stored
-  (`k[0] = 99`). For coordinates, use a string (`m["{x},{y}"]`) or nested dictionaries. A
+  (`k[0] = 99`). For coordinates, use a **tuple** (`m[(x, y)]`, compared by value) or a string. A
   `float` is allowed as a key, though: it is compared by its bits (`0.0` and `-0.0` count as
   the same key).
 - An empty literal `{}` needs a type annotation: `let m = {}` is an error. A literal can
@@ -3061,7 +3063,7 @@ The source code itself cannot exceed 200 levels of nesting.
 - **Standard library:** it covers everyday needs (strings, arrays, dictionaries, `Set`, tuples,
   maths, encodings, files, network, processes, tests). The rest lives in packages: see
   `qlang-std` (CSV, templates, TOML, YAML, XML, mail, S3, service container).
-- **Dictionaries:** no keys of type array or structure (see above), and no `<` comparison.
+- **Dictionaries:** no keys of type array or structure (see above; a tuple does), and no `<` comparison (two dictionaries have no natural order: sort `keys()`).
 - **Identifiers:** ASCII only (`a-z`, `A-Z`, `0-9`, `_`), whereas strings and comments accept
   all Unicode characters.
-- **Generic anonymous functions:** not planned.
+- **Generic anonymous functions:** not planned (a named `fun f<T>(…)` covers the need, and an anonymous function takes its types from the context).

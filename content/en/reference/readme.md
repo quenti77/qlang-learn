@@ -119,6 +119,9 @@ methods and variants of their types. Test files are ignored.
 qlang test                       # all the tests of the project
 qlang test math_test.q           # one file (or a folder)
 qlang test --filter double       # the tests whose name contains "double"
+qlang test --coverage            # + the lines of code the tests did not run
+qlang test --coverage-lcov c.info  # + an LCOV file for a coverage tool
+qlang test --group db --skip-group slow   # with qlang-test: some groups only
 ```
 
 Test files are named `*_test.q` or `test_*.q`; in each of them, every `fun test_...()` with no
@@ -148,8 +151,62 @@ The other assertions: `assert_err`, `assert_some`, `assert_none`, `assert_contai
 `assert_within` (given tolerance). A failure is shown at the line of your test, not in the
 library.
 
+**Coverage**: `--coverage` runs the tests with the plain interpreter (slower, without the register machine) and
+notes every line that holds a statement and that a test ran; the report gives, per source file (test files are left
+out), the share that ran and the lines that did not. It is **line** coverage (not branches). `--coverage-lcov FILE`
+writes the LCOV format. **Groups**: `--group a,b` and `--skip-group c` set `QLANG_TEST_GROUP` /
+`QLANG_TEST_SKIP_GROUP`, which the [`qlang-test`](https://github.com/quenti77/qlang-test) package reads to run only the
+cases of the groups asked for.
+
 Exit code: `0` if everything passes (or if there is no test), `1` otherwise. `--seed N` fixes
 the random numbers, `--max-steps N` limits each test.
+
+### Formatting
+
+```sh
+qlang fmt              # lays out every .q file of the project
+qlang fmt lib.q        # one file (or a folder)
+qlang fmt --check      # lists those that would change, without touching them (exit code 1: for CI)
+qlang fmt --stdin      # a program on the input, laid out on the output (editor, pre-commit)
+```
+
+Folders or files to leave alone: `[fmt] exclude = ["vendor", "gen/api.q"]` in `qlang.toml` (paths relative to the
+project). The layout itself has no setting: two spaces per level.
+
+### Static analysis: `qlang lint`
+
+```sh
+qlang lint                         # every .q file of the project
+qlang lint lib.q --max-complexity 10
+```
+
+What the type checker does not say (exit code 1 if there is anything, for CI):
+
+| Code | Reported |
+| --- | --- |
+| `L001` | a variable that is never used (a name starting with `_` is kept on purpose) |
+| `L002` | a private function nothing calls (in a file that has an `export`); `test_…`, `run`, `handle`, `main`, `setup` and annotated functions are exempt |
+| `L003` | an imported name (`import a, b from "x.q"`) that is never written |
+| `L004` | code after `return`, `break` or `continue` |
+| `L005` | a function with too many paths (1 + `if`, `elseif`, `while`, `for`, `case`, `and`, `or`; 15 by default) |
+
+`#[used]` in front of a function tells the lint that it is reached in a way it cannot see (found by name, through
+reflection); the annotation has no other effect.
+
+### Debugger: `qlang dap`
+
+`qlang dap` is a debug adapter ([DAP](https://microsoft.github.io/debug-adapter-protocol/)): breakpoints, steps, pause,
+call stack and variables in the editor. In VS Code (the repository's extension), **F5** on a `.q` file is enough; for
+other editors see [docs/editors.md](docs/editors.md). The program runs without the register optimisation (slower) and
+without keyboard input.
+
+### Interactive session: `qlang repl`
+
+`qlang repl` reads one input at a time, with history (`~/.qlang_history`) and completion (keywords, visible names,
+members after `Type.`). An unfinished input (a missing `end`) goes on to the next line. Definitions (`fun`, `struct`,
+`import`, `let`…) stay from one input to the next; an expression is run once and its value shown. Each input is
+compiled with the earlier definitions, so **the initializer of a `let` is replayed** with each input: no side effects
+in it. `--allow-process` and `--max-steps N` as for `qlang run`.
 
 ### Running a program
 
