@@ -33,6 +33,8 @@ test('examples of the reference are highlighted and cannot be run', async ({ pag
 });
 
 test('every link inside the documentation leads to an existing page and anchor', async ({ page, request }) => {
+  // more than 160 pages (the reference of the prelude is generated): each one is visited and its links asked for
+  test.setTimeout(240_000);
   await page.goto('/fr/docs/');
   const chapters = await page.locator('.lesson-list a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
   expect(chapters.length).toBeGreaterThanOrEqual(24);
