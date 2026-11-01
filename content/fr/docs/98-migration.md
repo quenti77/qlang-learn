@@ -24,12 +24,14 @@ qlang migrate --check     # liste les fichiers qui changeraient, sans les touche
 qlang migrate             # réécrit
 ```
 
-Aujourd'hui une règle : `Log.warn` → `Log.warning` (0.69). Ce qui n'est pas un renommage reste décrit ci-dessous.
+Aujourd'hui une règle : `Log.warn` → `Log.warning` (déprécié en 0.69, retiré en 0.83). Ce qui n'est pas un renommage reste décrit ci-dessous.
 
-## 0.69 : `Log.warn` est déprécié (pas encore retiré)
+## 0.83 : `Log.warn` est retiré
+
+Déprécié en 0.69 (avertissement `W001`), retiré après quatorze versions mineures.
 
 - **Avant** : `Log.warn("message")`.
-- **Après** : `Log.warning("message")`. `Log.warn` marche encore, avec l'avertissement `W001`. Retrait au plus tôt en 0.72.
+- **Après** : `Log.warning("message")`. `Log.warn` n'existe plus : l'appel est une erreur de compilation.
 - **S'adapter** : remplacer `Log.warn(` par `Log.warning(` (recherche et remplacement dans le projet).
 
 ## 0.61 : `--dev` est refusé hors `localhost`
