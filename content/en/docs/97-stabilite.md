@@ -87,7 +87,7 @@ public fun warn(...)
 
 A module that calls its own deprecated function gets no warning: the warning is for the callers.
 
-**First case**: `Log.warn` (another name for `Log.warning`) is deprecated in 0.69, removed in 0.72 at the earliest.
+**First case**: `Log.warn` (another name for `Log.warning`) was deprecated in 0.69 and removed in 0.83. `qlang migrate` still rewrites the calls that remain.
 
 ## The "Cassant" section
 

@@ -24,12 +24,14 @@ qlang migrate --check     # lists the files that would change, without touching 
 qlang migrate             # rewrites
 ```
 
-Today there is one rule: `Log.warn` → `Log.warning` (0.69). What is not a rename stays described below.
+Today there is one rule: `Log.warn` → `Log.warning` (deprecated in 0.69, removed in 0.83). What is not a rename stays described below.
 
-## 0.69: `Log.warn` is deprecated (not removed yet)
+## 0.83: `Log.warn` is removed
+
+Deprecated in 0.69 (warning `W001`), removed fourteen minor versions later.
 
 - **Before**: `Log.warn("message")`.
-- **After**: `Log.warning("message")`. `Log.warn` still works, with the warning `W001`. Removal in 0.72 at the earliest.
+- **After**: `Log.warning("message")`. `Log.warn` no longer exists: the call is a compile error.
 - **Adapting**: replace `Log.warn(` by `Log.warning(` (search and replace in the project).
 
 ## 0.61: `--dev` is refused outside `localhost`
