@@ -111,7 +111,8 @@ cover it**.
 | Structures, traits, enums, inheritance | `structs`, `traits`, `enums`, `inheritance` |
 | `Json.parse`, `Json.of`, `Json.to`; modules | `json`, `modules` |
 | The codes of the common errors | the `compile_*`, `runtime_errors` and `arithmetic_errors` folders |
-| The `run`, `check`, `fmt` and `test` commands | not in the conformance suite (it only covers the language): integration tests of `qlang` |
+| The `run`, `check`, `fmt` and `test` commands | not in the conformance suite (it only covers the language): integration tests of `qlang`, option by option (`--max-steps` and `--seed`: `cli_options`; `--max-memory`, `--filter`, `--group`, `--coverage`, `--deny-warnings`, `--check`, `--stdin`, `--root`, `--extern`, `--allow-process`: one file each) |
+| The format of `qlang.toml` (`[package]`, `[dependencies]`, `[stability]`) and of `qlang.lock` | integration tests `manifest_format`: the exact text of the lock, a hand-written lock that is obeyed, every key accepted, `qlang = "…"` stopping a project that asks for more |
 
 Outside the promise: reflection, `extern`, the HTTP server and the web library, `Term`, tasks and traces, and everything
 marked provisional or experimental. Each version of qlang has its tag in the conformance repository (`v0.X.Y` = the

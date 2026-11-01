@@ -113,7 +113,8 @@ conformance la couvrent**.
 | Structures, traits, énumérations, héritage | `structs`, `traits`, `enums`, `inheritance` |
 | `Json.parse`, `Json.of`, `Json.to` ; modules | `json`, `modules` |
 | Les codes des erreurs courantes | les dossiers `compile_*`, `runtime_errors`, `arithmetic_errors` |
-| Les commandes `run`, `check`, `fmt`, `test` | pas dans la suite de conformité (elle ne couvre que le langage) : tests d'intégration de `qlang` |
+| Les commandes `run`, `check`, `fmt`, `test` | pas dans la suite de conformité (elle ne couvre que le langage) : tests d'intégration de `qlang`, option par option (`--max-steps` et `--seed` : `cli_options` ; `--max-memory`, `--filter`, `--group`, `--coverage`, `--deny-warnings`, `--check`, `--stdin`, `--root`, `--extern`, `--allow-process` : un fichier chacun) |
+| Le format de `qlang.toml` (`[package]`, `[dependencies]`, `[stability]`) et de `qlang.lock` | tests d'intégration `manifest_format` : le texte exact du verrou, un verrou écrit à la main qui est obéi, chaque clé acceptée, `qlang = "…"` qui arrête un projet trop exigeant |
 
 Hors de la promesse : la réflexion, `extern`, le serveur HTTP et la bibliothèque web, `Term`, les tâches et les traces,
 et tout ce qui est marqué provisoire ou expérimental. Chaque version de qlang a son tag dans le dépôt de conformité
