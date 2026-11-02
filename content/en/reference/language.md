@@ -678,6 +678,75 @@ print(connect("db", tls: true))           -- skip `port` by naming the next one
 - It works for functions and methods declared in qlang, like named arguments; not for function types
   (`fun(int) -> int`) nor `Callable.call`.
 
+### Variadic parameters and the spread `...`
+
+The **last** parameter of a function can collect the arguments that are left: write `...` before its name; its type
+is the type of **one element**. In the body it is an `array` of that type.
+
+```
+fun total(...numbers: int) -> int
+  let sum = 0
+  for n in numbers do
+    sum += n
+  end
+  sum
+end
+
+print(total())            -- 0: `numbers` is []
+print(total(1, 2, 3))     -- 6: `numbers` is [1, 2, 3]
+
+fun log(level: string, ...pieces: string) -> string
+  level + ": " + pieces.join(" ")
+end
+print(log("info", "a", "b"))   -- info: a b
+```
+
+- There is only one, in last position (`P044`), without a default value (`P046`: with no argument it is `[]`).
+  A method (`public fun push_all(self, ...items: int)`), an anonymous function (`fun(...xs: int) -> int`) and a
+  generic function (`fun bind<T>(name: string, ...values: T)`, where `T` unifies all the arguments) can have one.
+- Every argument is checked against the element type; the collected array is **new** (changing it does not touch the
+  caller). `...notes: array<float>` declares elements that are themselves `array<float>`: `notes` is an
+  `array<array<float>>`.
+- At least as many arguments as required parameters are needed (`T240`: "expects at least 1 argument(s)"). A parameter
+  with a default can come before the variadic one: `f()` gives `a = 1` and `xs = []`, but to give elements to the
+  variadic parameter you have to write `a`.
+- The variadic parameter **cannot be named** in a call (`T266`); the fixed ones are named as usual.
+- A variadic function is a value, of type `fun(string, ...int) -> R`; `fun(array<int>) -> int` and
+  `fun(...int) -> int` are two different types. A `trait` can declare a variadic method: the `impl` writes the same
+  signature (`T134`). An `extern fun` cannot be variadic (`T268`).
+- `Callable.call(args)` takes a flat array and collects the excess; `ParamInfo.variadic` says whether a parameter is
+  variadic (its `type_name` is that of one element).
+
+**The spread `...list`** "unrolls" an array (or a map) where a sequence of values is written:
+
+```
+let xs = [1, 2, 3]
+print(total(...xs))           -- 6
+print(total(10, ...xs, 20))   -- 36: values and spreads, in order
+
+fun add(a: int, b: int, ...c: int) -> string
+  "{a} {b} {c}"
+end
+print(add(...[1, 2, 3, 4]))   -- 1 2 [3, 4]: the elements fill the parameters from left to right
+
+let a = [1, 2]
+print([...a, 3, ...a])        -- [1, 2, 3, 1, 2]: a new array
+
+let defaults = { "port": 80, "workers": 2 }
+print({ ...defaults, "port": 8080 })   -- {"port": 8080, "workers": 2}: the last key wins
+```
+
+- In a **call**, the number of elements is not known before the program runs: the **type** of the elements must suit
+  every parameter they can reach (`T267`), and the **number** is checked when the call runs: too many or too few
+  elements for the function is the error `R018` (which names the function). A default value fills what is missing.
+  `total(...[])` calls `total()`.
+- In an **array** `[ ]`, the types unify as for a literal written by hand (`[...a]` with `a: array<int>` is not an
+  `array<float>`). In a **map** `{ }`, the keys follow each other in the order they are written.
+- Only an `array` (in a call or `[ ]`) and a `map` (in `{ }`) can be spread: not a `Set` (write
+  `...set.to_array()`), not a value that may be `none` (`...(x ?? [])`), not a struct, not an `Any` (`T264`).
+  `...` anywhere else is a syntax error. It cannot be overloaded (see #202).
+- The ranges `0..3` and `0..=3` do not change: `...` is a token of its own.
+
 ### Anonymous functions
 
 ```
@@ -1008,7 +1077,7 @@ functions of the file, with their annotations. Types stay static: you read descr
 | --- | --- |
 | `Reflect.struct_info<Form>()` | `StructInfo`: `name`, `fields` (`FieldInfo`: `name`, `type_name`, `annotations`), `annotations` |
 | `Reflect.enum_info<Color>()` | `EnumInfo`: `name`, `variants` (`VariantInfo`: `name`, `fields`, `annotations`), `annotations` |
-| `Reflect.functions()` | `array<FunctionInfo>` of the functions declared in **this file**: `name`, `params` (`ParamInfo`: `name`, `type_name`, `annotations`), `return_type`, `annotations` |
+| `Reflect.functions()` | `array<FunctionInfo>` of the functions declared in **this file**: `name`, `params` (`ParamInfo`: `name`, `variadic`, `type_name`, `annotations`), `return_type`, `annotations` |
 | `Reflect.find<fun(Request) -> Response>("home")` | the function `home` of this file if its type is exactly that one, otherwise `none` |
 | `Reflect.methods<Users>()` | `array<FunctionInfo>` of the methods of the `impl`s of `Users` (`has_self` tells whether it takes `self`) |
 | `Reflect.find_method<Users, fun(Request) -> Response>(value, "list")` | the method `list` of `value`, already bound to it, if its type (without `self`) is that one, otherwise `none` |
@@ -1686,7 +1755,7 @@ service, `qlang` by default):
   `Trace.traceparent()` the header value to give to a service called by other means than `http` (a queue message, for
   example).
 
-Spans leave in batches, in the background, every second; a missing collector neither slows nor breaks any request (one
+Spans leave in batches, in the background, every second (`QLANG_OTLP_FLUSH_MS` changes the interval, 10 ms at least); a missing collector neither slows nor breaks any request (one
 warning, once). Without `--otlp-endpoint` nothing is exported, but a `traceparent` that arrives is still passed on to
 the calls and the logs: a service in the middle of a chain does not cut it. The sampling flag received is respected (a
 caller that does not sample: nothing is sent); otherwise everything is sampled. At most 1000 spans per request. It needs
@@ -1733,7 +1802,7 @@ The library is deliberately small, and will grow with use.
 | `join(sep)`           | joins the elements into a `string`                               |
 | `sort()`              | sorts the array in place, stably (see below)                     |
 | `min()`, `max()`      | the smallest / largest element, or `none` if empty (`T?`)        |
-| `sum()`               | sum of an array of numbers (`0` or `0.0` if empty)               |
+| `sum()`               | sum of an array of numbers (`0` or `0.0` if empty), or of elements that implement `Add` (left to right; empty: error `R015`) |
 | `slice(start, end)`   | new array of the elements from `start` (included) to `end` (excluded) |
 | `map(f)`              | new array of `f(element)` for each element                       |
 | `filter(f)`           | new array of the elements for which `f(element)` is `true`       |
@@ -2732,7 +2801,7 @@ Options of `qlang serve app.q`:
 | `--max-headers SIZE` | size of the request line and headers (64 KB by default); beyond it, `431`             |
 | `--read-timeout S` | seconds a client has to send its **whole** request (20 by default); beyond it, `408` (protects from slowloris) |
 | `--idle-timeout S` | seconds of silence after which a kept connection is closed (5 by default)              |
-| `--no-access-log`  | does not write the line of every request (`GET /x -> 200 (1 ms)`) to the error output |
+| `--no-access-log`  | does not write the line of every request (`GET /x -> 200 (1 ms)`) to the error output; with `--log-format json` that line is a JSON object (`time`, `level`, `message`) |
 
 - **Static files** (`--static public`): for `GET` and `HEAD`, if the path designates a file of
   the folder (or `index.html` for a folder), it is served with its type (`.html`, `.css`,

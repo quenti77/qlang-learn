@@ -26,6 +26,24 @@ qlang migrate             # rewrites
 
 Today there is one rule: `Log.warn` → `Log.warning` (deprecated in 0.69, removed in 0.83). What is not a rename stays described below.
 
+## 1.0: `qlang fmt` writes four spaces and tidies the spaces of a line
+
+- **Before**: two spaces per level; only the spaces at the start and end of a line changed.
+- **After**: four spaces per level; a single space between two elements of a line, none inside parentheses and
+  brackets, before a comma or a dot, nor between a name and the `(` of its call; a space after each comma. A missing
+  space is never added, except after a comma.
+- **To adapt**: run `qlang fmt` once on the project, then commit. A CI that runs `qlang fmt --check` fails until that
+  is done. The meaning of programs does not change (the result has exactly the same tokens).
+
+## 1.0: the rules of `qlang lint` are `Q001` to `Q005`
+
+- **Before**: `qlang lint` reported `L001` to `L005`, the same codes as the errors of reading the text (`L001` unknown
+  character, `L002` unterminated string…).
+- **After**: the rules of `qlang lint` are `Q001` (unused variable), `Q002` (unused private function), `Q003` (unused
+  import), `Q004` (code after `return`, `break` or `continue`), `Q005` (too many paths). `Lxxx` now only names reading
+  errors.
+- **To adapt**: replace `L001`…`L005` with `Q001`…`Q005` wherever a script or a CI filters the output of `qlang lint`.
+
 ## 0.83: `Log.warn` is removed
 
 Deprecated in 0.69 (warning `W001`), removed fourteen minor versions later.

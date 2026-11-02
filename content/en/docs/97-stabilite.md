@@ -5,11 +5,11 @@ group: "Guides"
 
 # Stability and deprecation
 
-qlang is at 0.x: a version comes out almost every day. This page says **what you can rely on**, **how a breaking
-change is announced**, and **what 1.0 will promise**. It replaces the habit of reading the whole CHANGELOG to know
+qlang is at 1.0. This page says **what you can rely on**, **how a breaking
+change is announced**, and **what 1.0 promises**. It replaces the habit of reading the whole CHANGELOG to know
 whether an update is going to break something.
 
-> The classification below is a **proposal** by the author of the project: it says what we forbid ourselves to change
+> The classification below is the author's: it says what we forbid ourselves to change
 > lightly. If a line looks wrong to you, open an issue.
 
 ## The three levels
@@ -20,13 +20,14 @@ whether an update is going to break something.
 | **Provisional** | May change from one version to the next, with a "Cassant" line in the CHANGELOG and, when possible, a warning beforehand. |
 | **Experimental** | May change without warning or disappear. Only use it if you follow the project. |
 
-Today nothing is "guaranteed 1.0": *stable* means "we will treat it as if 1.0 were here".
+Since 1.0, what is *stable* is **guaranteed**: what 1.0 promises is listed at the bottom of this page.
 
 ## The language
 
 | Part | Level |
 | --- | --- |
 | Syntax: `let`, `fun`, `if`/`elseif`/`else`, `for`, `while`, `match`, `struct`, `enum`, `trait`, `impl`, `import`/`export`, interpolation `"{x}"` | **stable** |
+| Variadic parameters (`fun f(...xs: int)`) and the spread `...` in a call, an array and a map | provisional |
 | Basic types, `array`, `map`, `Set`, tuples, nullables `T?`, `??`, `?`, `Result`/`Error` | **stable** |
 | Type checking, inference, generics and bounds (`T: Eq`, `Ord`) | **stable** |
 | `Json.of` / `Json.to` / `Json.parse`, `string`, `int`, `float`, `bool` and their usual methods | **stable** |
@@ -95,9 +96,9 @@ Every CHANGELOG version that breaks something has a **Cassant** section at the t
 adapt*. The breaking changes of recent versions are collected in [the migration guide](../98-migration/). Versions
 before this rule did not always mark their breaking changes: their complete list is the CHANGELOG itself.
 
-## What 1.0 will promise
+## What 1.0 promises
 
-1.0 will freeze a **subset** whose executable definition is the conformance suite
+1.0 freezes a **subset** whose executable definition is the conformance suite
 ([qlang-conformance](https://github.com/quenti77/qlang-conformance)): **a line is only promised when conformance cases
 cover it**.
 

@@ -5,11 +5,11 @@ group: "Guides"
 
 # Stabilité et dépréciation
 
-qlang est en 0.x : une version sort presque chaque jour. Ce fichier dit **ce sur quoi on peut s'appuyer**,
-**comment un changement cassant est annoncé**, et **ce que la 1.0 promettra**. Il remplace l'habitude de lire tout
+qlang est en 1.0. Ce fichier dit **ce sur quoi on peut s'appuyer**,
+**comment un changement cassant est annoncé**, et **ce que la 1.0 promet**. Il remplace l'habitude de lire tout
 le CHANGELOG pour savoir si une mise à jour va casser quelque chose.
 
-> La classification ci-dessous est une **proposition** de l'auteur du projet : elle dit ce qu'on s'interdit de
+> La classification ci-dessous est celle de l'auteur du projet : elle dit ce qu'on s'interdit de
 > changer à la légère. Si une ligne vous semble fausse, ouvrez une issue.
 
 ## Les trois niveaux
@@ -20,13 +20,14 @@ le CHANGELOG pour savoir si une mise à jour va casser quelque chose.
 | **Provisoire** | Peut changer d'une version à l'autre, avec une ligne « Cassant » dans le CHANGELOG et, quand c'est possible, un avertissement avant. |
 | **Expérimental** | Peut changer sans avertissement ou disparaître. À n'utiliser que si vous suivez le projet. |
 
-Aujourd'hui rien n'est « garanti 1.0 » : *stable* veut dire « nous le traiterons comme si la 1.0 était là ».
+Depuis la 1.0, ce qui est *stable* est **garanti** : ce que la 1.0 promet est listé en bas de cette page.
 
 ## Le langage
 
 | Partie | Niveau |
 | --- | --- |
 | Syntaxe : `let`, `fun`, `if`/`elseif`/`else`, `for`, `while`, `match`, `struct`, `enum`, `trait`, `impl`, `import`/`export`, interpolation `"{x}"` | **stable** |
+| Paramètres variadiques (`fun f(...xs: int)`) et étalement `...` dans un appel, un tableau et un dictionnaire | provisoire |
 | Types de base, `array`, `map`, `Set`, tuples, nullables `T?`, `??`, `?`, `Result`/`Error` | **stable** |
 | Vérification de types, inférence, génériques et contraintes (`T: Eq`, `Ord`) | **stable** |
 | `Json.of` / `Json.to` / `Json.parse`, `string`, `int`, `float`, `bool` et leurs méthodes courantes | **stable** |
@@ -97,9 +98,9 @@ Chaque version du CHANGELOG qui casse quelque chose a une rubrique **Cassant** e
 Les versions d'avant cette règle ne marquaient pas toujours leurs changements cassants : leur liste complète est le
 CHANGELOG lui-même.
 
-## Ce que la 1.0 promettra (proposition)
+## Ce que la 1.0 promet
 
-La 1.0 figera un **sous-ensemble** dont la définition exécutable est la suite de conformité
+La 1.0 fige un **sous-ensemble** dont la définition exécutable est la suite de conformité
 ([qlang-conformance](https://github.com/quenti77/qlang-conformance)) : **une ligne n'est promise que quand des cas de
 conformance la couvrent**.
 
