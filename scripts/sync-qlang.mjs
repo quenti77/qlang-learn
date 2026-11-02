@@ -155,6 +155,8 @@ for (const { slug, title, chapter, group } of pages) {
     })
     // the stability and migration documents are pages of the site
     .replace(/\]\((stability|migration|registry|editors)\.md\)/g, (m, f) => `](../${{ stability: '97-stabilite', migration: '98-migration', registry: '91-paquets', editors: '50-editeurs' }[f]}/)`)
+    // the list of error codes is a file of the repository
+    .replace(/\]\(errors\.md\)/g, () => `](${REPO}/blob/main/docs/errors.md)`)
     // links to the language reference, and to files of the repository
     .replace(/\]\(docs\/language\.md(?:#([^)]+))?\)/g, (m, anchor) => {
       const target = anchor && pageOfLanguage(anchor);
