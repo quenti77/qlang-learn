@@ -215,10 +215,44 @@ print(reduce([1, 2, 3, 4], 0, fun(a: int, b: int) -> int a + b end))   -- 10
 print(reduce([1, 2, 3, 4], 1, fun(a: int, b: int) -> int a * b end))   -- 24
 ```
 
+## Any number of arguments
+
+The **last** parameter can collect all the remaining arguments: put `...` before its name. Its type is the type of
+**one element**; inside the function it is an array.
+
+```qlang
+fun total(...numbers: int) -> int
+  let sum = 0
+  for n in numbers do
+    sum += n
+  end
+  sum
+end
+print(total())          -- 0
+print(total(1, 2, 3))   -- 6
+```
+
+And `...` before a value does the opposite: it **unrolls** an array into arguments, or into another array.
+
+```qlang
+fun total(...numbers: int) -> int
+  let sum = 0
+  for n in numbers do
+    sum += n
+  end
+  sum
+end
+let xs = [1, 2, 3]
+print(total(...xs))            -- 6
+print(total(10, ...xs, 20))    -- 36
+print([...xs, 4, ...xs])       -- [1, 2, 3, 4, 1, 2, 3]
+```
+
 ## Remember
 
 - `fun name(param: type) -> return_type … end`
 - Last expression = returned value; `return` to leave earlier.
 - Recursion = base case + recursive case.
 - A function is a value: `map` / `filter` / `reduce` follow from it.
+- `...numbers: int` collects the remaining arguments in an array; `...list` unrolls an array.
 - Depth limit: 1000 nested calls (error `R901`); 250 on this site, where the browser has less room.

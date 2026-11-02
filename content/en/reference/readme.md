@@ -102,6 +102,9 @@ qlang check             # checks without running
 file look for it from the current folder, going up. (`main`, in the same table, is something
 else: the file that `import "@my-app"` loads when the project is used as a package.)
 
+`qlang init --web my-app` also creates a web application (the `std` package is installed right away);
+`--no-install` does not install it, and `qlang add std` does later.
+
 ### Documentation
 
 ```sh
@@ -171,7 +174,10 @@ qlang fmt --stdin      # a program on the input, laid out on the output (editor,
 ```
 
 Folders or files to leave alone: `[fmt] exclude = ["vendor", "gen/api.q"]` in `qlang.toml` (paths relative to the
-project). The layout itself has no setting: two spaces per level.
+project). The layout itself has no setting: four spaces per level. Only spaces change: at the start of lines, at
+their end, and between two elements of a line (a single space, none inside parentheses and brackets, before a comma
+or a dot, nor between a name and the `(` of its call; a space after each comma). A missing space is never added,
+except after a comma. Tokens and comments stay as they are, and this is checked on every run.
 
 ### Static analysis: `qlang lint`
 
@@ -184,11 +190,11 @@ What the type checker does not say (exit code 1 if there is anything, for CI):
 
 | Code | Reported |
 | --- | --- |
-| `L001` | a variable that is never used (a name starting with `_` is kept on purpose) |
-| `L002` | a private function nothing calls (in a file that has an `export`); `test_…`, `run`, `handle`, `main`, `setup` and annotated functions are exempt |
-| `L003` | an imported name (`import a, b from "x.q"`) that is never written |
-| `L004` | code after `return`, `break` or `continue` |
-| `L005` | a function with too many paths (1 + `if`, `elseif`, `while`, `for`, `case`, `and`, `or`; 15 by default) |
+| `Q001` | a variable that is never used (a name starting with `_` is kept on purpose) |
+| `Q002` | a private function nothing calls (in a file that has an `export`); `test_…`, `run`, `handle`, `main`, `setup` and annotated functions are exempt |
+| `Q003` | an imported name (`import a, b from "x.q"`) that is never written |
+| `Q004` | code after `return`, `break` or `continue` |
+| `Q005` | a function with too many paths (1 + `if`, `elseif`, `while`, `for`, `case`, `and`, `or`; 15 by default) |
 
 `#[used]` in front of a function tells the lint that it is reached in a way it cannot see (found by name, through
 reflection); the annotation has no other effect.
@@ -198,7 +204,9 @@ reflection); the annotation has no other effect.
 `qlang dap` is a debug adapter ([DAP](https://microsoft.github.io/debug-adapter-protocol/)): breakpoints, steps, pause,
 call stack and variables in the editor. In VS Code (the repository's extension), **F5** on a `.q` file is enough; for
 other editors see [docs/editors.md](docs/editors.md). The program runs without the register optimisation (slower) and
-without keyboard input.
+without keyboard input. It starts the file like `qlang run`: a served program (`qlang serve`, `handle`) is not debugged
+as a server; the limits are listed in the "Debugger" section of [docs/editors.md](docs/editors.md), and `qlang dap` is
+**experimental**.
 
 ### Interactive session: `qlang repl`
 
@@ -261,6 +269,10 @@ The provider answers two messages:
 → {"op":"list"}                                    ← {"externs":["mail_send"]}
 → {"op":"call","name":"mail_send","args":[…]}      ← {"ok":<value>}  or  {"error":"message"}
 ```
+
+A provider that does not answer a message within **60 seconds** (change it with `QLANG_PROVIDER_TIMEOUT`, in seconds)
+is stopped, and the call gives the error `the provider did not answer within N seconds`: a crashed or stuck provider
+does not freeze the program.
 
 Values are JSON: a struct or a map is an object (`int` or `bool` keys are written as text), an
 enumeration the name of its variant, a `Json` its value. A name already provided by `qlang`
@@ -432,7 +444,8 @@ instead of stopping the process; in the HTTP server, the worker concerned answer
 connection slot is released. It does not limit the total memory of a process nor the real
 time: for code from strangers, run `qlang` in a container or with the limits of the system
 (`ulimit`, cgroups) and a timeout. The HTTP server (`qlang serve`) is minimal: no TLS, no
-persistent connections, at most 16 simultaneous connections. Put it behind a reverse proxy
+at most 64 simultaneous connections (`--max-connections`), a request must arrive within 20 seconds
+(`--read-timeout`). **For HTTPS, put it behind a reverse proxy** (nginx, Caddy, Traefik…) that holds the certificate,
 and do not expose it directly to the Internet.
 
 ## Browser: WebAssembly

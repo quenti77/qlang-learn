@@ -216,11 +216,45 @@ print(reduire([1, 2, 3, 4], 0, fun(a: int, b: int) -> int a + b end))   -- 10
 print(reduire([1, 2, 3, 4], 1, fun(a: int, b: int) -> int a * b end))   -- 24
 ```
 
+## Un nombre variable d'arguments
+
+Le **dernier** paramètre peut ramasser tous les arguments qui restent : on met `...` devant son nom. Son type est
+celui d'**un élément** ; dans la fonction, c'est un tableau.
+
+```qlang
+fun somme(...nombres: int) -> int
+  let total = 0
+  for n in nombres do
+    total += n
+  end
+  total
+end
+print(somme())          -- 0
+print(somme(1, 2, 3))   -- 6
+```
+
+Et `...` devant une valeur fait l'inverse : il **déroule** un tableau en arguments, ou dans un autre tableau.
+
+```qlang
+fun somme(...nombres: int) -> int
+  let total = 0
+  for n in nombres do
+    total += n
+  end
+  total
+end
+let xs = [1, 2, 3]
+print(somme(...xs))            -- 6
+print(somme(10, ...xs, 20))    -- 36
+print([...xs, 4, ...xs])       -- [1, 2, 3, 4, 1, 2, 3]
+```
+
 ## À retenir
 
 - `fun nom(param: type) -> type_retour … end`
 - Dernière expression = valeur renvoyée ; `return` pour sortir plus tôt.
 - Récursion = cas de base + cas récursif.
 - Une fonction est une valeur : `map` / `filter` / `reduce` en découlent.
+- `...nombres: int` ramasse les arguments restants dans un tableau ; `...liste` déroule un tableau.
 - Limite de profondeur : 1000 appels imbriqués (erreur `R901`) ; 250 sur ce site, où le
   navigateur a moins de place.
