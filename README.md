@@ -14,6 +14,22 @@ QLANG_REPO=../qlang npm run dev     # use a local build of qlang (see below)
 The site is published on GitHub Pages (https://quenti77.github.io/qlang-learn/) by `.github/workflows/pages.yml`
 when `main` changes. To use a newer qlang, change `QLANG_VERSION` (a release that publishes `qlang.wasm`).
 
+## Versions
+
+The site is published once per version of qlang, side by side: `/1.0/fr/docs/…`, `/1.1/…`. `/latest/…` and the
+addresses from before the versions (`/fr/docs/…`) redirect to the latest. `versions.json` lists them (name,
+qlang and std releases, `stable` / `archived` / `next`) and is read by the selector in the header and by the
+banner of an old version. `npm run build:versions` builds each one with its own pair of releases (sync,
+`check-content`, `verify-lessons`, Astro, search index) into `site/`; `SITE_BASE=/qlang-learn/` for GitHub
+Pages, `VERSIONS_FILE=…` for another list, `npm run build:versions -- 1.0` for some versions only, and
+`npm run serve:versions` to look at `site/` (http://127.0.0.1:4322/). `npm run build` still builds the
+single version of `QLANG_VERSION`, with no selector.
+
+The lessons and exercises are written for the latest version. A version with a `"source"` (a git ref such as
+`site-1.0`) takes its hand-written folders (`content/`, `reference/`) from that ref, so its English translation
+matches its French source; the code of the site is always the current one. `latest` in `versions.json` must
+agree with `QLANG_VERSION` / `STD_VERSION`.
+
 `npm run sync` puts `qlang.wasm` and `qlang.mjs` in place: from a local checkout of qlang
 (`QLANG_REPO=../qlang`, after `cargo build --profile wasm --target wasm32-unknown-unknown -p qlang-wasm`
 there), or, without it, from the release named in `QLANG_VERSION`.

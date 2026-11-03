@@ -1,0 +1,7 @@
+{
+  "latest": "1.0",
+  "versions": [
+    { "name": "1.0", "qlang": "1.0.0", "std": "0.20.0", "status": "stable", "released": "2026-11-02" },
+    { "name": "next", "qlang": "next", "std": "next", "status": "next" }
+  ]
+}

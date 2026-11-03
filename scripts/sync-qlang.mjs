@@ -1,6 +1,7 @@
 // Puts qlang.wasm (public/) and qlang.mjs (src/vendor/) in place.
 //
 //   npm run sync                      # download the release named in QLANG_VERSION
+//   QLANG_VERSION=1.0.0 STD_VERSION=0.20.0 npm run sync   # or the pair given by the environment
 //   QLANG_REPO=../qlang npm run sync  # or take the files from a local build of qlang:
 //                                     #   cargo build --profile wasm --target wasm32-unknown-unknown -p qlang-wasm
 import fs from 'node:fs';
@@ -13,6 +14,10 @@ const wasmOut = path.join(root, 'public', 'qlang.wasm');
 const mjsOut = path.join(root, 'src', 'vendor', 'qlang.mjs');
 fs.mkdirSync(path.dirname(mjsOut), { recursive: true });
 fs.mkdirSync(path.dirname(wasmOut), { recursive: true }); // git does not keep empty folders
+
+// The versions to take: the files QLANG_VERSION / STD_VERSION, unless the environment overrides them
+// (scripts/build-versions.mjs builds each version of versions.json with its own pair).
+const pin = (name) => (process.env[name] || fs.readFileSync(path.join(root, name), 'utf8')).trim();
 
 let languageDoc;
 let readme;
@@ -32,8 +37,10 @@ if (process.env.QLANG_REPO) {
   intelSource = fs.readFileSync(path.join(repo, 'editors/vscode/intel.js'), 'utf8');
   console.log(`qlang taken from ${repo}`);
 } else {
-  const version = fs.readFileSync(path.join(root, 'QLANG_VERSION'), 'utf8').trim();
-  const base = `https://github.com/quenti77/qlang/releases/download/v${version}`;
+  const version = pin('QLANG_VERSION');
+  // "next" is qlang as it is on main: the rolling pre-release `next` (qlang's workflow next.yml) and the files of main
+  const next = version === 'next';
+  const base = `https://github.com/quenti77/qlang/releases/download/${next ? 'next' : `v${version}`}`;
   for (const [name, out] of [['qlang.wasm', wasmOut], ['qlang.mjs', mjsOut]]) {
     const res = await fetch(`${base}/${name}`);
     if (!res.ok) {
@@ -43,7 +50,7 @@ if (process.env.QLANG_REPO) {
     fs.writeFileSync(out, Buffer.from(await res.arrayBuffer()));
   }
   const raw = async (file) => {
-    const res = await fetch(`https://raw.githubusercontent.com/quenti77/qlang/v${version}/${file}`);
+    const res = await fetch(`https://raw.githubusercontent.com/quenti77/qlang/${next ? 'main' : `v${version}`}/${file}`);
     if (!res.ok) {
       console.error(`cannot download ${file} of v${version}: ${res.status}`);
       process.exit(1);
@@ -194,10 +201,10 @@ generate('en', reference('language.md'), reference('readme.md'));
 
 // The reference of qlang-std: one page per module, from its API.md (the items) and the comment at the
 // top of each file (the guide of the module). STD_VERSION names the tag; QLANG_STD_REPO takes a local clone.
-const stdVersion = fs.readFileSync(path.join(root, 'STD_VERSION'), 'utf8').trim();
+const stdVersion = pin('STD_VERSION');
 const stdRaw = async (file) => {
   if (process.env.QLANG_STD_REPO) return fs.readFileSync(path.join(path.resolve(root, process.env.QLANG_STD_REPO), file), 'utf8');
-  const res = await fetch(`https://raw.githubusercontent.com/quenti77/qlang-std/v${stdVersion}/${file}`);
+  const res = await fetch(`https://raw.githubusercontent.com/quenti77/qlang-std/${stdVersion === 'next' ? 'main' : `v${stdVersion}`}/${file}`);
   if (!res.ok) {
     console.error(`cannot download ${file} of qlang-std v${stdVersion}: ${res.status}`);
     process.exit(1);
@@ -249,14 +256,14 @@ for (const lang of ['fr', 'en']) {
 // `reference.json`, attached to each release (from 0.80); QLANG_REFERENCE_JSON takes a local file. The examples
 // are in reference/examples.txt: each one is RUN with the wasm of the site, and its output is shown.
 {
-  const referenceVersion = fs.readFileSync(path.join(root, 'QLANG_VERSION'), 'utf8').trim();
+  const referenceVersion = pin('QLANG_VERSION');
   let referenceText = null;
   if (process.env.QLANG_REFERENCE_JSON) {
     referenceText = fs.readFileSync(path.resolve(root, process.env.QLANG_REFERENCE_JSON), 'utf8');
   } else if (process.env.QLANG_REPO) {
     console.log('prelude reference skipped: set QLANG_REFERENCE_JSON to the output of `qlang doc --prelude`');
   } else {
-    const res = await fetch(`https://github.com/quenti77/qlang/releases/download/v${referenceVersion}/reference.json`);
+    const res = await fetch(`https://github.com/quenti77/qlang/releases/download/${referenceVersion === 'next' ? 'next' : `v${referenceVersion}`}/reference.json`);
     if (res.ok) referenceText = await res.text();
     else console.log(`prelude reference skipped: qlang v${referenceVersion} has no reference.json (from 0.80)`);
   }

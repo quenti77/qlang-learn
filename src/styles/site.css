@@ -269,3 +269,9 @@ dialog.search::backdrop { background: rgb(10 12 18 / 0.5); }
 .part-exercises { display: inline-block; margin: -0.2rem 0 0.7rem 2.3rem; font-size: 0.9rem; text-decoration: none; }
 .part-exercises:hover { text-decoration: underline; }
 .related + .related { margin-top: 1rem; }
+
+/* the version selector and its banner (scripts/versions.js) */
+.version { font: inherit; font-size: 0.95rem; padding: 0.25rem 0.5rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); cursor: pointer; }
+.version:hover, .version:focus-visible { color: var(--accent); border-color: var(--accent); }
+.version-banner { padding: 0.55rem 1rem; text-align: center; font-size: 0.93rem; background: var(--code-bg); border-bottom: 1px solid var(--line); }
+.version-banner a { font-weight: 650; }

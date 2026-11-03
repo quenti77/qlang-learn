@@ -4,6 +4,9 @@ name: Deploy
 on:
   push:
     branches: [main]
+  # qlang's workflow `next` sends this when main changes: the version "next" is rebuilt
+  repository_dispatch:
+    types: [qlang-next]
   workflow_dispatch:
 
 permissions:
@@ -25,15 +28,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run sync
-      - run: npm run check-content
-      - run: npm run verify-lessons
-      - run: npm run build:site
+      # the archived versions are built once: this folder keeps them between two runs (their key is in the folder name)
+      - uses: actions/cache@v4
+        with:
+          path: .cache/versions
+          key: versions-${{ github.sha }}
+          restore-keys: versions-
+      # one site per version of versions.json (each with its own sync, checks, build and search index)
+      - run: npm run build:versions
         env:
-          BASE_PATH: /qlang-learn/
+          SITE_BASE: /qlang-learn/
+          CACHE_DIR: .cache/versions
+          SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
 
   deploy:
     needs: build

@@ -1,0 +1,67 @@
+name: Follow a release
+
+# qlang or qlang-std published a release: this proposes the change of versions.json (and of QLANG_VERSION /
+# STD_VERSION) as a pull request. The release workflows of those repositories send the event:
+#   gh api repos/quenti77/qlang-learn/dispatches -f event_type=qlang-release -f 'client_payload[version]=X.Y.Z'
+# (event_type `std-release` for qlang-std). Can also be started by hand from the Actions tab.
+on:
+  repository_dispatch:
+    types: [qlang-release, std-release]
+  workflow_dispatch:
+    inputs:
+      project:
+        description: qlang or std
+        required: true
+        type: choice
+        options: [qlang, std]
+      version:
+        description: Release number (X.Y.Z)
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      # what the event carries is data: it goes through the environment, never into the script text
+      PROJECT: ${{ github.event.inputs.project || (github.event.action == 'std-release' && 'std' || 'qlang') }}
+      VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check the number
+        run: |
+          VERSION="${VERSION#v}"
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::'$VERSION' is not a release number (X.Y.Z)"; exit 1; }
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Update versions.json
+        id: update
+        run: echo "result=$(node scripts/update-versions.mjs "$PROJECT" "$VERSION")" >> "$GITHUB_OUTPUT"
+      - name: Tag the text of the site of the line that is left behind
+        if: steps.update.outputs.result && fromJSON(steps.update.outputs.result).newLine
+        env:
+          PREVIOUS: ${{ fromJSON(steps.update.outputs.result).previous }}
+        run: |
+          git tag "site-$PREVIOUS" HEAD
+          git push origin "site-$PREVIOUS"
+      - name: Open the pull request
+        run: |
+          branch="chore/$PROJECT-$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -A
+          git diff --cached --quiet && { echo "Nothing to change"; exit 0; }
+          git commit -m "chore: $PROJECT $VERSION"
+          git push --force-with-lease origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore: $PROJECT $VERSION" --body "Proposed by the workflow \`Follow a release\`: \`versions.json\` (and the version files) now name $PROJECT $VERSION.
+
+          A new line of qlang adds a version to the site and tags the text of the previous one (\`site-X.Y\`). Before merging, run \`npm run sync\` and read its warnings: when \`docs/language.md\` changed, the English translation of the reference (\`content/en/reference/\`) must follow. The checks of this pull request do not start by themselves (the token of a workflow does not trigger them): close and reopen it to run them."

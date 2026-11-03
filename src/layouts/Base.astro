@@ -5,6 +5,9 @@ import { counterpart } from '../content.js';
 // bare: only the brand in the header (the 404 page, whose language is not known at build time)
 const { lang, title, slug, section = 'cours', bare = false } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// set by scripts/build-versions.mjs: the version this build is, and the folder holding all the versions
+const version = process.env.SITE_VERSION;
+const siteBase = process.env.SITE_BASE ?? '/';
 const other = lang === 'fr' ? 'en' : 'fr';
 // the same page in the other language, if it exists
 const sectionPath = section === 'cours' ? '' : `${section}/`;
@@ -34,11 +37,17 @@ const otherHref = otherSlug ? `${base}/${other}/${section}/${otherSlug}/` : `${b
           <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           <span class="label">{t(lang, 'search.open')}</span><kbd aria-hidden="true">/</kbd>
         </button>
+        {version && (
+        <select class="version" data-version-select data-version={version} data-site-base={siteBase} data-testid="version-select" aria-label={t(lang, 'version.label')}>
+          <option value={version} selected>{version}</option>
+        </select>
+        )}
         <a href={otherHref} hreflang={other} lang={other} class="lang" data-testid="switch-language">{t(lang, 'lang.switch')}</a>
           </>
         )}
       </div>
     </header>
+    {version && !bare && <div class="version-banner" data-version-banner data-testid="version-banner" role="status" hidden></div>}
     <slot />
     {!bare && (
     <dialog class="search" id="search" aria-label={t(lang, 'search.open')} data-base={base} data-lang={lang}>
@@ -59,6 +68,7 @@ const otherHref = otherSlug ? `${base}/${other}/${section}/${otherSlug}/` : `${b
       import '../scripts/runner.js';
       import '../scripts/ui.js';
       import '../scripts/search.js';
+      import '../scripts/versions.js';
     </script>
   </body>
 </html>

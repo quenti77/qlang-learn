@@ -12,7 +12,9 @@
     "test:e2e": "playwright test",
     "check-content": "node scripts/check-content.mjs",
     "verify-lessons": "node scripts/verify-lessons.mjs",
-    "build:site": "astro build && node scripts/prepare-search.mjs && pagefind --site dist"
+    "build:site": "astro build && node scripts/prepare-search.mjs && pagefind --site dist",
+    "build:versions": "node scripts/build-versions.mjs",
+    "serve:versions": "node scripts/serve-site.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
