@@ -80,5 +80,12 @@
   "related.exercises": "Exercises for this part",
   "related.part": "In the course",
   "menu.exercises": "Series of exercises",
-  "home.part.exercises": "Exercises"
+  "home.part.exercises": "Exercises",
+  "version.label": "Documentation version",
+  "version.latest": "{v} (latest)",
+  "version.old": "You are reading the documentation of qlang {v}. The latest version is {latest}.",
+  "version.old.link": "See this page in {latest}",
+  "version.archived": "This version is no longer maintained.",
+  "version.next": "Version under development: it may still change.",
+  "version.missing": "This page does not exist in {v}: here is the home page of that version."
 }

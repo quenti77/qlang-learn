@@ -1,0 +1,8 @@
+{
+  "_comment": "Test list: 0.9 is built from the same pins as 1.0 (the lessons of today only run with 1.0), it only has to exist and be archived.",
+  "latest": "1.0",
+  "versions": [
+    { "name": "1.0", "qlang": "1.0.0", "std": "0.20.0", "status": "stable", "released": "2026-11-02" },
+    { "name": "0.9", "qlang": "1.0.0", "std": "0.20.0", "status": "archived", "released": "2026-10-01" }
+  ]
+}
