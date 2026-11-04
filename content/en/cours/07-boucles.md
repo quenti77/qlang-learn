@@ -153,6 +153,57 @@ end
 print("")
 ```
 
+## `for` over your own type
+
+`for` goes through an array, a string, a range or a dictionary. To make it go through **your** type, implement
+`Iterator<T>`: a `next` method that returns `Step.Item(value)` while there are elements, then `Step.End`. (It is not a
+`T?`: an element may be `none` without stopping the loop.)
+
+```qlang
+struct Counter
+  public n: int
+  public max: int
+end
+
+impl Iterator<int> for Counter
+  public fun next(self) -> Step<int>
+    if self.n >= self.max then
+      return Step<int>.End
+    end
+    self.n += 1
+    Step<int>.Item(self.n)
+  end
+end
+
+for x in Counter { n: 0, max: 3 } do
+  print(x)
+end
+```
+
+An iterator also has **lazy** methods: `map`, `filter`, `take` and `skip` compute nothing until the result is walked,
+and `collect()` turns it into an array.
+
+```qlang
+struct Counter
+  public n: int
+  public max: int
+end
+
+impl Iterator<int> for Counter
+  public fun next(self) -> Step<int>
+    if self.n >= self.max then
+      return Step<int>.End
+    end
+    self.n += 1
+    Step<int>.Item(self.n)
+  end
+end
+
+let evens = Counter { n: 0, max: 1000000000 }.filter(fun(x: int) -> bool x % 2 == 0 end)
+print(evens.map(fun(x: int) -> int x * x end).take(3).collect())
+print([1, 2, 3].iter().map(fun(x: int) -> int x + 1 end).collect())
+```
+
 ## Remember
 
 - `while` = as long as; `for` = for each.

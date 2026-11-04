@@ -611,6 +611,57 @@ end
   1: `5..1` does not loop at all.
 - The array being walked can be modified during the loop; the loop sees the added elements.
 
+### Going through your own type: `Iterable`
+
+*Level: provisional.*
+
+A type of the program can be walked with `for` (and spread with `...`) when it implements a trait of the prelude.
+`Step<T>` says what one step gives: `Step.Item(value)`, or `Step.End` when nothing is left (it is not a `T?`: an
+element may be `none` without stopping the loop).
+
+| Trait | Method | What it allows |
+| --- | --- | --- |
+| `Iterator<T>` | `next(self) -> Step<T>` | give the elements one at a time |
+| `Iterable<T>` | `iter(self) -> Iterator<T>` | `for x in c`, `for i, x in c` (`i` is a counter 0, 1, 2…), `[...c]`, `f(...c)` |
+| `KeyedIterable<K, V>` | `iter_keyed(self) -> Iterator<(K, V)>` | `for k, v in c`, `{ ...c }` |
+
+```
+struct Count
+    public n: int
+    public max: int
+end
+
+impl Iterator<int> for Count
+    public fun next(self) -> Step<int>
+        if self.n >= self.max then
+            return Step<int>.End
+        end
+        self.n += 1
+        Step<int>.Item(self.n)
+    end
+end
+
+for x in Count { n: 0, max: 3 } do
+    print(x)                          -- 1, 2, 3
+end
+```
+
+- An `Iterator<T>` is walked as it is (no `Iterable` needed). The array, the string and `Set<T>` implement
+  `Iterable`, the map implements `KeyedIterable`: `[1, 2, 3].iter()`, `m.iter_keyed()`. Their `for` loops keep
+  their direct path (same behaviour, same speed).
+- An `Iterator<T>` has **lazy** methods: `map(f)`, `filter(keep)`, `take(n)` and `skip(n)` return a new iterator and
+  nothing runs until it is walked; `collect()` gives an array, `count()` the number of remaining elements, `first()`
+  the next one or `none`. `Count { n: 0, max: 1000000000 }.filter(even).take(3).collect()` only computes what it needs.
+- A generic function can ask for a walkable type: `fun total<I: Iterable<int>>(c: I)`.
+- While the loop runs, a type of yours decides what happens if it is modified: the language only promises never to
+  crash. The built-in types keep their behaviour (array: live view, map: copy).
+- The iterators returned by these methods and by the collections are types of the prelude: `MapIter`, `FilterIter`,
+  `TakeIter`, `SkipIter` (the adapters), `ArrayIter` (array, string and `Set`) and `PairIter` (map). They are used
+  through their methods (`next`, `map`…) without naming them.
+- `Step`, `Item`, `End`, `Iterator`, `Iterable`, `KeyedIterable`, `iter`, `iter_keyed` and `next` are prelude names; a
+  program that declares its own shadows them, as with any prelude name.
+- Not yet: `enumerate`, `zip`, lazy `reduce`, generators (`yield`).
+
 ---
 
 ## 8. Functions
@@ -742,9 +793,11 @@ print({ ...defaults, "port": 8080 })   -- {"port": 8080, "workers": 2}: the last
   `total(...[])` calls `total()`.
 - In an **array** `[ ]`, the types unify as for a literal written by hand (`[...a]` with `a: array<int>` is not an
   `array<float>`). In a **map** `{ }`, the keys follow each other in the order they are written.
-- Only an `array` (in a call or `[ ]`) and a `map` (in `{ }`) can be spread: not a `Set` (write
-  `...set.to_array()`), not a value that may be `none` (`...(x ?? [])`), not a struct, not an `Any` (`T264`).
-  `...` anywhere else is a syntax error. It cannot be overloaded (see #202).
+- Only an `array`, a `Set` and any type that implements `Iterable<T>` (in a call or `[ ]`), a `map` and any type that
+  implements `KeyedIterable<K, V>` (in `{ }`) can be spread: see
+  [Going through your own type](#going-through-your-own-type-iterable). Not a value that may be `none`
+  (`...(x ?? [])`), not a struct that does not implement these traits, not an `Any` (`T264`). `...` anywhere else is
+  a syntax error. It cannot be overloaded: it relies on `Iterable`.
 - The ranges `0..3` and `0..=3` do not change: `...` is a token of its own.
 
 ### Anonymous functions
@@ -1261,6 +1314,64 @@ fun hello(g: Greeter) -> string
   g.greet() + " / " + g.name()     -- name() comes from Named
 end
 ```
+
+### A method without `self`: `Self` and `T.zero()`
+
+A trait can declare a method **without `self`**, and `Self` there stands for the type that implements the trait:
+
+```
+trait Zero
+  fun zero() -> Self
+end
+
+impl Zero for Money
+  public fun zero() -> Self
+    Money { cents: 0 }
+  end
+end
+```
+
+In an `impl`, `Self` is the type of the `impl` (`Money` here, `Pair<T>` for `impl<T> Zero for Pair<T>`); in a trait,
+it is the type that will implement it. In the body of a trait's default method, `Self` is the trait itself (like
+`self`), and where the method is called it is the type of the value (`dog.twin()` gives a `Dog`). Outside a trait or an
+`impl`, `Self` does not exist (`T001`).
+
+In a generic function or `impl`, a type parameter bounded by such a trait is used as a call prefix: `T.zero()`. The
+method called is the one of the `impl` of the type `T` stands for, found at the call:
+
+```
+fun total<T: Add + Zero>(xs: array<T>) -> T
+  let t = T.zero()
+  for x in xs do
+    t = t + x
+  end
+  t
+end
+
+struct Point<T>
+  public x: T
+  public y: T
+end
+
+impl<T: Zero> Point<T>
+  public fun origin() -> Point<T>
+    Point { x: T.zero(), y: T.zero() }
+  end
+end
+
+print(total([1, 2, 3]))            -- 6
+print(total<float>([]))            -- 0.0
+let p: Point<int> = Point.origin() -- Point { x: 0, y: 0 }
+```
+
+- The prelude provides `Zero` (`T.zero()`, the neutral element of the addition) and `One` (`T.one()`, that of the
+  multiplication) for `int` and `float`; you can implement them for your types.
+- `[].sum()` of an empty array is `T.zero()` when the elements implement `Add` and `Zero`; without `Zero`, it is the
+  error `R015`.
+- `T` must be deduced from the arguments, from the expected type or from a written `<...>`: otherwise `Point.origin()`
+  gives `T171` (`Point<int>.origin()` or `let p: Point<int> = Point.origin()` avoid it).
+- If the bounds of `T` do not declare the method, it is `T161`.
+- **Provisional**: `Self`, `T.name()`, `Zero` and `One` are new in 1.1 (see [stability.md](stability.md)).
 
 ### A trait as a type
 
@@ -2137,15 +2248,63 @@ end
 
 - **Display**: a `datetime` is shown in ISO 8601 format, `2026-10-11T14:30:00Z` (with `.123`
   before the `Z` if there are milliseconds). `"{d}"` and `d as string` give this text.
-- **`format`** knows `YYYY` (year), `MM` (month), `DD` (day), `HH` (hour), `mm` (minute), `ss`
-  (second) and `SSS` (milliseconds). Other characters are kept as they are:
-  `d.format("YYYY-MM-DD at HH:mm")`.
+- **`format`** knows `YYYY` / `YY` (year), `MMMM` / `MMM` (name of the month), `MM` / `M` (number), `DD` / `D` (day),
+  `dddd` / `ddd` (name of the day), `HH` / `H` (hour), `hh` / `h` (hour on 12), `A` (`AM` or `PM`), `mm` (minute),
+  `ss` (second), `SSS` (milliseconds) and `WW` (ISO week). Text between `[` and `]` is kept as it is, like the other
+  characters: `d.format("YYYY-MM-DD [at] HH:mm")`. The names are in English;
+  `d.format_in("dddd D MMMM YYYY", "fr")` gives them in French (`"en"` or `"fr"`, another language is the error
+  `R066`). *Since 1.1*: `M`, `D`, `H`, `h`, `A`, `W`, `d` and `Y` alone (or in groups of 2 to 3) are tokens; a text
+  that contained them must put them between brackets.
+- **Other accessors**: `d.day_of_year()`, `d.week()` (ISO 8601 week, 1 to 53) and `d.week_year()` (the year of that
+  week).
 - **`parse`** reads `YYYY-MM-DD`, optionally followed by `T` or a space and then `HH:MM`,
   `HH:MM:SS` or `HH:MM:SS.mmm`, and an optional `Z`. A date alone is midnight.
 - **`add_months` and `add_years`**: a day that does not exist in the new month becomes its
   last day (31 January + 1 month = 28 or 29 February).
 - **Errors**: `datetime.of(2026, 2, 29)` (a date that does not exist) is an `R064` error;
   going outside the years 1 to 9999 (`add_days`…) is an `R065` error.
+
+#### Durations: `Duration`
+
+*Level: provisional (since 1.1).*
+
+A `Duration` is a length of time: `years`, `months`, `days`, `hours`, `minutes`, `seconds`, `ms`. Nothing is converted
+on its own: `Duration.of(minutes: 90)` stays 90 minutes until `normalize()`. **Years and months** have no fixed length
+(it depends on the date they are added to); a day is always 24 hours, because a `datetime` is UTC.
+
+| Call | Result |
+| --- | --- |
+| `Duration.of(days: 2, hours: 3)` | what is not given is 0 |
+| `d + duration`, `d - duration` (or `d.plus(duration)`, `d.minus(duration)`) | a `datetime`: years and months first (31 January + 1 month is the last day of February), then the rest |
+| `a.until(b)` | the `Duration` from `a` to `b`: whole years and months, then days, hours, minutes, seconds, ms (negative if `b` is before) |
+| `dur.total_ms()`, `total_seconds()`, `total_minutes()`, `total_hours()`, `total_days()` | a `Result<int, Error>`: `err` if there are years or months |
+| `dur.plus(other)`, `minus(other)`, `times(n)`, `negate()`, `is_zero()` | part by part arithmetic |
+| `dur.normalize()` | carries over (12 months = 1 year, 60 s = 1 min, 24 h = 1 day…); the sign is that of the whole |
+| `dur.to_iso()` | ISO 8601 text: `P1Y2M3DT4H5M6.007S`, `PT0S` for zero |
+
+`b - a` is still the number of milliseconds (an `int`), as before. Comparisons, differences and period bounds:
+
+| Call | Result |
+| --- | --- |
+| `a.is_before(b)`, `a.is_after(b)`, `d.between(a, b)`, `a.same_day(b)` | `bool`s (`between` includes the bounds) |
+| `d.is_weekend()`, `d.is_leap_year()`, `d.days_in_month()`, `d.quarter()` | Saturday or Sunday; a 366-day year; 28 to 31; 1 to 4 |
+| `a.diff_in_months(b)`, `diff_in_years(b)` | whole months / years from `a` to `b` (31 January to 28 February: 1) |
+| `a.diff_in_days(b)`, `diff_in_hours(b)`, `diff_in_minutes(b)`, `diff_in_seconds(b)` | whole units (cut toward 0) |
+| `d.start_of_hour()`, `start_of_week()`, `start_of_month()`, `start_of_quarter()`, `start_of_year()` | start of the period (the week starts on Monday); `start_of_day()` already existed |
+| `d.end_of_hour()`, `end_of_day()`, `end_of_week()`, `end_of_month()`, `end_of_quarter()`, `end_of_year()` | last millisecond of the period |
+| `d.with(month: 3, day: 1)` | replaces fields (`year`, `month`, `day`, `hour`, `minute`, `second`); a day the month does not have becomes its last day |
+| `d.next_weekday(n)`, `d.previous_weekday(n)` | midnight of the next / last day `n` (1 Monday … 7 Sunday) |
+| `d.nth_weekday_of_month(2, 1)`, `d.last_day_of_month()` | the 2nd Monday of the month (`none` if there is none); midnight of the last day |
+| `d.unix()`, `datetime.at(ms)` | seconds since 1970; (for seconds: `datetime.at(s * 1000)`) |
+| `d.to_http()`, `d.to_rfc2822()`, `d.to_iso()` | `Tue, 03 Nov 2026 14:30:00 GMT`, `… +0000`, `2026-11-03T14:30:00Z` |
+| `d.humanize(now)`, `d.humanize(now, "fr")` | `3 days ago`, `in 2 hours`, `il y a 3 jours` |
+
+```
+let start = datetime.of(2026, 1, 31, 10, 0, 0)
+print(start + Duration.of(months: 1, days: 2))   -- 2026-03-02T10:00:00Z
+print(start.until(datetime.of(2027, 3, 4)).to_iso())
+print(start.end_of_month().format("D MMMM YYYY"))
+```
 
 ### Time zones: `Zone`
 
@@ -2999,6 +3158,45 @@ else
 end
 
 fs.write("output.txt", "content").unwrap()
+```
+
+**Changing the disk.** `fs.append(path, text)` adds at the end of a file (creating it if needed); `fs.is_file(path)`
+says whether it is a file; `fs.remove(path)` deletes a file or a link (a folder is an error: use `fs.remove_dir`);
+`fs.remove_dir(folder)` deletes an **empty** folder, and `fs.remove_dir(folder, all: true)` also deletes everything it
+holds; `fs.rename(source, target)` moves or renames (the target's folder must exist); `fs.copy(source, target)` copies
+a file (replacing the target). With `--root`, none of these operations leaves the folder, and neither the `--root`
+folder nor the one the program runs in is ever removed.
+
+**Files and folders as objects: `File` and `Dir`.** `File.of("notes/a.txt")` and `Dir.of("src")` read nothing until a
+method is called (the path is read again at each call).
+
+| Call | Result |
+| --- | --- |
+| `f.name()`, `f.stem()`, `f.ext()`, `f.parent()` | `a.txt`, `a`, `txt`, the `Dir` that holds it |
+| `f.exists()`, `f.is_file()`, `f.is_link()` | `Result<bool, Error>`s |
+| `f.size()`, `f.modified()` | the size in bytes, the modification date (a [`datetime`](#dates-and-times-datetime)), in a `Result` |
+| `f.read()`, `f.read_bytes()`, `f.lines()` | like `fs.read`, `fs.read_bytes`, `fs.lines` |
+| `f.write(text)`, `f.append(text)` | replace, add at the end |
+| `f.copy_to(target)`, `f.move_to(target)` | give the `File` of the target |
+| `f.remove()` | deletes the file |
+| `d.name()`, `d.parent()`, `d.join(name)`, `d.file(name)` | the name, the `Dir` above, the path or the `File` of `name` in this folder |
+| `d.exists()`, `d.create()`, `d.remove()` | `d.remove(all: true)` also deletes the content; without `all`, only an empty folder goes |
+| `d.move_to(target)` | moves the folder |
+| `d.files()`, `d.dirs()` | the `File`s / the `Dir`s directly in the folder, sorted |
+| `d.walk(name: "*.q", ignore: [".git"], depth: 40)` | an `Iterator<File>` over all the files of the folder and the ones below |
+
+`walk` is lazy (see [`Iterable`](#going-through-your-own-type-iterable)): folder by folder, its files then its
+sub-folders, each sorted by name. `name` only keeps the files whose name matches the pattern, `ignore` skips the files
+and folders whose name matches one of its patterns (neither `.git` nor `node_modules` is opened), `depth` limits the
+number of levels (`0`: this folder only). The type of the iterator (`WalkIter`) is used through its methods.
+
+```
+for f in Dir.of("src").walk(name: "*.q", ignore: [".git"]).unwrap() do
+  print("{f.path} {f.size().unwrap()}")
+end
+
+let all = Dir.of("logs").walk().unwrap()
+let old = all.filter(fun(f: File) -> bool f.modified().unwrap() < datetime.of(2026, 1, 1) end).collect()
 ```
 
 `env.get(name)` returns the value of an environment variable, or `none` if
