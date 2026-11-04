@@ -69,7 +69,9 @@ a { color: var(--accent); }
 h1, h2, h3 { line-height: 1.25; letter-spacing: -0.01em; }
 h1 { font-size: 2.1rem; margin: 0 0 0.5rem; }
 h2 { font-size: 1.4rem; margin: 2.4rem 0 0.6rem; padding-top: 0.4rem; }
-pre, code, textarea, output { font-family: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, monospace; }
+pre, code, textarea, output { font-family: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, monospace; 
+  /* a ligature draws `...` and `->` as one glyph; with some installed fonts (JetBrains Mono on Windows) the dots vanish */
+  font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'calt' 0; }
 :not(pre) > code { background: var(--code-bg); padding: 0.12em 0.4em; border-radius: 5px; font-size: 0.9em; }
 
 /* header and footer */

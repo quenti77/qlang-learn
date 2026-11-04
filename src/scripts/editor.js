@@ -27,7 +27,7 @@ const highlight = HighlightStyle.define([
 
 const theme = EditorView.theme({
   '&': { color: 'var(--fg)', backgroundColor: 'var(--surface)', fontSize: '0.93rem' },
-  '.cm-content': { fontFamily: 'ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace', padding: '0.8rem 0', caretColor: 'var(--fg)', lineHeight: '1.55' },
+  '.cm-content': { fontFamily: 'ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace', fontVariantLigatures: 'none', fontFeatureSettings: '"liga" 0, "calt" 0', padding: '0.8rem 0', caretColor: 'var(--fg)', lineHeight: '1.55' },
   '.cm-line': { padding: '0 1rem' },
   '&.cm-focused': { outline: '2px solid var(--accent)', outlineOffset: '-2px' },
   '.cm-activeLine': { backgroundColor: 'transparent' },
