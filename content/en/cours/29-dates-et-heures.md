@@ -99,6 +99,31 @@ end
 print(datetime.parse("11/10/2026") == none)
 ```
 
+## Durations
+
+A `Duration` groups years, months, days, hours, minutes, seconds and milliseconds. Add it to a date with `+` or `-`
+(years and months first: 31 January + 1 month lands on the last day of February). `a.until(b)` gives the duration
+between two dates, and `diff_in_months` and its neighbours count whole units.
+
+```qlang
+let debut = datetime.of(2026, 1, 31, 10, 0, 0)
+print(debut + Duration.of(months: 1))            -- 31 January + 1 month: end of February
+print(debut + Duration.of(days: 2, hours: 3))
+print(debut.until(datetime.of(2027, 3, 4)).to_iso())
+print(debut.diff_in_months(datetime.of(2026, 2, 28)))
+print(debut.is_before(datetime.of(2026, 2, 1)))
+```
+
+For the bounds of a period: `start_of_month()`, `end_of_week()`, `start_of_year()`…; for text,
+`format("dddd D MMMM YYYY")` writes the names (in English), `format_in(pattern, "fr")` in French.
+
+```qlang
+let d = datetime.of(2026, 11, 3, 14, 30, 0)
+print(d.format("dddd D MMMM YYYY"))
+print(d.start_of_month())
+print(d.end_of_month().format("D MMMM YYYY"))
+```
+
 ## Remember
 
 - `datetime.of(y, m, d)` creates a date; `datetime.now()` gives the present moment.

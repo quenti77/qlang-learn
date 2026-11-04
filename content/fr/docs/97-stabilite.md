@@ -27,13 +27,17 @@ Depuis la 1.0, ce qui est *stable* est **garanti** : ce que la 1.0 promet est li
 | Partie | Niveau |
 | --- | --- |
 | Syntaxe : `let`, `fun`, `if`/`elseif`/`else`, `for`, `while`, `match`, `struct`, `enum`, `trait`, `impl`, `import`/`export`, interpolation `"{x}"` | **stable** |
-| Paramètres variadiques (`fun f(...xs: int)`) et étalement `...` dans un appel, un tableau et un dictionnaire | provisoire |
+| Paramètres variadiques (`fun f(...xs: int)`) et étalement `...` dans un appel, un tableau et un dictionnaire | **stable** (depuis la 1.1) |
+| `File` et `Dir`, `fs.append`, `fs.remove`, `fs.remove_dir`, `fs.rename`, `fs.copy`, `fs.is_file` | provisoire (depuis la 1.1) |
+| `Iterator`, `Iterable`, `KeyedIterable` et `Step` du prélude : `for` et `...` sur un type du programme, `map`, `filter`, `take`, `skip`, `collect` | provisoire (depuis la 1.1) |
+| `Self` dans un trait ou un `impl`, une méthode sans `self` appelée par un paramètre de type (`T.zero()`), les traits `Zero` et `One` du prélude | provisoire (depuis la 1.1) |
 | Types de base, `array`, `map`, `Set`, tuples, nullables `T?`, `??`, `?`, `Result`/`Error` | **stable** |
 | Vérification de types, inférence, génériques et contraintes (`T: Eq`, `Ord`) | **stable** |
 | `Json.of` / `Json.to` / `Json.parse`, `string`, `int`, `float`, `bool` et leurs méthodes courantes | **stable** |
-| `datetime`, `uuid`, `ulid`, `regex`, `Hash`, `Base64`, `Hex`, `Url`, `Crypto`, `Password`, `Format`, `Path` | provisoire |
+| `uuid`, `ulid` (sauf le hasard), `regex`, `Hash`, `Base64`, `Hex`, `Url` (sur du texte), `Format`, `Path` | **stable** (depuis la 1.1) |
+| `datetime`, `Crypto`, `Password`, les variantes `*_bytes` de `Hash`, `Base64`, `Hex` et `Url` | provisoire |
 | `fs`, `env`, `http`, `Db`, `Redis`, `Process`, `Log` | provisoire |
-| Opérateurs surchargés, alias de type, annotations (`#[annotation]`), `Any` | provisoire |
+| Opérateurs surchargés (`Add`… `Neg`, `Eq`, `Ord`, `Index`, `IndexSet`, `Push`, `As<T>`), alias de type, annotations (`#[annotation]`, leur vérification à la compilation), `Any` | **stable** (depuis la 1.1) |
 | `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard`, `Shared` | provisoire (récents) |
 | `Reflect` (constructeurs, `callable`), `extern fun` et fournisseurs, `Term`, `Worker` (tâches) | **expérimental** |
 | Mots réservés (`step`, `from`, `then`, `catch`, `public`, `end`…) | on peut en **ajouter** (annoncé en « Cassant ») |
@@ -47,10 +51,10 @@ niveau de leur partie : une clé ajoutée n'est pas un changement cassant, une c
 
 | Partie | Niveau |
 | --- | --- |
-| `qlang run`, `check`, `fmt`, `test` (options existantes) | **stable** (on ajoute des options, on n'en retire pas sans cycle) |
+| `qlang run`, `check`, `fmt` (y compris `fmt --stdin`), `test` (options existantes) | **stable** (on ajoute des options, on n'en retire pas sans cycle) |
 | `qlang serve` (options, protocole de `handle`) | provisoire ; `Response.stream` / `sse` / `file` provisoires ; WebSocket **expérimental** |
-| `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `self-update` | provisoire |
-| `qlang init --web`, `qlang test --coverage` / `--group`, `qlang lint`, `qlang repl`, `qlang dap`, `qlang fmt --stdin` | **expérimental** |
+| `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `lint` (règles `Q001` à `Q005`), `self-update` | provisoire |
+| `qlang init --web`, `qlang test --coverage` / `--group`, `qlang repl`, `qlang dap` | **expérimental** |
 | `qlang.toml` : `[package]` (`name`, `version`, `entry`, `main`, `qlang`) et `[dependencies]` | provisoire |
 | `qlang.toml` : `[externs]` | **expérimental** |
 | `qlang.lock` | provisoire (format lisible, ne pas l'éditer) |
@@ -119,6 +123,9 @@ conformance la couvrent**.
 
 Hors de la promesse : la réflexion, `extern`, le serveur HTTP et la bibliothèque web, `Term`, les tâches et les traces,
 et tout ce qui est marqué provisoire ou expérimental. Chaque version de qlang a son tag dans le dépôt de conformité
+| Paramètres variadiques `...xs` et étalement `...` (promis depuis la 1.1) | `variadics`, `compile_variadics`, `runtime_variadics` |
+| Opérateurs surchargés, alias de type, annotations, `Any` (promis depuis la 1.1) | `operator_overloading`, `type_aliases`, `compile_type_aliases`, `annotations`, `compile_annotations`, `any_values`, `compile_any` |
+| Les petits modules de la bibliothèque (promis depuis la 1.1) : `Base64`, `Hex`, `Url`, `Hash`, `regex`, `Path`, `Format`, `uuid`, `ulid` | `encodings`, `hashes`, `regex`, `path`, `format`, `identifiers` |
 (`v0.X.Y` = la suite de qlang `0.X.Y`). Un paquet dit le niveau de ses fichiers dans `[stability]` de son `qlang.toml` ;
 `qlang doc` l'écrit sous le titre de chaque fichier et `qlang doc --require-levels` échoue pour un fichier sans niveau.
 

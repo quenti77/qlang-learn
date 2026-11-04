@@ -130,6 +130,25 @@ print(empty.len())
 print(add_up<float>(1.5, 2.5))
 ```
 
+## A method without `self`: `T.zero()`
+
+A trait can declare a method **without `self`** (`fun zero() -> Self`). In a generic function, a type parameter is
+then used as a call prefix: `T.zero()` calls the method of the type `T` stands for. The prelude provides `Zero` (the
+neutral element of the addition) and `One` for `int` and `float`.
+
+```qlang
+fun total<T: Add + Zero>(xs: array<T>) -> T
+  let t = T.zero()
+  for x in xs do
+    t = t + x
+  end
+  t
+end
+
+print(total([1, 2, 3]))
+print(total<float>([]))
+```
+
 ## Remember
 
 - `fun f<T>(…)`, `struct S<T>`, `impl<T> S<T>`.

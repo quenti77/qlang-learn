@@ -27,15 +27,21 @@ Since 1.0, what is *stable* is **guaranteed**: what 1.0 promises is listed at th
 | Part | Level |
 | --- | --- |
 | Syntax: `let`, `fun`, `if`/`elseif`/`else`, `for`, `while`, `match`, `struct`, `enum`, `trait`, `impl`, `import`/`export`, interpolation `"{x}"` | **stable** |
-| Variadic parameters (`fun f(...xs: int)`) and the spread `...` in a call, an array and a map | provisional |
+| Variadic parameters (`fun f(...xs: int)`) and the spread `...` in a call, an array and a map | **stable** (since 1.1) |
+| `File` and `Dir`, `fs.append`, `fs.remove`, `fs.remove_dir`, `fs.rename`, `fs.copy`, `fs.is_file` | provisional (since 1.1) |
+| `Iterator`, `Iterable`, `KeyedIterable` and `Step` of the prelude: `for` and `...` on a type of the program, `map`, `filter`, `take`, `skip`, `collect` | provisional (since 1.1) |
+| `Duration`, and the methods `datetime` gained in 1.1 (comparisons, `diff_in_*`, `start_of_*` / `end_of_*`, `with`, `format_in`, `humanize`) | provisional (since 1.1) |
+| `Self` in a trait or an `impl`, a method without `self` called through a type parameter (`T.zero()`), the prelude traits `Zero` and `One` | provisional (since 1.1) |
 | Basic types, `array`, `map`, `Set`, tuples, nullables `T?`, `??`, `?`, `Result`/`Error` | **stable** |
 | Type checking, inference, generics and bounds (`T: Eq`, `Ord`) | **stable** |
 | `Json.of` / `Json.to` / `Json.parse`, `string`, `int`, `float`, `bool` and their usual methods | **stable** |
-| `datetime`, `uuid`, `ulid`, `regex`, `Hash`, `Base64`, `Hex`, `Url`, `Crypto`, `Password`, `Format`, `Path` | provisional |
+| `uuid`, `ulid` (except the randomness), `regex`, `Hash`, `Base64`, `Hex`, `Url` (on text), `Format`, `Path` | **stable** (since 1.1) |
+| `datetime`, `Crypto`, `Password`, the `*_bytes` variants of `Hash`, `Base64`, `Hex` and `Url` | provisional |
 | `fs`, `env`, `http`, `Db`, `Redis`, `Process`, `Log` | provisional |
-| Operator overloading, type aliases, annotations (`#[annotation]`), `Any` | provisional |
+| Operator overloading (`Add`… `Neg`, `Eq`, `Ord`, `Index`, `IndexSet`, `Push`, `As<T>`), type aliases, annotations (`#[annotation]`, their compile-time check), `Any` | **stable** (since 1.1) |
 | `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard`, `Shared` | provisional (recent) |
-| `Reflect` (constructors, `callable`), `extern fun` and providers, `Term`, `Worker` (tasks) | **experimental** |
+| `Worker` (tasks), `Trace` (OpenTelemetry traces) | **experimental** |
+| `Reflect` (constructors, `callable`), `extern fun` and providers, `Term` | **experimental** |
 | Reserved words (`step`, `from`, `then`, `catch`, `public`, `end`...) | more may be **added** (announced as "Cassant") |
 | Text of the error messages | **not promised** |
 | Error codes (`Pxxx`, `Txxx`, `Rxxx`, `Wxxx`) | a published code keeps its meaning: it is not renumbered; new ones appear |
@@ -47,10 +53,10 @@ their part: an added key is not a breaking change, a removed or renamed key is.
 
 | Part | Level |
 | --- | --- |
-| `qlang run`, `check`, `fmt`, `test` (existing options) | **stable** (options are added, none is removed without a cycle) |
+| `qlang run`, `check`, `fmt` (including `fmt --stdin`), `test` (existing options) | **stable** (options are added, none is removed without a cycle) |
 | `qlang serve` (options, the `handle` protocol) | provisional; `Response.stream` / `sse` / `file` provisional; WebSocket **experimental** |
-| `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `self-update` | provisional |
-| `qlang init --web`, `qlang test --coverage` / `--group`, `qlang lint`, `qlang repl`, `qlang dap`, `qlang fmt --stdin` | **experimental** |
+| `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `lint` (rules `Q001` to `Q005`), `self-update` | provisional |
+| `qlang init --web`, `qlang test --coverage` / `--group`, `qlang repl`, `qlang dap` | **experimental** |
 | `qlang.toml`: `[package]` (`name`, `version`, `entry`, `main`, `qlang`) and `[dependencies]` | provisional |
 | `qlang.toml`: `[externs]` | **experimental** |
 | `qlang.lock` | provisional (readable format, do not edit it) |
@@ -114,6 +120,9 @@ cover it**.
 | The codes of the common errors | the `compile_*`, `runtime_errors` and `arithmetic_errors` folders |
 | The `run`, `check`, `fmt` and `test` commands | not in the conformance suite (it only covers the language): integration tests of `qlang`, option by option (`--max-steps` and `--seed`: `cli_options`; `--max-memory`, `--filter`, `--group`, `--coverage`, `--deny-warnings`, `--check`, `--stdin`, `--root`, `--extern`, `--allow-process`: one file each) |
 | The format of `qlang.toml` (`[package]`, `[dependencies]`, `[stability]`) and of `qlang.lock` | integration tests `manifest_format`: the exact text of the lock, a hand-written lock that is obeyed, every key accepted, `qlang = "…"` stopping a project that asks for more |
+| Variadic parameters `...xs` and the spread `...` (promised since 1.1) | `variadics`, `compile_variadics`, `runtime_variadics` |
+| Operator overloading, type aliases, annotations, `Any` (promised since 1.1) | `operator_overloading`, `type_aliases`, `compile_type_aliases`, `annotations`, `compile_annotations`, `any_values`, `compile_any` |
+| The small library modules (promised since 1.1): `Base64`, `Hex`, `Url`, `Hash`, `regex`, `Path`, `Format`, `uuid`, `ulid` | `encodings`, `hashes`, `regex`, `path`, `format`, `identifiers` |
 
 Outside the promise: reflection, `extern`, the HTTP server and the web library, `Term`, tasks and traces, and everything
 marked provisional or experimental. Each version of qlang has its tag in the conformance repository (`v0.X.Y` = the

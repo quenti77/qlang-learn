@@ -26,6 +26,16 @@ qlang migrate             # rewrites
 
 Today there is one rule: `Log.warn` → `Log.warning` (deprecated in 0.69, removed in 0.83). What is not a rename stays described below.
 
+## 1.1: the tokens of `datetime.format` (provisional)
+
+- **Before**: only `YYYY`, `MM`, `DD`, `HH`, `mm`, `ss` and `SSS` were tokens; any other letter was kept as it was, so
+  `d.format("D/M/Y")` wrote `D/M/Y`.
+- **After**: `D`, `M`, `H`, `h`, `A`, `d` (in a group of 3 or 4), `Y` (in a group of 2 or 3) and `W` (in a group of 2)
+  are tokens too (day, month, hour, 12-hour clock, `AM`/`PM`, name of the day, 2-digit year, ISO week).
+  `d.format("D/M/Y")` writes the day and the month, and keeps a lone `Y`.
+- **How to adapt**: put the text that contains one of these letters between brackets: `d.format("[Date:] DD/MM/YYYY")`.
+  Find the patterns with `grep -n "\.format(" *.q`. This change touches a provisional part (`datetime`).
+
 ## 1.0: `qlang fmt` writes four spaces and tidies the spaces of a line
 
 - **Before**: two spaces per level; only the spaces at the start and end of a line changed.

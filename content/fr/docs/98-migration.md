@@ -26,6 +26,16 @@ qlang migrate             # réécrit
 
 Aujourd'hui une règle : `Log.warn` → `Log.warning` (déprécié en 0.69, retiré en 0.83). Ce qui n'est pas un renommage reste décrit ci-dessous.
 
+## 1.1 : les jetons de `datetime.format` (provisoire)
+
+- **Avant** : seuls `YYYY`, `MM`, `DD`, `HH`, `mm`, `ss` et `SSS` étaient des jetons ; toute autre lettre était gardée telle quelle, donc
+  `d.format("D/M/Y")` écrivait `D/M/Y`.
+- **Après** : `D`, `M`, `H`, `h`, `A`, `d` (en groupe de 3 ou 4), `Y` (en groupe de 2 ou 3) et `W` (en groupe de 2) sont aussi des
+  jetons (jour, mois, heure, heure sur 12, `AM`/`PM`, nom du jour, année sur 2 chiffres, semaine ISO).
+  `d.format("D/M/Y")` écrit le jour et le mois, et garde `Y` seul.
+- **S'adapter** : mettre entre crochets le texte qui contient une de ces lettres : `d.format("[Date :] DD/MM/YYYY")`.
+  Chercher les motifs avec `grep -n "\.format(" *.q`. Ce changement touche une partie provisoire (`datetime`).
+
 ## 1.0 : `qlang fmt` écrit quatre espaces et met en ordre les espaces d'une ligne
 
 - **Avant** : deux espaces par niveau ; seuls les espaces en début et fin de ligne changeaient.

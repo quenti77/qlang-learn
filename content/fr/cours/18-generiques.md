@@ -132,6 +132,25 @@ print(vide.len())
 print(additionner<float>(1.5, 2.5))
 ```
 
+## Une méthode sans `self` : `T.zero()`
+
+Un trait peut déclarer une méthode **sans `self`** (`fun zero() -> Self`). Dans une fonction générique, un paramètre
+de type s'utilise alors comme préfixe d'appel : `T.zero()` appelle la méthode du type que `T` désigne. Le prélude
+fournit `Zero` (l'élément neutre de l'addition) et `One` pour `int` et `float`.
+
+```qlang
+fun total<T: Add + Zero>(xs: array<T>) -> T
+  let t = T.zero()
+  for x in xs do
+    t = t + x
+  end
+  t
+end
+
+print(total([1, 2, 3]))
+print(total<float>([]))
+```
+
 ## À retenir
 
 - `fun f<T>(…)`, `struct S<T>`, `impl<T> S<T>`.
