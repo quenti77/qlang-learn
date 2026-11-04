@@ -59,7 +59,11 @@ function workdir(v) {
   if (!v.source) return root;
   const dir = path.join(root, '.versions', v.name);
   fs.rmSync(dir, { recursive: true, force: true });
-  fs.cpSync(root, dir, { recursive: true, filter: (src) => !SKIP_IN_COPY.has(path.basename(src)) });
+  // entry by entry: Node refuses to copy a folder into one of its own sub-folders (.versions is inside root)
+  for (const entry of fs.readdirSync(root)) {
+    if (SKIP_IN_COPY.has(entry)) continue;
+    fs.cpSync(path.join(root, entry), path.join(dir, entry), { recursive: true, filter: (src) => !SKIP_IN_COPY.has(path.basename(src)) });
+  }
   fs.symlinkSync(path.join(root, 'node_modules'), path.join(dir, 'node_modules'), 'dir');
   for (const folder of HAND_WRITTEN) fs.rmSync(path.join(dir, folder), { recursive: true, force: true });
   const archive = spawnSync('git', ['archive', v.source, ...HAND_WRITTEN], { cwd: root, maxBuffer: 1 << 30 });
