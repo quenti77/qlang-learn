@@ -4,13 +4,13 @@ import { test, expect } from '@playwright/test';
 
 test('the root and the addresses from before the versions lead to the latest version', async ({ page }) => {
   await page.goto('/fr/docs/');
-  await expect(page).toHaveURL(/\/1\.0\/fr\/docs\/$/);
+  await expect(page).toHaveURL(/\/1\.1\/fr\/docs\/$/);
   await page.goto('/latest/en/');
-  await expect(page).toHaveURL(/\/1\.0\/en\/$/);
+  await expect(page).toHaveURL(/\/1\.1\/en\/$/);
   await page.goto('/fr/cours/28-projet-final/');
-  await expect(page).toHaveURL(/\/1\.0\/fr\/cours\/34-projet-final\/$/);
+  await expect(page).toHaveURL(/\/1\.1\/fr\/cours\/34-projet-final\/$/);
   await page.goto('/');
-  await expect(page).toHaveURL(/\/1\.0\/(fr|en)\/$/);
+  await expect(page).toHaveURL(/\/1\.1\/(fr|en)\/$/);
 });
 
 test('the selector lists the latest first and keeps the page when the other version has it', async ({ page }) => {
@@ -52,7 +52,7 @@ test('a page missing in the other version leads to its home page, with a message
   await page.goto('/0.9/fr/docs/');
   await page.route('**/1.1/fr/docs/', (route) => route.fulfill({ status: 404, body: 'not found' }));
   await page.getByTestId('version-select').selectOption('1.1');
-  await expect(page).toHaveURL(/\/1\.0\/fr\/\?missing=0\.9$/);
+  await expect(page).toHaveURL(/\/1\.1\/fr\/\?missing=0\.9$/);
   await expect(page.getByTestId('version-banner')).toContainText("n'existe pas en 1.1");
 });
 
