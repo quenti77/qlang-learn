@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the tags `site-X.Y` give the text of the archived versions (git archive)
       - uses: actions/setup-node@v4
         with:
           node-version: 22
