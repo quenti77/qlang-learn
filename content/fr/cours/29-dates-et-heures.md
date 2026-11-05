@@ -127,6 +127,35 @@ print(d.start_of_month())
 print(d.end_of_month().format("D MMMM YYYY"))
 ```
 
+## Un jour, une heure, un fuseau
+
+Un anniversaire n'est pas un instant : c'est un jour du calendrier, le même partout. `Date` est ce jour (sans heure ni
+fuseau), `Time` une heure du jour (sans date), et `Zoned` un instant vu depuis un fuseau. `Date.of` et `Time.of` rendent `none`
+pour ce qui n'existe pas.
+
+```qlang
+let jour = Date.of(2026, 1, 31) ?? Date.of(2000, 1, 1) ?? datetime.at(0).date()
+print(jour.plus_months(1).to_iso())              -- 2026-02-28
+print(Date.of(2026, 2, 30))                      -- none
+let ouverture = Time.of(23, 30) ?? Time.of_datetime(datetime.at(0))
+print(ouverture.plus_minutes(45).to_iso())       -- 00:15:00, autour de minuit
+```
+
+Pour lire un texte qui n'est pas au format ISO, `datetime.parse_with(texte, motif)` utilise les mêmes jetons que `format`
+(et `ZZ` pour un décalage comme `+02:00`) ; `datetime.from_unix(secondes)` part d'un horodatage Unix ; `Duration.parse("P1DT2H")` lit
+une durée ISO ; `d.each(Duration.of(days: 7), until: fin)` parcourt une période dans un `for`.
+
+```qlang
+let t = datetime.parse_with("11/10/2026 14:30", "DD/MM/YYYY HH:mm") ?? datetime.at(0)
+print(t.to_iso())
+print(datetime.from_unix(0).to_iso())
+for lundi in datetime.of(2026, 3, 2).each(Duration.of(days: 7), until: datetime.of(2026, 3, 23)) do
+  print(lundi.format_in("dddd D MMMM", "fr"))
+end
+```
+
+`format_in` et `humanize` connaissent sept langues (`en`, `fr`, `es`, `de`, `it`, `pt`, `nl`).
+
 ## À retenir
 
 - `datetime.of(a, m, j)` crée une date ; `datetime.now()` donne l'instant présent.

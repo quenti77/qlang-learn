@@ -420,6 +420,65 @@ From the weakest to the strongest:
   This comes from trait implementations provided by the language (`impl Add<float> for int`,
   etc.), and you can define your own.
 
+### Big numbers: `BigInt` and `BigDecimal`
+
+*Level: provisional (since 1.2).*
+
+An `int` is 64 bits (about 9.2·10¹⁸) and going past it is an error; a `float` is not exact (`0.1 + 0.2` is not `0.3`). Two
+types of the prelude solve these two cases. They are written in qlang (nothing native): fine for a factorial of a few
+thousand or a total in euros, slow for numbers of tens of thousands of digits.
+
+**`BigInt`** is an integer without limit.
+
+| Call | Result |
+| --- | --- |
+| `BigInt.of(12)`, `BigInt.parse("123456789012345678901234567890")` | a `BigInt`; `parse` gives a `Result` (`err` if it is not digits, with an optional `+` or `-`) |
+| `BigInt.pow(2, 200)` | `2 ** 200`, computed exactly |
+| `a + b`, `a - b`, `a * b`, `a ** n`, `-a` | exact; `n` is an `int` |
+| `a div b`, `a % b` | quotient (toward zero) and remainder (with the sign of `a`), like `int`; dividing by zero stops the program |
+| `a / b` | **does not exist** (`T…`): write `div`, or go through `BigDecimal` |
+| `a == b`, `a < b`… | between two `BigInt` |
+| `a + 2`, `2 + a`, `a * 3`, `a div 2` | an `int` mixes with a `BigInt` (it is converted); to compare, write `a == BigInt.of(2)` |
+| `a.to_int()` | a `Result<int, Error>`: `err` if the number does not fit in an `int` |
+| `"{a}"`, `a as string`, `a.to_string()` | the digits |
+| `a.sign()`, `a.abs()`, `a.is_zero()`, `a.divmod(b)` | −1, 0 or 1; absolute value; test; the pair (quotient, remainder) |
+
+**`BigDecimal`** is an exact decimal, for money: a `BigInt` and a **scale** (the number of digits after the point).
+`12.50` is `1250` with scale 2 and prints `12.50`.
+
+| Call | Result |
+| --- | --- |
+| `BigDecimal.parse("12.50")`, `BigDecimal.of(3)`, `BigDecimal.from_bigint(n)` | a `BigDecimal` (`parse` gives a `Result`) |
+| `a + b`, `a - b`, `a * b`, `-a` | exact: the scale of a sum is the larger of the two, that of a product is their sum |
+| `a == b`, `a < b`… | compare the **values**: `12.50 == 12.5` is true |
+| `a.divide(b, 2, "half_even")` | the quotient with 2 digits after the point, rounded by the mode; `a / b` does not exist |
+| `a.round(2, "half_up")` | the same value with 2 digits (more digits adds zeros, fewer rounds) |
+| `a.to_bigint("down")` | the integer part, rounded by the mode |
+| `a.strip_zeros()` | `12.50` becomes `12.5` |
+| `a.to_float()` | the nearest `float` (exactness is lost: this is the only way to a `float`) |
+
+The rounding modes are `"half_even"` (to even, the banks' one), `"half_up"`, `"half_down"`, `"up"` (away from zero), `"down"`
+(toward zero), `"floor"` and `"ceiling"`; any other word stops the program. Comparing a `BigDecimal` with a `float` is not
+possible: this is on purpose.
+
+```
+let f = BigInt.one()
+for i in 1..31 do
+  f = f * i
+end
+print(f)                                       -- 265252859812191058636308480000000
+
+let a = BigDecimal.parse("0.1").unwrap()
+let b = BigDecimal.parse("0.2").unwrap()
+print(a + b == BigDecimal.parse("0.3").unwrap())   -- true
+print(BigDecimal.parse("19.99").unwrap() * 3)      -- 59.97
+print(BigDecimal.parse("10").unwrap().divide(BigDecimal.of(3), 4, "half_even"))   -- 3.3333
+```
+
+- **JSON**: `n.to_json()` writes a string (`"1180591620717411303424"`, `"12.50"`), because a number would lose digits for many readers. `Json.of(n)` describes the fields, not the number: go through `to_string()`.
+- **Databases**: `Db` gives an SQL number as a JSON number (a `float`): a `NUMERIC` / `DECIMAL` column and a `BIGINT` beyond 2⁵³ lose digits. To read them exactly, ask for text in the query then convert it: `SELECT CAST(price AS TEXT) AS price FROM t`, then `BigDecimal.parse(price.as_string())` where `price` is `row["price"]` once tested `!= none`. To write a value: pass `Json.string(x as string)` as the parameter.
+- No `map` keys nor `Set` elements (equality works for two `BigInt`, hashing does not); no `BigRational`.
+
 ### Comparisons and logic
 
 - `==` and `!=` work on numbers (`1 == 1.0` is true), booleans, strings, enumerations,
@@ -1108,6 +1167,7 @@ end
 - Arguments are given like those of a call, in the order of the fields or by name; a field with a
   default value is optional. They are **literals** (number, text without `{}`, `true`, `false`,
   `none`, array of literals): everything is known at compile time.
+- **Level**: the declaration, the compile-time check and `#[deprecated]` are **stable**; reading them at run time (with `Reflect`) is **provisional** (since 1.2).
 - The checker verifies the name (`T001`, `T290` if it is not an annotation), the arguments
   (`T292` unknown name, too many or given twice; `T293` missing argument; `T294` not a literal;
   `T002` wrong type), and that `#[annotation]` is on a structure with no type parameter, no parent
@@ -1795,7 +1855,7 @@ The numbers live in the memory of the process: lost on exit, **not shared betwee
 
 #### Work in parallel: `Worker`
 
-*Level: experimental.*
+*Level: provisional (since 1.2).*
 
 A **task** is a file of your project that a separate interpreter runs at the same time as the program. It shares nothing with it (same model as the workers of `qlang serve`): the two talk by sending each other `Json` values. It needs the `qlang` command (`T250` elsewhere); at most 64 tasks at the same time.
 
@@ -1849,7 +1909,7 @@ interpreter**: there is no `async` / `await`. The values of the interpreter cann
 
 #### Distributed traces: `Trace` and OpenTelemetry
 
-*Level: experimental.*
+*Level: provisional (since 1.2).*
 
 `qlang serve --otlp-endpoint http://collector:4318` (or the `OTEL_EXPORTER_OTLP_ENDPOINT` variable) sends the **traces** of
 the requests to an OpenTelemetry collector (OTLP over HTTP, JSON; `--service-name` or `OTEL_SERVICE_NAME` names the
@@ -2133,7 +2193,7 @@ start). It is shown as `Set(1, 2, 3)`.
 
 ### Time and randomness
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 The core of the language reads neither the clock nor a random source: like `read`, they come
 from the **environment**. A program that calls them while they are missing is refused
@@ -2164,7 +2224,7 @@ still possible: `let time = 5` works, and `time` then designates that variable.
 
 ### Identifiers: `uuid` and `ulid`
 
-*Level: provisional.*
+*Level: **stable** since 1.1, except randomness: the shape of a `uuid` or a `ulid` is promised, not the values of `uuid.v4()`, `uuid.v7()` and `ulid.new()`.*
 
 Two types to identify something uniquely. Both are 128 bits and are distinct from `string`:
 you cannot pass one for the other.
@@ -2252,7 +2312,7 @@ end
   `dddd` / `ddd` (name of the day), `HH` / `H` (hour), `hh` / `h` (hour on 12), `A` (`AM` or `PM`), `mm` (minute),
   `ss` (second), `SSS` (milliseconds) and `WW` (ISO week). Text between `[` and `]` is kept as it is, like the other
   characters: `d.format("YYYY-MM-DD [at] HH:mm")`. The names are in English;
-  `d.format_in("dddd D MMMM YYYY", "fr")` gives them in French (`"en"` or `"fr"`, another language is the error
+  `d.format_in("dddd D MMMM YYYY", "fr")` gives them in French (`"en"`, `"fr"`, `"es"`, `"de"`, `"it"`, `"pt"` or `"nl"`, another language is the error
   `R066`). *Since 1.1*: `M`, `D`, `H`, `h`, `A`, `W`, `d` and `Y` alone (or in groups of 2 to 3) are tokens; a text
   that contained them must put them between brackets.
 - **Other accessors**: `d.day_of_year()`, `d.week()` (ISO 8601 week, 1 to 53) and `d.week_year()` (the year of that
@@ -2297,7 +2357,11 @@ on its own: `Duration.of(minutes: 90)` stays 90 minutes until `normalize()`. **Y
 | `d.nth_weekday_of_month(2, 1)`, `d.last_day_of_month()` | the 2nd Monday of the month (`none` if there is none); midnight of the last day |
 | `d.unix()`, `datetime.at(ms)` | seconds since 1970; (for seconds: `datetime.at(s * 1000)`) |
 | `d.to_http()`, `d.to_rfc2822()`, `d.to_iso()` | `Tue, 03 Nov 2026 14:30:00 GMT`, `… +0000`, `2026-11-03T14:30:00Z` |
-| `d.humanize(now)`, `d.humanize(now, "fr")` | `3 days ago`, `in 2 hours`, `il y a 3 jours` |
+| `d.humanize(now)`, `d.humanize(now, "fr")` | `3 days ago`, `in 2 hours`, `il y a 3 jours` (same seven languages; another language gives English) |
+| `datetime.from_unix(s)` | the instant `s` seconds after 1970 (`R064` outside the years 1 to 9999) |
+| `datetime.parse_with("11/10/2026 14:30", "DD/MM/YYYY HH:mm")` | reads a text with the tokens of `format` (`YYYY`, `YY`, `MM`, `M`, `DD`, `D`, `HH`, `H`, `mm`, `ss`, `SSS`) and `ZZ` for an offset (`+02:00`, `-0530` or `Z`, taken away to give the UTC instant); text between `[ ]` must be there as it is; `none` if the text does not fit or the date does not exist |
+| `d.each(Duration.of(months: 1), until: end)` | a `DatePeriod`, iterable: `d`, `d + 1 month`, … up to `end` (included if reached). Each instant is the start plus `n` steps: 31 January gives 28 February then 31 March. A zero step gives nothing |
+| `Duration.parse("P1Y2M3DT4H5M6S")` | reads the ISO 8601 text (`PT90M`, `P2W` = 14 days); `err` if it is not one |
 
 ```
 let start = datetime.of(2026, 1, 31, 10, 0, 0)
@@ -2308,7 +2372,7 @@ print(start.end_of_month().format("D MMMM YYYY"))
 
 ### Time zones: `Zone`
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 A `datetime` is always an instant in UTC. A `Zone` of the IANA database (`Europe/Paris`, `America/New_York`,
 `UTC`...) says what a clock on the wall of that place reads at that instant, summer time included, and the
@@ -2335,7 +2399,7 @@ before the change; an hour that happens twice (clocks go back) is the first one.
 
 ### Regular expressions
 
-*Level: provisional.*
+*Level: **stable** since 1.1.*
 
 The `regex` namespace offers the usual regular expression operations, from two
 strings (`text`, `pattern`):
@@ -2371,7 +2435,7 @@ with `Result`.
 
 ### Encodings and hashes
 
-*Level: provisional.*
+*Level: **stable** since 1.1 for text; the `*_bytes` variants are **provisional**.*
 
 Four namespaces work on text (its UTF-8 bytes); a decoding into text returns `none` if the result
 is not valid UTF-8. For arbitrary data, see [`bytes`](#bytes-sequences-of-bytes): each function has
@@ -2395,7 +2459,7 @@ These names start with a capital letter so that a variable `url` or `hash` does 
 
 ### `bytes`: sequences of bytes
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 `bytes` is a sequence of bytes that never changes: a file, a request body, a digest. It is not
 text (text is valid UTF-8) and not an array of integers.
@@ -2435,7 +2499,7 @@ print(b.at(1))               -- 195 (none outside the bytes)
 
 ### Paths and formatting: `Path` and `Format`
 
-*Level: provisional.*
+*Level: **stable** since 1.1.*
 
 `Path` handles paths **written as text**, with `/` between the parts (on Windows too); it does not touch the disk.
 
@@ -2465,7 +2529,7 @@ is a `panic` that says which: it is a mistake of the program, like a wrong index
 
 ### Secrets: `Crypto` and `Password`
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 `random` is a generator you can fix (`--seed`): good for tests, **never** for a secret. `Crypto`
 asks the operating system's secure source for bytes.
@@ -2494,9 +2558,41 @@ Password.needs_rehash(hash).unwrap()             -- true if the settings have ag
 - Only the `qlang` command offers `Password` and `Crypto` (another host: error `T250` before
   running; a test host may answer from its seed, never for real secrets).
 
+### Days, times and instants with a zone: `Date`, `Time`, `Zoned`
+
+*Level: provisional (since 1.2).*
+
+A `datetime` is an instant. For a birthday or an opening hour, which are not instants, three types of the prelude:
+
+| | |
+| --- | --- |
+| `Date.of(2026, 10, 11)` | a day with no time and no zone, or `none` if it does not exist; `Date.parse("2026-10-11")`, `Date.of_datetime(d)`, `d.date()` |
+| `date.plus_days(n)`, `plus_months(n)`, `plus_years(n)` | the day after (31 January + 1 month is the last day of February) |
+| `date.weekday()`, `day_of_year()`, `is_leap_year()`, `days_in_month()`, `days_until(other)`, `each(step, until: end)` | like `datetime` |
+| `date.to_iso()`, `format(pattern)`, `format_in(pattern, "fr")`, `to_datetime()` | `2026-10-11`; midnight UTC for the instant |
+| `Time.of(9, 30)`, `Time.of(9, 30, 15, 250)` | a time of day with no date and no zone, or `none` (hour 0 to 23, minute and second 0 to 59); `Time.parse("14:30")`, `Time.of_datetime(d)`, `d.time()` |
+| `time.plus_minutes(n)`, `minutes_until(other)`, `to_ms()`, `on(day)` | `plus_minutes` wraps around midnight; `on` gives the instant of that time on that day (UTC) |
+| `time.to_iso()`, `format("h:mm A")` | `09:30:00`, `09:30:00.250` with milliseconds |
+| `d.in_zone(zone)`, `Zoned.of(d, zone)` | a `Zoned`: the instant **and** its zone (needs the `qlang` command, like `Zone`) |
+| `z.hour()`, `date()`, `time()`, `wall()`, `offset_seconds()`, `abbreviation()`, `format(pattern)`, `to_iso()` | the wall clock of the zone; `to_iso()` gives `2026-07-01T14:00:00+02:00` |
+| `z.in_zone(other)` | the same instant seen in another zone |
+| `z.plus(duration)`, `z.minus(duration)` | years, months and days move the wall clock (a day stays a day across a daylight saving change, the hour does not move); hours, minutes, seconds and milliseconds move the instant |
+
+Two `Date`, two `Time` or two `Zoned` compare with `==`, `<` and `>` (a `Zoned` by instant, whatever the zones). The values keep
+the **millisecond**: nanoseconds are not supported (a `datetime` is in milliseconds since 1970, like `Date.now()` of JavaScript).
+
+```
+let paris = Zone.of("Europe/Paris").unwrap()
+let start = datetime.of(2026, 3, 28, 12, 0, 0).in_zone(paris)
+print(start.plus(Duration.of(days: 1)).to_iso())    -- 2026-03-29T13:00:00+02:00 (the hour does not move)
+print(start.plus(Duration.of(hours: 24)).to_iso())  -- 2026-03-29T14:00:00+02:00 (24 hours later)
+print(Date.of(2026, 2, 30))                          -- none
+print((Time.of(23, 30) ?? Time.of(0, 0)).plus_minutes(45).to_iso())  -- 00:15:00
+```
+
 ### Compression and archives: `Gzip`, `Zip`, `Tar`
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 Compress and decompress bytes, and read or write archives **in memory** (the disk goes through
 `fs.read_bytes` / `fs.write_bytes`). They need the `qlang` command (`T250` elsewhere).
@@ -2732,7 +2828,7 @@ print(r.unwrap().name)    -- Bob
 
 ### Prelude: `http`
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 `http.send(req)` sends an HTTP request and waits for the response. `Request`
 and `Response` are provided by the prelude (no need to declare them):
@@ -3030,7 +3126,7 @@ Options of `qlang serve app.q`:
 
 ### Prelude: `Db`
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 `Db.connect(url)` opens a database connection; the URL's scheme picks the
 driver: `sqlite://path/to/file.db`,
@@ -3115,7 +3211,7 @@ end
 
 ### Prelude: files and environment
 
-*Level: provisional.*
+*Level: **stable** since 1.2 for `fs` (read, write, list, `env`); `File`, `Dir` and `fs.append`, `remove`, `rename`, `copy` stay **provisional** (since 1.1).*
 
 `fs.read(path)` reads a file's whole content, `fs.write(path, content)`
 replaces it entirely (creating it if needed). Both return a `Result`: a
@@ -3219,7 +3315,7 @@ way imports do.
 
 ### Prelude: `Redis`
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 `Redis.connect(url)` opens a connection to a Redis server (RESP2 protocol): `redis://[user:password@]host[:port][/database]`, or `rediss://` for TLS (the certificate is checked with Mozilla's roots, as for Postgres). A server that is not on this machine needs `rediss://`, or `?tls=disable` to confirm that you want it in clear. Only the `qlang` command offers it (another host: error `T250`).
 
@@ -3237,7 +3333,7 @@ A connection does one thing at a time (each command waits for its answer, 30 s a
 
 ### Prelude: the `Log` journal
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 `Log` writes the program's journal with the levels of PSR-3 (PHP), lowest first: `debug`, `info`,
 `notice`, `warning` (or `warn`), `error`, `critical`, `alert`, `emergency`. Each level is a function
@@ -3292,7 +3388,7 @@ parentheses: each statement there fits on its line.
 
 ### Prelude: running a program
 
-*Level: provisional.*
+*Level: stable (since 1.2).*
 
 `Process.run(command, arguments)` runs a program of the machine, waits for it to end and
 returns a `Result<ProcessOutput, Error>`; `ProcessOutput` has three public fields: `status` (the
@@ -3327,7 +3423,7 @@ end
 
 ### Prelude: the terminal
 
-*Level: experimental.*
+*Level: provisional (since 1.2).*
 
 `Term` is for programs that draw a screen (a terminal interface). It needs the `qlang` command run from a
 terminal: elsewhere (JSON protocol, browser) using it is a compile-time error (`T250`), and in a pipe or
@@ -3445,6 +3541,8 @@ The source code itself cannot exceed 200 levels of nesting.
   maths, encodings, files, network, processes, tests). The rest lives in packages: see
   `qlang-std` (CSV, templates, TOML, YAML, XML, mail, S3, service container).
 - **Dictionaries:** no keys of type array or structure (see above; a tuple does), and no `<` comparison (two dictionaries have no natural order: sort `keys()`).
+- **Big numbers:** `BigInt` and `BigDecimal` are not dictionary keys nor `Set` elements (use their text, `x as string`); `BigInt == int` is refused (write `BigInt.of(n)`); there is no unsigned type (`uint`, `u64`): bytes go through `bytes` and explicit bit operations; exact amounts through `BigDecimal`, and a `NUMERIC` / `DECIMAL` column or a very large `BIGINT` is read as text (`CAST(col AS TEXT)`) then `BigDecimal.parse` or `BigInt.parse`.
+- **Dates:** the precision is the millisecond (no nanoseconds) and the names of months and days exist in seven languages (`en`, `fr`, `es`, `de`, `it`, `pt`, `nl`).
 - **Identifiers:** ASCII only (`a-z`, `A-Z`, `0-9`, `_`), whereas strings and comments accept
   all Unicode characters.
 - **Generic anonymous functions:** not planned (a named `fun f<T>(…)` covers the need, and an anonymous function takes its types from the context).
