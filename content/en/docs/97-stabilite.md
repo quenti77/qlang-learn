@@ -28,20 +28,22 @@ Since 1.0, what is *stable* is **guaranteed**: what 1.0 promises is listed at th
 | --- | --- |
 | Syntax: `let`, `fun`, `if`/`elseif`/`else`, `for`, `while`, `match`, `struct`, `enum`, `trait`, `impl`, `import`/`export`, interpolation `"{x}"` | **stable** |
 | Variadic parameters (`fun f(...xs: int)`) and the spread `...` in a call, an array and a map | **stable** (since 1.1) |
+| `BigInt` and `BigDecimal` of the prelude (`+ - * ** div %`, comparisons, rounding, `to_json`) | provisional (since 1.2) |
 | `File` and `Dir`, `fs.append`, `fs.remove`, `fs.remove_dir`, `fs.rename`, `fs.copy`, `fs.is_file` | provisional (since 1.1) |
 | `Iterator`, `Iterable`, `KeyedIterable` and `Step` of the prelude: `for` and `...` on a type of the program, `map`, `filter`, `take`, `skip`, `collect` | provisional (since 1.1) |
 | `Duration`, and the methods `datetime` gained in 1.1 (comparisons, `diff_in_*`, `start_of_*` / `end_of_*`, `with`, `format_in`, `humanize`) | provisional (since 1.1) |
+| `datetime.from_unix`, `datetime.parse_with`, `d.each` (`DatePeriod`), `Duration.parse`, `Date`, `Time`, `Zoned`, `d.in_zone`, the languages `es` `de` `it` `pt` `nl` of `format_in` and `humanize` | provisional (since 1.2) |
 | `Self` in a trait or an `impl`, a method without `self` called through a type parameter (`T.zero()`), the prelude traits `Zero` and `One` | provisional (since 1.1) |
 | Basic types, `array`, `map`, `Set`, tuples, nullables `T?`, `??`, `?`, `Result`/`Error` | **stable** |
 | Type checking, inference, generics and bounds (`T: Eq`, `Ord`) | **stable** |
 | `Json.of` / `Json.to` / `Json.parse`, `string`, `int`, `float`, `bool` and their usual methods | **stable** |
 | `uuid`, `ulid` (except the randomness), `regex`, `Hash`, `Base64`, `Hex`, `Url` (on text), `Format`, `Path` | **stable** (since 1.1) |
-| `datetime`, `Crypto`, `Password`, the `*_bytes` variants of `Hash`, `Base64`, `Hex` and `Url` | provisional |
-| `fs`, `env`, `http`, `Db`, `Redis`, `Process`, `Log` | provisional |
+| `datetime` (the `format` tokens changed in 1.1: one more version without change before it is stable), the `*_bytes` variants of `Hash`, `Base64`, `Hex` and `Url` | provisional |
+| `Crypto`, `Password`, `bytes`, `time` and `random` (except the random values), `fs` (read, write, list), `env`, `http` (client), `Db`, `Redis`, `Process`, `Log` | **stable** (since 1.2) |
 | Operator overloading (`Add`… `Neg`, `Eq`, `Ord`, `Index`, `IndexSet`, `Push`, `As<T>`), type aliases, annotations (`#[annotation]`, their compile-time check), `Any` | **stable** (since 1.1) |
-| `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard`, `Shared` | provisional (recent) |
-| `Worker` (tasks), `Trace` (OpenTelemetry traces) | **experimental** |
-| `Reflect` (constructors, `callable`), `extern fun` and providers, `Term` | **experimental** |
+| `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard` | **stable** (since 1.2) |
+| `Shared` | provisional (recent) |
+| `Worker` (tasks), `Trace` (OpenTelemetry traces), `Reflect` (constructors, `callable`), `extern fun` and providers, `Term` | provisional (since 1.2, experimental before) |
 | Reserved words (`step`, `from`, `then`, `catch`, `public`, `end`...) | more may be **added** (announced as "Cassant") |
 | Text of the error messages | **not promised** |
 | Error codes (`Pxxx`, `Txxx`, `Rxxx`, `Wxxx`) | a published code keeps its meaning: it is not renumbered; new ones appear |
@@ -54,26 +56,26 @@ their part: an added key is not a breaking change, a removed or renamed key is.
 | Part | Level |
 | --- | --- |
 | `qlang run`, `check`, `fmt` (including `fmt --stdin`), `test` (existing options) | **stable** (options are added, none is removed without a cycle) |
-| `qlang serve` (options, the `handle` protocol) | provisional; `Response.stream` / `sse` / `file` provisional; WebSocket **experimental** |
-| `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `lint` (rules `Q001` to `Q005`), `self-update` | provisional |
-| `qlang init --web`, `qlang test --coverage` / `--group`, `qlang repl`, `qlang dap` | **experimental** |
+| `qlang serve` (options, the `handle` protocol) | provisional; `Response.stream` / `sse` / `file`, `--max-workers` and WebSocket provisional (since 1.2, experimental before) |
+| `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `lint` (rules `Q001` to `Q005`) | **stable** (since 1.2) |
+| `self-update`, `install.sh`, `install.ps1`, Docker image, GitHub releases | provisional (not tried on macOS or Windows) |
+| `qlang info`, `publish`, `verify`, `migrate`, the `version = "…"` constraints, `signed`, `token_env`, the index (`packages.json`), `[externs]` | provisional (since 1.2, experimental before) |
+| `qlang init --web`, `qlang test --coverage` / `--group`, `qlang repl`, `qlang dap` | provisional (since 1.2, experimental before) |
 | `qlang.toml`: `[package]` (`name`, `version`, `entry`, `main`, `qlang`) and `[dependencies]` | provisional |
-| `qlang.toml`: `[externs]` | **experimental** |
-| `qlang.lock` | provisional (readable format, do not edit it) |
-| `install.sh`, `install.ps1`, Docker image, GitHub releases | provisional |
+| `qlang.lock` | **stable** (since 1.2; readable format, do not edit it) |
 
 ## `qlang-std` and the tools
 
 | Part | Level |
 | --- | --- |
-| `csv.q`, `toml.q`, `yaml.q`, `xml.q`, `template.q`, `jwt.q`, `i18n.q`, `cli.q` | provisional |
-| `web/app.q`, `web/session.q`, `web/validate.q`, `web/migrate.q`, `web/query.q`, `web/cache.q`, `web/middleware.q`, `web/health.q`, `web/limit.q`, `web/auth.q`, `web/upload.q`, `web/testing.q` | provisional |
-| `queue.q`, `schedule.q`, `mail.q`, `notify.q`, `s3.q` | provisional |
-| `web/container.q` (injection), `web/openapi.q`, `web/ws.q`, `web/relations.q`, `web/policy.q`, `web/resource.q`, `web/seed.q`, `web/queue_admin.q`, `web/metrics.q`, `web/events.q`, `web/commands.q`, `web/locale.q`, `web/refresh.q`, `web/proxy.q`, `web/accounts.q` | **experimental** |
-| `qlang-test` (package), `kit` | **experimental** (0.x) |
+| `csv.q`, `toml.q`, `template.q`, `jwt.q`, `i18n.q`, `cli.q`, `queue.q`, `schedule.q`, `mail.q`, `notify.q`, `s3.q` | **stable** (std 1.0) |
+| `web/app.q`, `web/session.q`, `web/validate.q`, `web/migrate.q`, `web/query.q`, `web/cache.q`, `web/middleware.q`, `web/health.q`, `web/limit.q`, `web/auth.q`, `web/upload.q`, `web/testing.q` | **stable** (std 1.0) |
+| `yaml.q`, `xml.q` (subsets of the formats) and the rest of `web/` (`container`, `openapi`, `ws`, `relations`, `policy`, `resource`, `seed`, `queue_admin`, `metrics`, `events`, `commands`, `locale`, `refresh`, `proxy`, `accounts`, `admin`) | provisional |
+| `kit` (commands, options, exit codes, `make` generators) | **stable** (kit 1.0); settings, prompts, test runner and wizard: provisional; terminal screens, dashboard, database browser: **experimental** |
+| `qlang-test` (package) | **experimental** (0.x) |
 
-While the std is at 0.x, none of its modules is *stable*; a breaking change in a *provisional* module is written in
-the CHANGELOG of `qlang-std`.
+`qlang-std` and `kit` have their own version (1.0 each) and their levels are in their `qlang.toml`. A breaking change in a
+*provisional* module is written in the CHANGELOG of the repository.
 
 ## How we deprecate
 
@@ -123,6 +125,9 @@ cover it**.
 | Variadic parameters `...xs` and the spread `...` (promised since 1.1) | `variadics`, `compile_variadics`, `runtime_variadics` |
 | Operator overloading, type aliases, annotations, `Any` (promised since 1.1) | `operator_overloading`, `type_aliases`, `compile_type_aliases`, `annotations`, `compile_annotations`, `any_values`, `compile_any` |
 | The small library modules (promised since 1.1): `Base64`, `Hex`, `Url`, `Hash`, `regex`, `Path`, `Format`, `uuid`, `ulid` | `encodings`, `hashes`, `regex`, `path`, `format`, `identifiers` |
+| `Crypto`, `Password`, `bytes`, `time`, `random`, `fs` (read, write, list), `env`, `Process`, `Log`, `http` (client), `Db`, `Redis` (promised since 1.2) | **not in the conformance suite** (they need the disk, the network or a service): integration tests `fs_env` and `root_fs`, `crypto` and `password`, `bytes`, `stdlib_system`, `process`, `log_context`, `http` and `http_all`, `db` and `mysql`, `redis` and `redis_absent` |
+| `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `lint` (promised since 1.2) | integration tests `packages`, `git_packages`, `registry` and `index_file` (packages), `lsp`, `docgen`, `doc_levels` and `doc_prelude` (`doc`), `lint` |
+| `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard` (promised since 1.2) | `zones`, `archives`, `panic_guard` |
 
 Outside the promise: reflection, `extern`, the HTTP server and the web library, `Term`, tasks and traces, and everything
 marked provisional or experimental. Each version of qlang has its tag in the conformance repository (`v0.X.Y` = the

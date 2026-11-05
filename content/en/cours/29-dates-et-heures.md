@@ -124,6 +124,34 @@ print(d.start_of_month())
 print(d.end_of_month().format("D MMMM YYYY"))
 ```
 
+## A day, a time, a zone
+
+A birthday is not an instant: it is a day of the calendar, the same everywhere. `Date` is that day (no time, no zone), `Time` a
+time of day (no date), and `Zoned` an instant seen from a time zone. `Date.of` and `Time.of` give `none` for what does not exist.
+
+```qlang
+let day = Date.of(2026, 1, 31) ?? Date.of(2000, 1, 1) ?? datetime.at(0).date()
+print(day.plus_months(1).to_iso())               -- 2026-02-28
+print(Date.of(2026, 2, 30))                      -- none
+let opening = Time.of(23, 30) ?? Time.of_datetime(datetime.at(0))
+print(opening.plus_minutes(45).to_iso())         -- 00:15:00, around midnight
+```
+
+To read a text that is not in ISO format, `datetime.parse_with(text, pattern)` uses the same tokens as `format` (and `ZZ` for an
+offset such as `+02:00`); `datetime.from_unix(seconds)` starts from a Unix timestamp; `Duration.parse("P1DT2H")` reads an ISO
+duration; `d.each(Duration.of(days: 7), until: end)` walks a period in a `for`.
+
+```qlang
+let t = datetime.parse_with("11/10/2026 14:30", "DD/MM/YYYY HH:mm") ?? datetime.at(0)
+print(t.to_iso())
+print(datetime.from_unix(0).to_iso())
+for monday in datetime.of(2026, 3, 2).each(Duration.of(days: 7), until: datetime.of(2026, 3, 23)) do
+  print(monday.format_in("dddd D MMMM", "fr"))
+end
+```
+
+`format_in` and `humanize` know seven languages (`en`, `fr`, `es`, `de`, `it`, `pt`, `nl`).
+
 ## Remember
 
 - `datetime.of(y, m, d)` creates a date; `datetime.now()` gives the present moment.

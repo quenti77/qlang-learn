@@ -100,6 +100,29 @@ end
 print("")
 ```
 
+## Quand `int` ne suffit pas : `BigInt` et `BigDecimal`
+
+Un `int` s'arrête vers 9,2·10¹⁸ (au-delà, le programme s'arrête) et un `float` n'est pas exact. `BigInt` est un entier sans limite,
+`BigDecimal` un décimal exact pour l'argent.
+
+```qlang
+let f = BigInt.one()
+for i in 1..26 do
+  f = f * i
+end
+print(f)                                  -- 25! dépasse déjà un int
+print(BigInt.pow(2, 100))
+
+let a = BigDecimal.parse("0.1").unwrap()
+let b = BigDecimal.parse("0.2").unwrap()
+print(a + b == BigDecimal.parse("0.3").unwrap())   -- true, ce que float ne sait pas faire
+print(BigDecimal.parse("19.99").unwrap() * 3)
+print(BigDecimal.parse("10").unwrap().divide(BigDecimal.of(3), 4, "half_even"))
+```
+
+Il n'y a pas de `/` sur ces types : `div` pour la division entière d'un `BigInt`, et `divide(b, chiffres, mode)` pour un
+`BigDecimal`, qui oblige à choisir l'arrondi. Ils sont écrits en qlang : parfaits pour quelques milliers de chiffres.
+
 ## Les textes
 
 ### Compter les voyelles
