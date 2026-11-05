@@ -80,6 +80,23 @@ A ```` ```qlang ```` block becomes an editor with a Run button (and an input fie
 - A program running more than 8 s is killed by terminating its worker.
 - Compiler messages (errors, hover texts) are in English in both languages for now.
 
+## Menu of the documentation
+
+The generated pages are grouped by theme in the menu (`scripts/sync-qlang.mjs`): the prelude reference
+(`Prélude · Itérateurs`, `Prélude · Web et temps réel`…) and the `@std` modules (`@std · formats et outils`,
+`@std · services`, `@std · web : l'essentiel`…). A type or module that is in no list falls in `Autres` (reference) or
+`web : pour aller plus loin` (std): add it to `THEMES` / `STD_THEMES` when a new one appears.
+
+## Not done (version selector, qlang-learn#64)
+
+The selector, the archived versions (`/1.0/`, `/1.1/`, `/latest/`, `/next/`) and the deploy are done. Not done, and
+not needed to read a version:
+
+- a table of the pages and anchors renamed between versions (an old link to a renamed page is a 404 in the new version);
+- the differences between two versions generated from the `CHANGELOG` ("what changed in 1.1");
+- links from `qlang` (error codes, `qlang doc`) to the documentation of the installed version;
+- versions of the documentation of `qlang-kit` and `qlang-test` (they follow `latest` for now).
+
 ## To do
 
 Convert the 28 lessons of `qlang-algo`, exercises (statement, starter code, hidden tests, hints,
