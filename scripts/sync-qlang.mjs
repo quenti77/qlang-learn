@@ -234,19 +234,30 @@ const fence = (text) => {
     .join('\n');
 };
 const STD_TEXT = {
-  fr: { group: 'Bibliothèque standard (@std)', how: 'À importer avec', note: "Cette page vient du code de `qlang-std` : les commentaires sont en anglais.", items: 'Éléments' },
-  en: { group: 'Standard library (@std)', how: 'Import with', note: 'This page comes from the code of `qlang-std`.', items: 'Items' },
+  fr: { group: 'Bibliothèque standard (@std)', shortGroup: '@std', themes: { data: 'formats et outils', services: 'services (jwt, mail, files d\'attente…)', web: 'web : l\'essentiel', webmore: 'web : pour aller plus loin' }, how: 'À importer avec', note: "Cette page vient du code de `qlang-std` : les commentaires sont en anglais.", items: 'Éléments' },
+  en: { group: 'Standard library (@std)', shortGroup: '@std', themes: { data: 'formats and tools', services: 'services (jwt, mail, queues…)', web: 'web: the essentials', webmore: 'web: going further' }, how: 'Import with', note: 'This page comes from the code of `qlang-std`.', items: 'Items' },
+};
+// the modules by theme in the menu: a single list of forty pages is not readable
+const STD_THEMES = {
+  data: ['csv', 'toml', 'yaml', 'xml', 'template', 'i18n', 'cli'],
+  services: ['jwt', 'mail', 'notify', 'queue', 'schedule', 's3'],
+  web: ['app', 'session', 'validate', 'migrate', 'query', 'cache', 'middleware', 'health', 'limit', 'auth', 'upload', 'testing'].map((n) => `web-${n}`),
+};
+const stdTheme = (page) => {
+  const key = page.name.replace(/\.q$/, '').replace(/\//g, '-').toLowerCase();
+  return Object.keys(STD_THEMES).find((k) => STD_THEMES[k].includes(key)) ?? 'webmore';
 };
 for (const lang of ['fr', 'en']) {
   const t = STD_TEXT[lang];
   const outDir = path.join(root, 'content', lang, 'docs-generated');
   for (const page of stdPages) {
+    const group = `${t.shortGroup} · ${t.themes[stdTheme(page)]}`;
     const body = [
       `${t.how} \`import ... from "@std/${page.name}"\`. ${t.note}`,
       page.guide ? fence(page.guide) : '',
       page.items ? `## ${t.items}\n\n${fence(page.items.replace(/^## /gm, '### '))}` : '',
     ].filter(Boolean).join('\n\n');
-    fs.writeFileSync(path.join(outDir, `${page.slug}.md`), `---\ntitle: ${JSON.stringify(page.name)}\ngroup: ${JSON.stringify(t.group)}\n---\n\n# ${page.name}\n\n${body}\n`);
+    fs.writeFileSync(path.join(outDir, `${page.slug}.md`), `---\ntitle: ${JSON.stringify(page.name)}\ngroup: ${JSON.stringify(group)}\n---\n\n# ${page.name}\n\n${body}\n`);
   }
   console.log(`qlang-std ${stdVersion} (${lang}): ${stdPages.length} pages generated`);
 }
@@ -303,7 +314,18 @@ async function generatePreludeReference(ref) {
 
   const TEXT = {
     fr: {
-      group: 'Référence du prélude',
+      group: 'Prélude',
+      themes: {
+        base: 'Fonctions et types de base',
+        iter: 'Itérateurs',
+        time: 'Dates, nombres et identifiants',
+        text: 'Texte, formats et chiffrement',
+        reflect: 'Réflexion',
+        web: 'Web et temps réel',
+        system: 'Fichiers, système et archives',
+        data: 'Bases de données',
+        other: 'Autres',
+      },
       intro: "Ce que le langage fournit sans `import`. Les explications et les signatures viennent du compilateur (`qlang doc --prelude`, version {v}) : elles sont en anglais, comme dans l'éditeur. Chaque exemple est exécuté à la génération du site : ce qu'il affiche est ce que fait vraiment qlang {v}.",
       prints: 'Affiche',
       methods: 'Méthodes',
@@ -313,7 +335,18 @@ async function generatePreludeReference(ref) {
       global: 'Fonctions globales',
     },
     en: {
-      group: 'Prelude reference',
+      group: 'Prelude',
+      themes: {
+        base: 'Functions and basic types',
+        iter: 'Iterators',
+        time: 'Dates, numbers and identifiers',
+        text: 'Text, formats and encryption',
+        reflect: 'Reflection',
+        web: 'Web and real time',
+        system: 'Files, system and archives',
+        data: 'Databases',
+        other: 'Other',
+      },
       intro: 'What the language provides without an `import`. The explanations and signatures come from the compiler (`qlang doc --prelude`, version {v}), the same as in the editor. Every example is run when the site is built: what it prints is what qlang {v} really does.',
       prints: 'Prints',
       methods: 'Methods',
@@ -376,6 +409,21 @@ async function generatePreludeReference(ref) {
       },
     });
   }
+  // the pages are grouped by theme in the menu (a flat list of a hundred pages is not readable); the order
+  // of the themes is the order below, and inside a theme the pages keep the order of the reference
+  const THEMES = {
+    base: ['functions', 'string', 'int', 'float', 'array', 'map', 'set', 'bytes', 'result', 'error', 'zero', 'one', 'tojson', 'size'],
+    iter: ['step', 'iterator', 'iterable', 'keyediterable', 'mapiter', 'filteriter', 'takeiter', 'skipiter', 'arrayiter', 'pairiter', 'walkiter', 'dateperiod'],
+    time: ['datetime', 'duration', 'zone', 'time', 'random', 'uuid', 'ulid', 'bigint', 'bigdecimal'],
+    text: ['regex', 'base64', 'hex', 'url', 'hash', 'format', 'path', 'json', 'jsonparser', 'jsonname', 'jsonskip', 'crypto', 'password'],
+    reflect: ['reflect', 'annotationinfo', 'paraminfo', 'typeinfo', 'fieldtype', 'fieldinfo', 'structinfo', 'variantinfo', 'enuminfo', 'functioninfo', 'enumparts', 'callable'],
+    web: ['request', 'part', 'response', 'wsmessage', 'wsframe', 'websocket', 'websockethandler', 'sseevent', 'cookie', 'httperror', 'route', 'router', 'http'],
+    system: ['fs', 'lines', 'file', 'dir', 'env', 'process', 'processoutput', 'log', 'caught', 'panic', 'worker', 'shared', 'trace', 'archiveentry', 'gzip', 'zip', 'tar', 'event', 'term'],
+    data: ['db', 'redis', 'redismessage', 'subscription'],
+  };
+  const themeOf = (page) => Object.keys(THEMES).find((k) => THEMES[k].includes(page.name.toLowerCase())) ?? 'other';
+  const themeOrder = [...Object.keys(THEMES), 'other'];
+  pages.sort((a, b) => themeOrder.indexOf(themeOf(a)) - themeOrder.indexOf(themeOf(b)));
   for (const lang of ['fr', 'en']) {
     const t = TEXT[lang];
     const outDir = path.join(root, 'content', lang, 'docs-generated');
@@ -383,7 +431,8 @@ async function generatePreludeReference(ref) {
     pages.forEach((page, i) => {
       const slug = `${100 + i}-ref-${page.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
       const body = [t.intro.replaceAll('{v}', ref.version), page.body(t)].filter(Boolean).join('\n\n');
-      fs.writeFileSync(path.join(outDir, `${slug}.md`), `---\ntitle: ${JSON.stringify(page.title)}\ngroup: ${JSON.stringify(t.group)}\n---\n\n# ${page.title}\n\n${body}\n`);
+      const group = `${t.group} · ${t.themes[themeOf(page)]}`;
+      fs.writeFileSync(path.join(outDir, `${slug}.md`), `---\ntitle: ${JSON.stringify(page.title)}\ngroup: ${JSON.stringify(group)}\n---\n\n# ${page.title}\n\n${body}\n`);
     });
     console.log(`prelude reference ${ref.version} (${lang}): ${pages.length} pages generated`);
   }
