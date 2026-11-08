@@ -26,6 +26,13 @@ qlang migrate             # rewrites
 
 Today there is one rule: `Log.warn` → `Log.warning` (deprecated in 0.69, removed in 0.83). What is not a rename stays described below.
 
+## 1.3: `File.is_link()` of a missing path (provisional)
+
+- **Before**: `File.of("missing").is_link()` gave `err` ("not found"), while `exists()` and `is_file()` gave `ok(false)`.
+- **After**: `ok(false)`, like the other two.
+- **Adapting**: a program that relied on the `err` to know whether the path exists should call `exists()`.
+  This change touches a part that used to be provisional (`File`, stable since 1.3).
+
 ## 1.1: the tokens of `datetime.format` (provisional)
 
 - **Before**: only `YYYY`, `MM`, `DD`, `HH`, `mm`, `ss` and `SSS` were tokens; any other letter was kept as it was, so

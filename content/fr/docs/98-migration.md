@@ -26,6 +26,13 @@ qlang migrate             # réécrit
 
 Aujourd'hui une règle : `Log.warn` → `Log.warning` (déprécié en 0.69, retiré en 0.83). Ce qui n'est pas un renommage reste décrit ci-dessous.
 
+## 1.3 : `File.is_link()` d'un chemin absent (provisoire)
+
+- **Avant** : `File.of("absent").is_link()` rendait `err` (« not found »), alors que `exists()` et `is_file()` rendaient `ok(false)`.
+- **Après** : `ok(false)`, comme les deux autres.
+- **S'adapter** : un programme qui comptait sur l'`err` pour savoir si le chemin existe doit appeler `exists()`.
+  Ce changement touche une partie qui était provisoire (`File`, stable depuis la 1.3).
+
 ## 1.1 : les jetons de `datetime.format` (provisoire)
 
 - **Avant** : seuls `YYYY`, `MM`, `DD`, `HH`, `mm`, `ss` et `SSS` étaient des jetons ; toute autre lettre était gardée telle quelle, donc

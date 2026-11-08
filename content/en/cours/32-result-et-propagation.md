@@ -83,8 +83,32 @@ match total_ages("30", "abc")
 end
 ```
 
-The error type must be the same on both sides (here `Error`): there is no automatic
-conversion. `?` only makes sense inside a function (otherwise, a compile error).
+The error type of the callee must be the one of the function **or a type that extends it**: there is no automatic
+conversion between unrelated types. `?` only makes sense inside a function (otherwise, a compile error).
+
+This allows precise errors: a function that returns `Result<_, Error>` can pass on an `OpenFileError` or a
+`ReadAccessFileError` that extend `Error`, and the caller keeps the exact type.
+
+```qlang
+struct OpenFileError extends Error end
+struct ReadAccessFileError extends Error end
+
+fun open_file() -> Result<int, OpenFileError>
+    Err(OpenFileError { message: "cannot open" })
+end
+
+fun read_file() -> Result<string, ReadAccessFileError>
+    Err(ReadAccessFileError { message: "cannot read" })
+end
+
+fun handle() -> Result<int, Error>
+    open_file()?
+    read_file()?
+    Ok(0)
+end
+
+print(handle())
+```
 
 <!-- expect-error -->
 ```qlang

@@ -672,7 +672,7 @@ end
 
 ### Going through your own type: `Iterable`
 
-*Level: provisional.*
+*Level: stable since 1.3.*
 
 A type of the program can be walked with `for` (and spread with `...`) when it implements a trait of the prelude.
 `Step<T>` says what one step gives: `Step.Item(value)`, or `Step.End` when nothing is left (it is not a `T?`: an
@@ -1431,7 +1431,7 @@ let p: Point<int> = Point.origin() -- Point { x: 0, y: 0 }
 - `T` must be deduced from the arguments, from the expected type or from a written `<...>`: otherwise `Point.origin()`
   gives `T171` (`Point<int>.origin()` or `let p: Point<int> = Point.origin()` avoid it).
 - If the bounds of `T` do not declare the method, it is `T161`.
-- **Provisional**: `Self`, `T.name()`, `Zero` and `One` are new in 1.1 (see [stability.md](stability.md)).
+- **Level**: `Self`, `T.name()`, `Zero` and `One` are **stable** since 1.3 (see [stability.md](stability.md)).
 
 ### A trait as a type
 
@@ -2267,7 +2267,7 @@ in their text form (`id as string` gives that string). For the reverse, `uuid.pa
 
 ### Dates and times: `datetime`
 
-*Level: provisional.*
+*Level: **stable** since 1.3, except `datetime.from_unix`, `datetime.parse_with`, `d.each` (`DatePeriod`) and the languages `es`, `de`, `it`, `pt`, `nl` of `format_in` and `humanize`, which stay **provisional** (since 1.2).*
 
 A `datetime` is an **instant**: a date and a time, always in **UTC** (no time zones, so the
 same results everywhere). It goes from year 1 to year 9999. It is a type of its own, like
@@ -2326,7 +2326,7 @@ end
 
 #### Durations: `Duration`
 
-*Level: provisional (since 1.1).*
+*Level: **stable** since 1.3, except `Duration.parse`, which stays **provisional** (since 1.2).*
 
 A `Duration` is a length of time: `years`, `months`, `days`, `hours`, `minutes`, `seconds`, `ms`. Nothing is converted
 on its own: `Duration.of(minutes: 90)` stays 90 minutes until `normalize()`. **Years and months** have no fixed length
@@ -2684,14 +2684,46 @@ fun load(path: string) -> Result<Json, Error>
 end
 ```
 
-- The error type must be the same on both sides (`Error` here): otherwise, a compile-time
-  error (`T282`); there is no automatic conversion.
+- The error type of the callee must be the one of the function **or a type that extends it** (see
+  below): otherwise, a compile-time error (`T282`); there is no automatic conversion.
 - `?` also works on a **nullable** value: `x?` gives the value, or leaves the function with
   `none`, which requires a function that returns a `T?`.
   `fun port(s: string) -> int? ... let rest = s.strip_prefix("port=")?` ...
 - It is written after any expression (`a()? + b()?`, `f()?.g()`), but not outside a function
   (`T280`), and it only applies to a `Result` or a nullable (`T281`). In an anonymous function,
   only that function is left.
+
+#### More precise errors: `Result` accepts child types
+
+A `Result<T, E>` never changes once it is built, so its value and its error can be of a **child** type of the one that is
+expected. `Result<int, OpenFileError>` is used where `Result<int, FileError>` or `Result<int, Error>` is expected, for an
+assignment, an argument, a function's return and the `?` operator:
+
+```
+struct FileError extends Error end
+struct OpenFileError extends FileError end
+struct ReadAccessFileError extends FileError end
+
+fun open_file() -> Result<int, OpenFileError>
+  Err(OpenFileError { message: "cannot open" })
+end
+
+fun read_file() -> Result<string, ReadAccessFileError>
+  Err(ReadAccessFileError { message: "cannot read" })
+end
+
+fun handle() -> Result<int, FileError>
+  open_file()?     -- the error keeps its type, OpenFileError
+  read_file()?
+  Ok(0)
+end
+```
+
+This holds for the value (`Result<Cat, E>` is used as `Result<Animal, E>`) as well as for the error. A type with no
+inheritance link is still refused (`T002`, `T282`). The other generic types (`array<T>`, `map<K, V>`, `Shared<T>`) stay
+**exact**, because they can be modified: an `array<Dog>` is not an `array<Animal>`. `T?` already accepts a child type.
+
+*Level: stable since 1.3.*
 
 ### Prelude: JSON
 
@@ -3211,7 +3243,7 @@ end
 
 ### Prelude: files and environment
 
-*Level: **stable** since 1.2 for `fs` (read, write, list, `env`); `File`, `Dir` and `fs.append`, `remove`, `rename`, `copy` stay **provisional** (since 1.1).*
+*Level: **stable** since 1.2 for `fs` (read, write, list, `env`); **stable** since 1.3 for `File`, `Dir` and `fs.append`, `remove`, `remove_dir`, `rename`, `copy`, `is_file`.*
 
 `fs.read(path)` reads a file's whole content, `fs.write(path, content)`
 replaces it entirely (creating it if needed). Both return a `Result`: a
@@ -3305,6 +3337,44 @@ let lang = env.get("LANG")
 print(lang != none)
 print(env.args())
 ```
+
+#### Reading a variable with its type: `require`, `parse`, `optional`
+
+`env.get` only gives text. For a number or a boolean, three methods read the variable **and** convert it, and a badly
+written value is an error (`ParseEnvError`), never a `none` or a default taken silently:
+
+| Variable | `env.require<T>(name)` | `env.parse(name, default)` | `env.optional<T>(name)` |
+| --- | --- | --- | --- |
+| not set | `err` | the default | `ok(none)` |
+| set and valid | `ok(value)` | `ok(value)` | `ok(value)` |
+| set and invalid | `err` | `err` | `err` |
+
+```
+let db_host: string = env.require<string>("DB_HOST").unwrap()
+let db_port: int = env.parse("DB_PORT", 3306).unwrap()      -- T comes from the default
+let db_ssl: bool? = env.optional<bool>("DB_SSL").unwrap()   -- none if DB_SSL does not exist
+
+fun config() -> Result<int, Error>
+  let host = env.require<string>("DB_HOST")?    -- ParseEnvError, accepted because Result is covariant
+  let text = fs.read("conf.json")?              -- Error
+  Ok(host.length() + text.length())
+end
+```
+
+- `require` and `optional` need `<T>` or an expected type (`let p: int = ...`): without either, `T171`. `parse` takes
+  `T` from the default.
+- `ParseEnvError` extends `Error`: `message` says what is wrong, `name` is the variable. Since `Result` accepts child
+  types, `?` passes it on in a function that returns `Result<_, Error>`.
+- The types that can be read are the ones that implement `ParsableFromString` (`fun from_text(value: string) -> Self?`,
+  `none` if the text is not valid). The prelude implements it for `string` (any text, even empty), `int` and `float`
+  (like `int.parse` and `float.parse`) and `bool`: `true`, `1`, `yes`, `on` give `true`, `false`, `0`, `no`, `off` give
+  `false`, whatever the case and the spaces around, and anything else is invalid. Your own types implement it the same
+  way (`impl ParsableFromString for Port`).
+- A variable that is **set but empty** (`DB_PORT=`) is read as the empty text: `string` takes it, `int`, `float` and
+  `bool` refuse it, so `env.parse("DB_PORT", 3306)` gives `err`, not 3306. To treat empty as not set, use `env.get`
+  and `!= ""`.
+
+*Level: stable since 1.3.*
 
 Needs disk access (`fs`) or access to the process environment (`env`) on
 the host side: a host that does not offer them (a sandbox, for example)

@@ -29,19 +29,21 @@ Since 1.0, what is *stable* is **guaranteed**: what 1.0 promises is listed at th
 | Syntax: `let`, `fun`, `if`/`elseif`/`else`, `for`, `while`, `match`, `struct`, `enum`, `trait`, `impl`, `import`/`export`, interpolation `"{x}"` | **stable** |
 | Variadic parameters (`fun f(...xs: int)`) and the spread `...` in a call, an array and a map | **stable** (since 1.1) |
 | `BigInt` and `BigDecimal` of the prelude (`+ - * ** div %`, comparisons, rounding, `to_json`) | provisional (since 1.2) |
-| `File` and `Dir`, `fs.append`, `fs.remove`, `fs.remove_dir`, `fs.rename`, `fs.copy`, `fs.is_file` | provisional (since 1.1) |
-| `Iterator`, `Iterable`, `KeyedIterable` and `Step` of the prelude: `for` and `...` on a type of the program, `map`, `filter`, `take`, `skip`, `collect` | provisional (since 1.1) |
-| `Duration`, and the methods `datetime` gained in 1.1 (comparisons, `diff_in_*`, `start_of_*` / `end_of_*`, `with`, `format_in`, `humanize`) | provisional (since 1.1) |
+| `File` and `Dir`, `fs.append`, `fs.remove`, `fs.remove_dir`, `fs.rename`, `fs.copy`, `fs.is_file` | **stable** (since 1.3) |
+| `Iterator`, `Iterable`, `KeyedIterable` and `Step` of the prelude: `for` and `...` on a type of the program, `map`, `filter`, `take`, `skip`, `collect` | **stable** (since 1.3) |
+| `datetime` (type, accessors, `format`, `parse`) and `Duration`, with the methods of 1.1 (comparisons, `diff_in_*`, `start_of_*` / `end_of_*`, `with`, `format_in` and `humanize` in `en` and `fr`) | **stable** (since 1.3) |
 | `datetime.from_unix`, `datetime.parse_with`, `d.each` (`DatePeriod`), `Duration.parse`, `Date`, `Time`, `Zoned`, `d.in_zone`, the languages `es` `de` `it` `pt` `nl` of `format_in` and `humanize` | provisional (since 1.2) |
-| `Self` in a trait or an `impl`, a method without `self` called through a type parameter (`T.zero()`), the prelude traits `Zero` and `One` | provisional (since 1.1) |
+| `Self` in a trait or an `impl`, a method without `self` called through a type parameter (`T.zero()`), the prelude traits `Zero` and `One` | **stable** (since 1.3) |
 | Basic types, `array`, `map`, `Set`, tuples, nullables `T?`, `??`, `?`, `Result`/`Error` | **stable** |
 | Type checking, inference, generics and bounds (`T: Eq`, `Ord`) | **stable** |
 | `Json.of` / `Json.to` / `Json.parse`, `string`, `int`, `float`, `bool` and their usual methods | **stable** |
 | `uuid`, `ulid` (except the randomness), `regex`, `Hash`, `Base64`, `Hex`, `Url` (on text), `Format`, `Path` | **stable** (since 1.1) |
-| `datetime` (the `format` tokens changed in 1.1: one more version without change before it is stable), the `*_bytes` variants of `Hash`, `Base64`, `Hex` and `Url` | provisional |
+| the `*_bytes` variants of `Hash`, `Base64`, `Hex` and `Url` | provisional |
 | `Crypto`, `Password`, `bytes`, `time` and `random` (except the random values), `fs` (read, write, list), `env`, `http` (client), `Db`, `Redis`, `Process`, `Log` | **stable** (since 1.2) |
 | Operator overloading (`Add`… `Neg`, `Eq`, `Ord`, `Index`, `IndexSet`, `Push`, `As<T>`), type aliases, annotations (`#[annotation]`, their compile-time check), `Any` | **stable** (since 1.1) |
 | `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard` | **stable** (since 1.2) |
+| `Result<T, E>` that accepts a child type for `T` and for `E` (assignment, argument, return, `?`) | **stable** (since 1.3) |
+| `env.require`, `env.parse`, `env.optional`, `ParseEnvError` and the `ParsableFromString` trait (`string`, `int`, `float`, `bool`) | **stable** (since 1.3) |
 | `Shared` | provisional (recent) |
 | `Worker` (tasks), `Trace` (OpenTelemetry traces), `Reflect` (constructors, `callable`), `extern fun` and providers, `Term` | provisional (since 1.2, experimental before) |
 | Reserved words (`step`, `from`, `then`, `catch`, `public`, `end`...) | more may be **added** (announced as "Cassant") |
@@ -117,6 +119,7 @@ cover it**.
 | Functions, closures, generics | `functions_and_closures`, `closures`, `named_arguments`, `generics` |
 | Strings, arrays, maps, sets, tuples | `strings`, `string_library`, `arrays`, `maps`, `sets`, `tuples` |
 | Optional values, `Result` and `?` | `nullables`, `optionals`, `results` |
+| `Result<T, E>` that accepts a child type for `T` and for `E`, `?` that passes on a child error (promised since 1.3) | `result_covariance`, `compile_result_covariance` |
 | Structures, traits, enums, inheritance | `structs`, `traits`, `enums`, `inheritance` |
 | `Json.parse`, `Json.of`, `Json.to`; modules | `json`, `modules` |
 | The codes of the common errors | the `compile_*`, `runtime_errors` and `arithmetic_errors` folders |
@@ -128,6 +131,10 @@ cover it**.
 | `Crypto`, `Password`, `bytes`, `time`, `random`, `fs` (read, write, list), `env`, `Process`, `Log`, `http` (client), `Db`, `Redis` (promised since 1.2) | **not in the conformance suite** (they need the disk, the network or a service): integration tests `fs_env` and `root_fs`, `crypto` and `password`, `bytes`, `stdlib_system`, `process`, `log_context`, `http` and `http_all`, `db` and `mysql`, `redis` and `redis_absent` |
 | `qlang install`, `add`, `update`, `remove`, `search`, `lsp`, `doc`, `lint` (promised since 1.2) | integration tests `packages`, `git_packages`, `registry` and `index_file` (packages), `lsp`, `docgen`, `doc_levels` and `doc_prelude` (`doc`), `lint` |
 | `Zone`, `Gzip`, `Zip`, `Tar`, `Panic.guard` (promised since 1.2) | `zones`, `archives`, `panic_guard` |
+| `datetime` and `Duration` (promised since 1.3; outside the promise: `from_unix`, `parse_with`, `each`, `Duration.parse`, `Date`, `Time`, `Zoned`, the languages `es` `de` `it` `pt` `nl`) | `dates_and_times`, `datetime_format`, `durations`, `runtime_datetime` |
+| `File`, `Dir`, `fs.append`, `fs.remove`, `fs.remove_dir`, `fs.rename`, `fs.copy`, `fs.is_file` (promised since 1.3) | **not in the conformance suite** (needs a disk): integration tests `files` and `root_fs` |
+| `Iterator`, `Iterable`, `KeyedIterable`, `Step` (promised since 1.3) | `iterables`, `compile_iterables` |
+| `Self`, `T.zero()`, `Zero`, `One` (promised since 1.3) | `generic_statics`, `compile_generic_statics` |
 
 Outside the promise: reflection, `extern`, the HTTP server and the web library, `Term`, tasks and traces, and everything
 marked provisional or experimental. Each version of qlang has its tag in the conformance repository (`v0.X.Y` = the
