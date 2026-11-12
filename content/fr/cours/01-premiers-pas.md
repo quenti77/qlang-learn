@@ -53,12 +53,11 @@ print("Bonjour)
 
 ## Aller plus loin : poser une question
 
-`read()` lit une ligne tapée par l'utilisateur. Ici, écris ton prénom dans le champ « Entrée »
-sous le code, puis exécute.
+`read("question")` affiche la question, puis lit une ligne tapée par l'utilisateur. Ici, écris ton
+prénom dans le champ « Entrée » sous le code, puis exécute.
 
 ```qlang
-write("Comment t'appelles-tu ? ")
-let prenom = read()
+let prenom = read("Comment t'appelles-tu ? ")
 print("Bonjour " + prenom + " !")
 ```
 

@@ -142,5 +142,5 @@ Your turn:
 
 - Add a `remove(id)` method.
 - Add a due date and sort on it.
-- Read commands with `read()` in a loop: `add title`, `done 3`, `list`.
+- Read commands with `read("> ")` in a loop: `add title`, `done 3`, `list`.
 - Save the state as text and reload it with `split()`.

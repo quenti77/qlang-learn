@@ -53,12 +53,11 @@ print("Hello)
 
 ## Going further: asking a question
 
-`read()` reads a line typed by the user. Here, write your first name in the "Input" field under
-the code, then run.
+`read("question")` shows the question, then reads a line typed by the user. Here, write your first
+name in the "Input" field under the code, then run.
 
 ```qlang
-write("What is your name? ")
-let name = read()
+let name = read("What is your name? ")
 print("Hello " + name + "!")
 ```
 
