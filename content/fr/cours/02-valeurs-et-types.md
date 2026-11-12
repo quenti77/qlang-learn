@@ -50,7 +50,7 @@ print("")             -- la chaîne vide existe aussi
 
 ## Rien du tout : `none`
 
-`none` veut dire « pas de valeur » (on y revient au chapitre 11).
+`none` veut dire « pas de valeur ». On y revient au chapitre 12 : pour l'instant, retiens seulement qu'il existe.
 
 ```qlang
 print(none)
@@ -86,14 +86,11 @@ print(int.parse("abc"))   -- none
 print(float.parse("2.5")) -- 2.5
 ```
 
-## Les tableaux et les dictionnaires
+## Et pour plusieurs valeurs ?
 
-Ils sont détaillés aux chapitres 9 et 10.
-
-```qlang
-print([1, 2, 3])
-print({ "a": 1, "b": 2 })
-```
+Pour ranger plusieurs valeurs ensemble, qlang a les **tableaux** (une suite de valeurs) et les **dictionnaires**
+(des paires clé-valeur). Ils ont leurs propres chapitres, les 9 et 10 : il faut d'abord voir les variables, les
+conditions, les boucles et les fonctions.
 
 ## À retenir
 

@@ -113,4 +113,4 @@ faire_parler(Chat { nom: "Tom" })
 - `override` est **obligatoire** pour redéfinir ; `super.methode()` appelle le parent.
 - `protected` : visible dans la struct et ses enfants.
 - Polymorphisme : même appel, comportement selon le vrai type.
-- Conseil : préfère les traits (chapitre 15) à l'héritage quand tu hésites.
+- Conseil : préfère les traits (chapitre 16) à l'héritage quand tu hésites.

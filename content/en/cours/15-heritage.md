@@ -113,4 +113,4 @@ make_speak(Cat { name: "Tom" })
 - `override` is **mandatory** to redefine; `super.method()` calls the parent.
 - `protected`: visible in the struct and its children.
 - Polymorphism: same call, behavior depending on the real type.
-- Advice: prefer traits (lesson 15) to inheritance when you hesitate.
+- Advice: prefer traits (lesson 16) to inheritance when you hesitate.

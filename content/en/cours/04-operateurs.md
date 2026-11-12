@@ -76,17 +76,6 @@ print(age >= 18 and age < 65)   -- true
 print(false and (1 div 0 == 0))   -- false, no error
 ```
 
-## Ranges
-
-`a..b` excludes `b` and `a..=b` includes it. They are mostly used with `for`.
-
-```qlang
-for i in 0..3 do write("{i} ") end
-print("")
-for i in 0..=3 do write("{i} ") end
-print("")
-```
-
 ## Numeric functions
 
 ```qlang

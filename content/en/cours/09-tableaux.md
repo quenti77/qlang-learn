@@ -78,6 +78,43 @@ copy[0] = 0
 print(all)               -- unchanged
 ```
 
+## Shared, not copied
+
+When you put an array into another variable, the array is not copied: both variables refer to the **same** array.
+Changing one changes the other.
+
+```qlang
+let t1 = [1, 2, 3]
+let t2 = t1          -- t2 refers to the SAME array
+t2[0] = 99
+print(t1)            -- [99, 2, 3]  surprise!
+```
+
+Numbers, booleans and texts, on the other hand, are copied (see lesson 3). To get a real copy, use `slice`.
+
+A `const` fixes the **name**, not the content of an array.
+
+```qlang
+const list = [1]
+list[0] = 2
+print(list)
+```
+
+## Passing an array to a function
+
+Arrays are shared: the function modifies the caller's array.
+
+```qlang
+fun double_all(xs: array<int>)
+  for i in 0..xs.len() do
+    xs[i] = xs[i] * 2
+  end
+end
+let t = [1, 2, 3]
+double_all(t)
+print(t)
+```
+
 ## Going through an array
 
 ```qlang
@@ -91,6 +128,17 @@ end
 print("")
 for i, x in all do write("{i}={x} ") end
 print("")
+```
+
+## A classic: finding a maximum
+
+```qlang
+let values = [4, 17, 9, 23, 8]
+let max = values[0]
+for v in values do
+  if v > max then max = v end
+end
+print("max = {max}")
 ```
 
 ## Text and arrays
@@ -154,9 +202,43 @@ print([1, 2] == [1, 2])
 print([1, 2] == [2, 1])
 ```
 
+## Any number of arguments
+
+The **last** parameter can collect all the remaining arguments: put `...` before its name. Its type is the type of
+**one element**; inside the function it is an array.
+
+```qlang
+fun total(...numbers: int) -> int
+  let sum = 0
+  for n in numbers do
+    sum += n
+  end
+  sum
+end
+print(total())          -- 0
+print(total(1, 2, 3))   -- 6
+```
+
+And `...` before a value does the opposite: it **unrolls** an array into arguments, or into another array.
+
+```qlang
+fun total(...numbers: int) -> int
+  let sum = 0
+  for n in numbers do
+    sum += n
+  end
+  sum
+end
+let xs = [1, 2, 3]
+print(total(...xs))            -- 6
+print(total(10, ...xs, 20))    -- 36
+print([...xs, 4, ...xs])       -- [1, 2, 3, 4, 1, 2, 3]
+```
+
 ## Remember
 
 - Indexes go from 0 to `len() - 1`.
 - `push`, `pop`, `insert`, `remove`, `sort`, `reverse` change the array **in place**;
   `slice` copies.
-- An array is a reference: two variables can share it.
+- An array is a reference: two variables can share it, and a function that receives it can change it.
+- `...numbers: int` collects the remaining arguments in an array; `...list` unrolls an array.

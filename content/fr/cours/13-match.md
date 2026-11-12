@@ -93,25 +93,28 @@ print(decrire(0))
 print(decrire(9))
 ```
 
-## Avec une énumération
+## Sur un tuple
 
-Le compilateur vérifie que tous les cas sont couverts.
+Un `match` peut défaire un tuple, ce qui est pratique pour regarder deux valeurs à la fois.
 
 ```qlang
-enum Feu
-  Rouge
-  Orange
-  Vert
-end
-fun action(f: Feu) -> string
-  match f
-    case Feu.Rouge then "stop"
-    case Feu.Orange then "ralentis"
-    case Feu.Vert then "avance"
+fun fizzbuzz(n: int) -> string
+  match (n mod 3, n mod 5)
+    case (0, 0) then "FizzBuzz"
+    case (0, _) then "Fizz"
+    case (_, 0) then "Buzz"
+    else "{n}"
   end
 end
-print(action(Feu.Orange))
+
+for i in 1..=15 do
+  print(fizzbuzz(i))
+end
 ```
+
+## Avec une énumération
+
+Un `match` sur une énumération (chapitre 18) est vérifié par le compilateur : il refuse qu'on oublie un cas.
 
 ## Le motif `_`
 
@@ -143,5 +146,6 @@ end
 
 - Les `case` sont essayés dans l'ordre ; le premier qui correspond gagne.
 - Intervalles (`a..b`, `a..=b`), gardes (`if`), `none` et énumérations sont des motifs.
+- Un tuple aussi : `case (0, _) then …`.
 - Pas de `case 1, 2, 3` : un `case` par valeur (ou une garde).
 - Pour qu'un `match` serve de valeur, il doit être exhaustif (`else`, ou énumération complète).

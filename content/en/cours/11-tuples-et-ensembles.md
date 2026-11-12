@@ -74,25 +74,6 @@ end
 print(cur)
 ```
 
-## Tuples and `match`
-
-A `match` can take a tuple apart, which is handy to look at two values at once.
-
-```qlang
-fun fizzbuzz(n: int) -> string
-  match (n mod 3, n mod 5)
-    case (0, 0) then "FizzBuzz"
-    case (0, _) then "Fizz"
-    case (_, 0) then "Buzz"
-    else "{n}"
-  end
-end
-
-for i in 1..=15 do
-  print(fizzbuzz(i))
-end
-```
-
 ## Sets
 
 A `Set<T>` is a collection of values **without duplicates**, which keeps insertion order. It is
@@ -155,6 +136,5 @@ print(visited.contains((1, 2)))
 
 - A tuple groups values of different types; read it with `t.0`, `t.1`, take it apart with
   `let (a, b) = t`, and `(a, b) = (b, a)` swaps two variables.
-- `match` accepts tuple patterns: `case (0, _) then …`.
 - `Set<T>`: no duplicates, insertion order kept; `add` tells whether the value was new.
 - Set values follow the dictionary key rule (no arrays).

@@ -121,8 +121,9 @@ impl Account
   end
 
   public fun deposit(self, amount: int)
-    assert(amount > 0, "the amount must be positive")
-    self.balance += amount
+    if amount > 0 then
+      self.balance += amount
+    end
   end
 
   public fun withdraw(self, amount: int) -> bool

@@ -87,27 +87,10 @@ b = tmp
 print("a={a} b={b}")
 ```
 
-## Scope: a variable created in a block only exists in that block
+## Copying a value
 
-```qlang
-let x = 1
-if true then
-  let x = 100           -- ANOTHER variable x, which hides the first one
-  print("inside: {x}")
-end
-print("outside: {x}")  -- 1
-```
-
-## References: arrays and structures are shared, not copied
-
-```qlang
-let t1 = [1, 2, 3]
-let t2 = t1          -- t2 refers to the SAME array
-t2[0] = 99
-print(t1)            -- [99, 2, 3]  surprise!
-```
-
-Numbers, booleans and texts, on the other hand, are copied.
+When you put a variable into another one, numbers, booleans and texts are **copied**: the two variables are
+then independent.
 
 ```qlang
 let n1 = 5
@@ -116,17 +99,11 @@ n2 = 6
 print(n1)            -- 5
 ```
 
-A `const` fixes the **name**, not the content of an array.
-
-```qlang
-const list = [1]
-list[0] = 2
-print(list)
-```
+Arrays behave differently: we see them in lesson 9.
 
 ## Remember
 
 - `let` = changeable variable, `const` = fixed name.
 - The type of a variable never changes.
-- Arrays are shared (references), numbers are copied.
+- Numbers, booleans and texts are copied from one variable to another.
 - `x += 1`, `x -= 1`, `x *= 2` are shortcuts.

@@ -76,17 +76,6 @@ calculé. Ici `1 div 0` serait une erreur, mais il n'est pas évalué :
 print(false and (1 div 0 == 0))   -- false, pas d'erreur
 ```
 
-## Intervalles
-
-`a..b` exclut `b` et `a..=b` l'inclut. Ils servent surtout avec `for`.
-
-```qlang
-for i in 0..3 do write("{i} ") end
-print("")
-for i in 0..=3 do write("{i} ") end
-print("")
-```
-
 ## Fonctions numériques
 
 ```qlang

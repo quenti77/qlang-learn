@@ -122,13 +122,27 @@ end
 
 ## Exemple classique : l'année bissextile
 
+Une année est bissextile si elle est divisible par 4, sauf les siècles, qui ne le sont que s'ils sont divisibles par 400.
+
 ```qlang
-fun est_bissextile(annee: int) -> bool
-  (annee mod 4 == 0 and annee mod 100 != 0) or annee mod 400 == 0
+let annee = 2024
+let bissextile = (annee mod 4 == 0 and annee mod 100 != 0) or annee mod 400 == 0
+print("{annee} : {bissextile}")   -- 2024 : true
+```
+
+Change `annee` pour 1900, puis 2000.
+
+## Portée : un bloc a ses propres variables
+
+Une variable créée dans un bloc (entre `then` et `end`) n'existe que dans ce bloc.
+
+```qlang
+let x = 1
+if true then
+  let x = 100           -- une AUTRE variable x, qui cache la première
+  print("dedans : {x}")
 end
-print(est_bissextile(2024))   -- true
-print(est_bissextile(1900))   -- false
-print(est_bissextile(2000))   -- true
+print("dehors : {x}")  -- 1
 ```
 
 ## Comparer des chaînes
@@ -145,3 +159,4 @@ end
 - `if` / `elseif` / `else` / `end` : un seul `end` pour toute la chaîne.
 - La condition est toujours un `bool`.
 - `if` peut servir de valeur : `let x = if c then 1 else 2 end`.
+- Une variable créée dans un bloc n'existe que dans ce bloc.

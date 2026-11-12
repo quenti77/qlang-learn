@@ -14,7 +14,7 @@ d'utiliser.
 
 ```qlang-module
 -- file: lib/maths.q
--- Petit module de démonstration (importé par le chapitre 20)
+-- Petit module de démonstration (importé par le chapitre 21)
 const SECRET = 42
 
 fun additionner(a: int, b: int) -> int

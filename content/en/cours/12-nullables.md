@@ -97,8 +97,21 @@ end
 Calling a method or reading a field on a nullable value is a compile error: with
 `let s: string? = "abc"`, `print(s.len())` is refused. Check `s != none` first.
 
+## A function that returns a nullable
+
+```qlang
+fun first_even(xs: array<int>) -> int?
+  for x in xs do
+    if x mod 2 == 0 then return x end
+  end
+  none
+end
+print(first_even([1, 3, 6, 8]))   -- 6
+print(first_even([1, 3]))         -- none
+```
+
 ## Remember
 
 - `T?` = `T` or `none`. The compiler forces you to test before using.
 - `if x == none then return … end`, then `x` can be used.
-- Many operations that can fail return a nullable.
+- Many operations that can fail return a nullable, and your own functions can return one too (`-> int?`).

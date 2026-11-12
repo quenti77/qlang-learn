@@ -41,23 +41,16 @@ end
 print("")
 ```
 
-## `for` over an array or a string
+## `for` over a string
 
 ```qlang
-let fruits = ["apple", "pear", "plum"]
-for f in fruits do
-  print("I like the {f}")
-end
-
-for i, f in fruits do            -- with the index
-  print("{i} -> {f}")
-end
-
 for letter in "abc" do
   write(letter.upper())
 end
 print("")
 ```
+
+An array is walked through in the same way: we see it in lesson 9.
 
 ## `break` and `continue`
 
@@ -127,17 +120,6 @@ end
 print("even numbers between 1 and 20: {evens}")
 ```
 
-### Finding a maximum
-
-```qlang
-let values = [4, 17, 9, 23, 8]
-let max = values[0]
-for v in values do
-  if v > max then max = v end
-end
-print("max = {max}")
-```
-
 ### FizzBuzz
 
 The classic of job interviews.
@@ -151,57 +133,6 @@ for i in 1..=15 do
   end
 end
 print("")
-```
-
-## `for` over your own type
-
-`for` goes through an array, a string, a range or a dictionary. To make it go through **your** type, implement
-`Iterator<T>`: a `next` method that returns `Step.Item(value)` while there are elements, then `Step.End`. (It is not a
-`T?`: an element may be `none` without stopping the loop.)
-
-```qlang
-struct Counter
-  public n: int
-  public max: int
-end
-
-impl Iterator<int> for Counter
-  public fun next(self) -> Step<int>
-    if self.n >= self.max then
-      return Step<int>.End
-    end
-    self.n += 1
-    Step<int>.Item(self.n)
-  end
-end
-
-for x in Counter { n: 0, max: 3 } do
-  print(x)
-end
-```
-
-An iterator also has **lazy** methods: `map`, `filter`, `take` and `skip` compute nothing until the result is walked,
-and `collect()` turns it into an array.
-
-```qlang
-struct Counter
-  public n: int
-  public max: int
-end
-
-impl Iterator<int> for Counter
-  public fun next(self) -> Step<int>
-    if self.n >= self.max then
-      return Step<int>.End
-    end
-    self.n += 1
-    Step<int>.Item(self.n)
-  end
-end
-
-let evens = Counter { n: 0, max: 1000000000 }.filter(fun(x: int) -> bool x % 2 == 0 end)
-print(evens.map(fun(x: int) -> int x * x end).take(3).collect())
-print([1, 2, 3].iter().map(fun(x: int) -> int x + 1 end).collect())
 ```
 
 ## Remember

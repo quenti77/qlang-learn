@@ -22,12 +22,12 @@ function outline(mod) {
 // The title of a part is the i18n key `part.<id>`.
 export const parts = [
   { id: 'basics', from: 1, to: 8 },
-  { id: 'collections', from: 9, to: 12 },
-  { id: 'types', from: 13, to: 18 },
-  { id: 'solid', from: 19, to: 22 },
-  { id: 'algorithms', from: 23, to: 27 },
-  { id: 'beyond', from: 28, to: 30 },
-  { id: 'more', from: 31, to: 33 },
+  { id: 'collections', from: 9, to: 13 },
+  { id: 'types', from: 14, to: 19 },
+  { id: 'solid', from: 20, to: 24 },
+  { id: 'algorithms', from: 25, to: 29 },
+  { id: 'beyond', from: 30, to: 32 },
+  { id: 'more', from: 33, to: 33 },
   { id: 'project', from: 34, to: 34 },
 ];
 export const partOf = (slug) => {
@@ -45,8 +45,8 @@ export function lessonParts(lang) {
 // (the number at the start of a documentation file name, the same in every language).
 const lessonDocs = {
   1: [10, 1, 2], 2: [12], 3: [13], 4: [14], 5: [12, 23], 6: [15], 7: [16], 8: [17], 9: [23], 10: [23],
-  11: [12], 12: [15], 13: [18], 14: [18], 15: [19], 16: [19], 17: [20], 18: [21], 19: [17], 20: [22],
-  21: [25, 29], 22: [26], 28: [24], 29: [24], 30: [26], 31: [12, 23], 32: [20, 25], 33: [2, 1],
+  11: [12, 23], 12: [12], 13: [15], 14: [18], 15: [18], 16: [19], 17: [19], 18: [20], 19: [21], 20: [17],
+  21: [22], 22: [25, 29], 23: [20, 25], 24: [26], 30: [24], 31: [24], 32: [26], 33: [2, 1],
 };
 
 /** The documentation pages that go with a lesson (slug). */
@@ -75,7 +75,7 @@ const exerciseFiles = import.meta.glob('/content/*/exercices/*.md', { eager: tru
 const exerciseSources = import.meta.glob('/content/*/exercices/*.md', { eager: true, query: '?raw', import: 'default' });
 
 // The part of the course each series of exercises goes with.
-const seriesPart = { '01-bases': 'basics', '02-tableaux-chaines': 'collections', '03-structs-traits': 'types', '04-algorithmes': 'algorithms', '05-tuples-ensembles-result': 'more' };
+const seriesPart = { '01-bases': 'basics', '02-tableaux-chaines': 'collections', '03-structs-traits': 'types', '04-algorithmes': 'algorithms', '05-tuples-ensembles-result': 'solid' };
 
 /** The series of exercises that go with a part of the course. */
 export const exercisesForPart = (lang, partId) => exerciseSeries(lang).filter((s) => s.part === partId);
