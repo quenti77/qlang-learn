@@ -142,5 +142,5 @@ print("projet OK")
 
 - Ajouter une méthode `supprimer(id)`.
 - Ajouter une date d'échéance et trier dessus.
-- Lire des commandes avec `read()` dans une boucle : `add titre`, `done 3`, `list`.
+- Lire des commandes avec `read("> ")` dans une boucle : `add titre`, `done 3`, `list`.
 - Sauvegarder l'état en texte et le recharger avec `split()`.

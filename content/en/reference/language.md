@@ -1817,6 +1817,8 @@ the **execution environment** (the terminal, a web server…).
 | `write(x)`               | shows `x` without a new line                                          |
 | `eprint(x)`, `ewrite(x)` | like `print` and `write`, on the error output (never mixed with the results; a host with no error output drops them). See [Output and error output](#output-and-error-output) |
 | `read()`                 | reads a line and returns a `string` (without the new line)            |
+| `read("Name? ")`         | shows the message (with no new line), then reads a line like `read()` |
+| `read<int>("Port? ")`    | shows the message, reads a line and reads it as an `int`: `Result<int, ReadError>` (see below) |
 | `read_all()`             | reads all the remaining lines, joined by new lines (none after the last one) |
 | `exit(code?)`            | ends the program right away with this exit code (0 by default); nothing runs after it |
 | `panic(message)`         | stops the program with an error                                       |
@@ -1836,7 +1838,22 @@ the **execution environment** (the terminal, a web server…).
 
 `print` and `write` accept any value (see [Conversions](#conversions)): arrays are shown as
 `[1, 2, 3]`, and strings inside an array are in quotes. `read()` always returns a `string`;
-for a number: `int.parse(read())`.
+for a number: `read<int>("Port? ")` or `int.parse(read())`.
+
+`read<T>(message)` reads a line **and** converts it, with the `ParsableFromString` trait (`string`, `int`,
+`float`, `bool`, or your type with an `impl`): a line that is not valid, or no more input, is an error
+(`ReadError`), never a default taken silently. The message is shown as it is, with no new line. It needs an
+input, like `read()`.
+
+```
+let port = read<int>("Port? ")?           -- ReadError, accepted thanks to covariant Result
+let name = read("Name? ")                 -- a string, with a message
+let age = read<int>("Age? ").unwrap()     -- stops the program on an error
+```
+
+- `ReadError` inherits from `Error`: `message` says what is wrong, `text` is the line that was typed (empty if
+  there was no more input).
+- `read("message")` stops with the error "no more input to read" when there is no more input (`read()`: `R040`).
 
 #### Numbers shared between workers: `Shared`
 

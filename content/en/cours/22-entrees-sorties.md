@@ -4,7 +4,9 @@ title: "Input / output"
 
 # Input / output
 
-`read()` reads a line typed on the keyboard and returns a `string`.
+`read()` reads a line typed on the keyboard and returns a `string`. `read("question")` shows the question
+first (with no new line). `read<int>("question")` reads the line **and** converts it: the result is a `Result`,
+an error if it is not a number.
 
 On this site, the program has no keyboard: write what the user would "type" in the **Input**
 field under the code, **one line per line**. In a terminal, `qlang run file.q` waits for your
@@ -13,19 +15,22 @@ input; you can also give the answers through a pipe: `printf 'Ada\n36\n' | qlang
 Try it with two lines, `Ada` then `36`:
 
 ```qlang
-write("What is your name? ")
-let name = read()
+let name = read("What is your name? ")
 print("Nice to meet you, {name}!")
 
-write("How old are you? ")
-let text = read()
-let age = int.parse(text)
-if age == none then
-  print("'{text}' is not a number.")
-else
-  print("In 10 years you will be {age + 10}.")
+match read<int>("How old are you? ")
+  case Ok(age) then
+    print("In 10 years you will be {age + 10}.")
+  case Err(e) then
+    print("That is not a number: {e.message}")
 end
 ```
+
+Then try `Ada` followed by `thirty`: `read<int>` gives a `ReadError` (`message` says what is wrong, `text` is
+the line that was typed), never an invented number. `read<float>`, `read<bool>` and `read<string>` work the
+same way, and so does your own type if it implements `ParsableFromString`. In a function that returns a
+`Result`, `read<int>("Port? ")?` hands the error to the caller. The old way still works: `int.parse(read())`
+gives an `int?`.
 
 If `read()` has no more lines to read, the program stops with an error. In an environment with
 no keyboard (such as a web server), `read` does not exist: this is detected at compile time.
@@ -49,6 +54,7 @@ error output, for the same reason. On this site, the page only shows the output.
 
 ## Remember
 
-- `read()` always returns a `string`: convert it with `int.parse` or `to_int()`.
-- Think about the case where the input is not a number: the result is an `int?`.
+- `read()` returns a `string`; `read("question")` shows the question before reading.
+- `read<int>("question")` reads **and** converts: a `Result` (`ReadError` if the input is not a number), to handle with `match` or `?`.
+- Without `<T>`, convert it yourself with `int.parse` or `to_int()`: the result is an `int?`.
 - `print` writes the results, `eprint` writes the rest (logs, warnings): the error output is not only for errors.

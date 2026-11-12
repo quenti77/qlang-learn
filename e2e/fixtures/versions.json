@@ -1,17 +1,17 @@
 {
-  "_comment": "Test list: 0.9 is built from the same pins as 1.3 (the lessons of today only run with 1.3), it only has to exist and be archived.",
-  "latest": "1.3",
+  "_comment": "Test list: 0.9 is built from the same pins as 1.4 (the lessons of today only run with 1.4), it only has to exist and be archived.",
+  "latest": "1.4",
   "versions": [
     {
-      "name": "1.3",
-      "qlang": "1.3.0",
+      "name": "1.4",
+      "qlang": "1.4.0",
       "std": "1.0.0",
       "status": "stable",
-      "released": "2026-11-08"
+      "released": "2026-11-12"
     },
     {
       "name": "0.9",
-      "qlang": "1.3.0",
+      "qlang": "1.4.0",
       "std": "1.0.0",
       "status": "archived",
       "released": "2026-10-01"
