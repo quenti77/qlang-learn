@@ -79,6 +79,9 @@ print(s.count("o"))          -- 3
 
 ## Découper et assembler
 
+`split` découpe un texte en **tableau** (une liste de valeurs, vue au chapitre 9) et `join` colle les morceaux d'un
+tableau en un texte.
+
 ```qlang
 let mots = "pomme,poire,prune".split(",")
 print(mots)
@@ -96,15 +99,6 @@ Pratique pour faire des tableaux.
 ```qlang
 print("7".pad_left(3, "0"))     -- 007
 print("ab".pad_right(5, ".") + "|")
-```
-
-## Parcourir les caractères
-
-```qlang
-for c in "abc" do
-  write("[{c}] ")
-end
-print("")
 ```
 
 ## Codes Unicode

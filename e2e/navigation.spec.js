@@ -8,7 +8,7 @@ test('the home page groups the lessons in parts', async ({ page }) => {
 });
 
 test('a lesson shows where it is: breadcrumb, menu of its part, outline, related documentation', async ({ page }) => {
-  await page.goto('/fr/cours/15-traits/');
+  await page.goto('/fr/cours/16-traits/');
   await expect(page.locator('.breadcrumb')).toContainText('Types et objets');
   await expect(page.locator('.toc a[aria-current="page"]')).toContainText('Les traits');
   await expect(page.locator('.toc details.toc-part[open] a[aria-current="page"]')).toHaveCount(1);
@@ -47,7 +47,7 @@ test('search finds pages in every section and opens one', async ({ page }) => {
   for (const where of await results.locator('.where').allTextContents()) expect(where).toMatch(/^Documentation/);
   await page.locator('.search-filters .chip', { hasText: /^Tout/ }).click();
   await results.locator('a', { hasText: 'Fonctions avancées' }).first().click();
-  await expect(page).toHaveURL(/\/fr\/cours\/19-fermetures\//);
+  await expect(page).toHaveURL(/\/fr\/cours\/20-fermetures\//);
 });
 
 test('search is in English on the English site, Escape closes it', async ({ page }) => {
@@ -62,7 +62,7 @@ test('search is in English on the English site, Escape closes it', async ({ page
 
 test('on a phone the menu folds behind a button', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phone only');
-  await page.goto('/fr/cours/15-traits/');
+  await page.goto('/fr/cours/16-traits/');
   const drawer = page.locator('details.drawer');
   await expect(drawer).not.toHaveAttribute('open', '');
   await drawer.locator(':scope > summary').click();
@@ -102,12 +102,16 @@ test('the 404 page speaks the language of the address', async ({ page }) => {
 });
 
 test('the final project is the last lesson, and the old addresses of renumbered lessons still work', async ({ page }) => {
-  await page.goto('/fr/cours/30-serveur-web/');
-  await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/31-tuples-et-ensembles/');
-  await page.goto('/fr/cours/32-result-et-propagation/');
+  await page.goto('/fr/cours/32-serveur-web/');
   await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/33-outils-du-terminal/');
   await page.goto('/fr/cours/33-outils-du-terminal/');
   await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/34-projet-final/');
+  // the course is read in an order where nothing is used before it is taught: tuples and sets after the
+  // dictionaries, `Result` after the errors
+  await page.goto('/fr/cours/10-dictionnaires/');
+  await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/11-tuples-et-ensembles/');
+  await page.goto('/fr/cours/22-erreurs-et-robustesse/');
+  await expect(page.locator('nav.pager a.next')).toHaveAttribute('href', '/fr/cours/23-result-et-propagation/');
   await page.goto('/fr/cours/28-projet-final/');
   await expect(page).toHaveURL('/fr/cours/34-projet-final/');
   await page.goto('/fr/cours/31-projet-final/');
@@ -115,5 +119,13 @@ test('the final project is the last lesson, and the old addresses of renumbered 
   await page.goto('/fr/cours/33-projet-final/');
   await expect(page).toHaveURL('/fr/cours/34-projet-final/');
   await page.goto('/en/cours/31-serveur-web/');
-  await expect(page).toHaveURL('/en/cours/30-serveur-web/');
+  await expect(page).toHaveURL('/en/cours/32-serveur-web/');
+  await page.goto('/en/cours/30-serveur-web/');
+  await expect(page).toHaveURL('/en/cours/32-serveur-web/');
+  await page.goto('/fr/cours/32-result-et-propagation/');
+  await expect(page).toHaveURL('/fr/cours/23-result-et-propagation/');
+  await page.goto('/fr/cours/31-tuples-et-ensembles/');
+  await expect(page).toHaveURL('/fr/cours/11-tuples-et-ensembles/');
+  await page.goto('/fr/cours/19-fermetures/');
+  await expect(page).toHaveURL('/fr/cours/20-fermetures/');
 });

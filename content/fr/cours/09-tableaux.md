@@ -78,6 +78,43 @@ copie[0] = 0
 print(tout)               -- inchangé
 ```
 
+## Partagé, pas copié
+
+Quand on met un tableau dans une autre variable, on ne copie pas le tableau : les deux variables désignent le **même**
+tableau. Changer l'un change l'autre.
+
+```qlang
+let t1 = [1, 2, 3]
+let t2 = t1          -- t2 désigne le MÊME tableau
+t2[0] = 99
+print(t1)            -- [99, 2, 3]  surprise !
+```
+
+Les nombres, booléens et textes, eux, sont copiés (voir le chapitre 3). Pour obtenir une vraie copie, utilise `slice`.
+
+Un `const` fixe le **nom**, pas le contenu d'un tableau.
+
+```qlang
+const liste = [1]
+liste[0] = 2
+print(liste)
+```
+
+## Passer un tableau à une fonction
+
+Les tableaux sont partagés : la fonction modifie le tableau de l'appelant.
+
+```qlang
+fun doubler_tout(xs: array<int>)
+  for i in 0..xs.len() do
+    xs[i] = xs[i] * 2
+  end
+end
+let t = [1, 2, 3]
+doubler_tout(t)
+print(t)
+```
+
 ## Parcourir
 
 ```qlang
@@ -91,6 +128,17 @@ end
 print("")
 for i, x in tout do write("{i}={x} ") end
 print("")
+```
+
+## Un classique : chercher un maximum
+
+```qlang
+let valeurs = [4, 17, 9, 23, 8]
+let max = valeurs[0]
+for v in valeurs do
+  if v > max then max = v end
+end
+print("max = {max}")
 ```
 
 ## Texte et tableau
@@ -154,9 +202,43 @@ print([1, 2] == [1, 2])
 print([1, 2] == [2, 1])
 ```
 
+## Un nombre variable d'arguments
+
+Le **dernier** paramètre peut ramasser tous les arguments qui restent : on met `...` devant son nom. Son type est
+celui d'**un élément** ; dans la fonction, c'est un tableau.
+
+```qlang
+fun somme(...nombres: int) -> int
+  let total = 0
+  for n in nombres do
+    total += n
+  end
+  total
+end
+print(somme())          -- 0
+print(somme(1, 2, 3))   -- 6
+```
+
+Et `...` devant une valeur fait l'inverse : il **déroule** un tableau en arguments, ou dans un autre tableau.
+
+```qlang
+fun somme(...nombres: int) -> int
+  let total = 0
+  for n in nombres do
+    total += n
+  end
+  total
+end
+let xs = [1, 2, 3]
+print(somme(...xs))            -- 6
+print(somme(10, ...xs, 20))    -- 36
+print([...xs, 4, ...xs])       -- [1, 2, 3, 4, 1, 2, 3]
+```
+
 ## À retenir
 
 - Les indices vont de 0 à `len() - 1`.
 - `push`, `pop`, `insert`, `remove`, `sort`, `reverse` modifient **sur place** ;
   `slice` copie.
-- Un tableau est une référence : deux variables peuvent le partager.
+- Un tableau est une référence : deux variables peuvent le partager, et une fonction qui le reçoit peut le modifier.
+- `...nombres: int` ramasse les arguments restants dans un tableau ; `...liste` déroule un tableau.

@@ -41,23 +41,16 @@ end
 print("")
 ```
 
-## `for` sur un tableau ou une chaîne
+## `for` sur une chaîne
 
 ```qlang
-let fruits = ["pomme", "poire", "prune"]
-for f in fruits do
-  print("J'aime la {f}")
-end
-
-for i, f in fruits do            -- avec l'indice
-  print("{i} -> {f}")
-end
-
 for lettre in "abc" do
   write(lettre.upper())
 end
 print("")
 ```
+
+Un tableau se parcourt de la même façon : on le voit au chapitre 9.
 
 ## `break` et `continue`
 
@@ -127,17 +120,6 @@ end
 print("pairs entre 1 et 20 : {pairs}")
 ```
 
-### Chercher un maximum
-
-```qlang
-let valeurs = [4, 17, 9, 23, 8]
-let max = valeurs[0]
-for v in valeurs do
-  if v > max then max = v end
-end
-print("max = {max}")
-```
-
 ### FizzBuzz
 
 Le classique des entretiens d'embauche.
@@ -151,57 +133,6 @@ for i in 1..=15 do
   end
 end
 print("")
-```
-
-## `for` sur son propre type
-
-`for` parcourt un tableau, une chaîne, un intervalle ou un dictionnaire. Pour qu'il parcoure **ton** type, il suffit
-d'implémenter `Iterator<T>` : une méthode `next` qui rend `Step.Item(valeur)` tant qu'il reste des éléments, puis
-`Step.End`. (On n'utilise pas `T?` : un élément peut valoir `none` sans arrêter la boucle.)
-
-```qlang
-struct Compteur
-  public n: int
-  public max: int
-end
-
-impl Iterator<int> for Compteur
-  public fun next(self) -> Step<int>
-    if self.n >= self.max then
-      return Step<int>.End
-    end
-    self.n += 1
-    Step<int>.Item(self.n)
-  end
-end
-
-for x in Compteur { n: 0, max: 3 } do
-  print(x)
-end
-```
-
-Un itérateur a aussi des méthodes **paresseuses** : `map`, `filter`, `take`, `skip` ne calculent rien tant qu'on ne
-parcourt pas le résultat, et `collect()` en fait un tableau.
-
-```qlang
-struct Compteur
-  public n: int
-  public max: int
-end
-
-impl Iterator<int> for Compteur
-  public fun next(self) -> Step<int>
-    if self.n >= self.max then
-      return Step<int>.End
-    end
-    self.n += 1
-    Step<int>.Item(self.n)
-  end
-end
-
-let pairs = Compteur { n: 0, max: 1000000000 }.filter(fun(x: int) -> bool x % 2 == 0 end)
-print(pairs.map(fun(x: int) -> int x * x end).take(3).collect())
-print([1, 2, 3].iter().map(fun(x: int) -> int x + 1 end).collect())
 ```
 
 ## À retenir

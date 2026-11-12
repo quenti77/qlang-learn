@@ -151,8 +151,60 @@ print(total([1, 2, 3]))
 print(total<float>([]))
 ```
 
+## Parcourir son propre type : `Iterator<T>`
+
+`for` parcourt un tableau, une chaîne, un intervalle ou un dictionnaire. Pour qu'il parcoure **ton** type, il suffit
+d'implémenter `Iterator<T>` : une méthode `next` qui rend `Step.Item(valeur)` tant qu'il reste des éléments, puis
+`Step.End`. (On n'utilise pas `T?` : un élément peut valoir `none` sans arrêter la boucle.)
+
+```qlang
+struct Compteur
+  public n: int
+  public max: int
+end
+
+impl Iterator<int> for Compteur
+  public fun next(self) -> Step<int>
+    if self.n >= self.max then
+      return Step<int>.End
+    end
+    self.n += 1
+    Step<int>.Item(self.n)
+  end
+end
+
+for x in Compteur { n: 0, max: 3 } do
+  print(x)
+end
+```
+
+Un itérateur a aussi des méthodes **paresseuses** : `map`, `filter`, `take`, `skip` ne calculent rien tant qu'on ne
+parcourt pas le résultat, et `collect()` en fait un tableau.
+
+```qlang
+struct Compteur
+  public n: int
+  public max: int
+end
+
+impl Iterator<int> for Compteur
+  public fun next(self) -> Step<int>
+    if self.n >= self.max then
+      return Step<int>.End
+    end
+    self.n += 1
+    Step<int>.Item(self.n)
+  end
+end
+
+let pairs = Compteur { n: 0, max: 1000000000 }.filter(fun(x: int) -> bool x % 2 == 0 end)
+print(pairs.map(fun(x: int) -> int x * x end).take(3).collect())
+print([1, 2, 3].iter().map(fun(x: int) -> int x + 1 end).collect())
+```
+
 ## À retenir
 
 - `fun f<T>(…)`, `struct S<T>`, `impl<T> S<T>`.
 - Sans borne, on ne peut presque rien faire d'un `T` : on ajoute `T: Ord`, `T: Add`…
 - qlang devine `T` d'après les arguments, sinon on le précise : `f<int>(…)`.
+- Une struct qui implémente `Iterator<T>` peut être parcourue par `for`.

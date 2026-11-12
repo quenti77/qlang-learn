@@ -93,25 +93,28 @@ print(describe(0))
 print(describe(9))
 ```
 
-## With an enumeration
+## On a tuple
 
-The compiler checks that all the cases are covered.
+A `match` can take a tuple apart, which is handy to look at two values at once.
 
 ```qlang
-enum Light
-  Red
-  Orange
-  Green
-end
-fun action(l: Light) -> string
-  match l
-    case Light.Red then "stop"
-    case Light.Orange then "slow down"
-    case Light.Green then "go"
+fun fizzbuzz(n: int) -> string
+  match (n mod 3, n mod 5)
+    case (0, 0) then "FizzBuzz"
+    case (0, _) then "Fizz"
+    case (_, 0) then "Buzz"
+    else "{n}"
   end
 end
-print(action(Light.Orange))
+
+for i in 1..=15 do
+  print(fizzbuzz(i))
+end
 ```
+
+## With an enumeration
+
+A `match` on an enumeration (lesson 18) is checked by the compiler: it refuses to let you forget a case.
 
 ## The `_` pattern
 
@@ -143,5 +146,6 @@ end
 
 - The `case`s are tried in order; the first one that matches wins.
 - Ranges (`a..b`, `a..=b`), guards (`if`), `none` and enumerations are patterns.
+- So is a tuple: `case (0, _) then …`.
 - There is no `case 1, 2, 3`: one `case` per value (or a guard).
 - For a `match` to be used as a value, it must be exhaustive (`else`, or a complete enumeration).

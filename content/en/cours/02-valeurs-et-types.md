@@ -50,7 +50,7 @@ print("")             -- the empty string exists too
 
 ## Nothing at all: `none`
 
-`none` means "no value" (we come back to it in lesson 11).
+`none` means "no value" (we come back to it in lesson 12; for now, just know it exists).
 
 ```qlang
 print(none)
@@ -85,14 +85,10 @@ print(int.parse("abc"))   -- none
 print(float.parse("2.5")) -- 2.5
 ```
 
-## Arrays and dictionaries
+## And for several values?
 
-They are detailed in lessons 9 and 10.
-
-```qlang
-print([1, 2, 3])
-print({ "a": 1, "b": 2 })
-```
+To keep several values together, qlang has **arrays** (a sequence of values) and **dictionaries** (key-value
+pairs). They have their own lessons, 9 and 10: variables, conditions, loops and functions come first.
 
 ## Remember
 

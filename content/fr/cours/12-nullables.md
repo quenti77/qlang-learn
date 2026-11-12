@@ -99,8 +99,21 @@ Appeler une méthode ou lire un champ sur une valeur nullable est une erreur de
 compilation : avec `let s: string? = "abc"`, `print(s.len())` est refusé. Vérifie
 d'abord `s != none`.
 
+## Une fonction qui renvoie un nullable
+
+```qlang
+fun premier_pair(xs: array<int>) -> int?
+  for x in xs do
+    if x mod 2 == 0 then return x end
+  end
+  none
+end
+print(premier_pair([1, 3, 6, 8]))   -- 6
+print(premier_pair([1, 3]))         -- none
+```
+
 ## À retenir
 
 - `T?` = `T` ou `none`. Le compilateur oblige à tester avant d'utiliser.
 - `if x == none then return … end`, puis `x` est utilisable.
-- Beaucoup d'opérations qui peuvent échouer renvoient un nullable.
+- Beaucoup d'opérations qui peuvent échouer renvoient un nullable, et tes fonctions peuvent en renvoyer aussi (`-> int?`).

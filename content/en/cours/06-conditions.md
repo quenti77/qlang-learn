@@ -121,13 +121,27 @@ end
 
 ## A classic example: the leap year
 
+A year is a leap year if it is divisible by 4, except centuries, which only are if they are divisible by 400.
+
 ```qlang
-fun is_leap_year(year: int) -> bool
-  (year mod 4 == 0 and year mod 100 != 0) or year mod 400 == 0
+let year = 2024
+let leap = (year mod 4 == 0 and year mod 100 != 0) or year mod 400 == 0
+print("{year}: {leap}")   -- 2024: true
+```
+
+Change `year` to 1900, then 2000.
+
+## Scope: a block has its own variables
+
+A variable created in a block (between `then` and `end`) only exists in that block.
+
+```qlang
+let x = 1
+if true then
+  let x = 100           -- ANOTHER variable x, which hides the first one
+  print("inside: {x}")
 end
-print(is_leap_year(2024))   -- true
-print(is_leap_year(1900))   -- false
-print(is_leap_year(2000))   -- true
+print("outside: {x}")  -- 1
 ```
 
 ## Comparing strings
@@ -144,3 +158,4 @@ end
 - `if` / `elseif` / `else` / `end`: a single `end` for the whole chain.
 - The condition is always a `bool`.
 - `if` can be used as a value: `let x = if c then 1 else 2 end`.
+- A variable created in a block only exists in that block.

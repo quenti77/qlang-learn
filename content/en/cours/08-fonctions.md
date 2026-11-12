@@ -63,34 +63,6 @@ end
 print(is_even(10))
 ```
 
-## Modifying an array
-
-Arrays are shared: the function modifies the caller's array.
-
-```qlang
-fun double_all(xs: array<int>)
-  for i in 0..xs.len() do
-    xs[i] = xs[i] * 2
-  end
-end
-let t = [1, 2, 3]
-double_all(t)
-print(t)
-```
-
-## Maybe nothing: the nullable type
-
-```qlang
-fun first_even(xs: array<int>) -> int?
-  for x in xs do
-    if x mod 2 == 0 then return x end
-  end
-  none
-end
-print(first_even([1, 3, 6, 8]))   -- 6
-print(first_even([1, 3]))         -- none
-```
-
 ## Recursion
 
 A function can call itself. There must **always** be a base case that stops the recursion.
@@ -158,101 +130,10 @@ print(triple(5))
 print(apply(fun(x: int) -> int x + 100 end, 1))
 ```
 
-## Applying a function to every element
-
-This is the famous "map".
-
-```qlang
--- (defined earlier in this chapter)
-fun square(x: int) -> int
-  x * x
-end
-
-let triple = fun(x: int) -> int
-  x * 3
-end
-
-fun transform(xs: array<int>, f: fun(int) -> int) -> array<int>
-  let res: array<int> = []
-  for x in xs do
-    res[] = f(x)            -- `res[] = v` adds at the end
-  end
-  res
-end
-print(transform([1, 2, 3], square))
-print(transform([1, 2, 3], triple))
-```
-
-## Filtering
-
-```qlang
--- (defined earlier in this chapter)
-fun is_even(n: int) -> bool
-  n mod 2 == 0
-end
-
-fun keep_if(xs: array<int>, keep: fun(int) -> bool) -> array<int>
-  let res: array<int> = []
-  for x in xs do
-    if keep(x) then res[] = x end
-  end
-  res
-end
-print(keep_if([1, 2, 3, 4, 5, 6], is_even))
-```
-
-## Reducing
-
-```qlang
-fun reduce(xs: array<int>, start: int, f: fun(int, int) -> int) -> int
-  let acc = start
-  for x in xs do
-    acc = f(acc, x)
-  end
-  acc
-end
-print(reduce([1, 2, 3, 4], 0, fun(a: int, b: int) -> int a + b end))   -- 10
-print(reduce([1, 2, 3, 4], 1, fun(a: int, b: int) -> int a * b end))   -- 24
-```
-
-## Any number of arguments
-
-The **last** parameter can collect all the remaining arguments: put `...` before its name. Its type is the type of
-**one element**; inside the function it is an array.
-
-```qlang
-fun total(...numbers: int) -> int
-  let sum = 0
-  for n in numbers do
-    sum += n
-  end
-  sum
-end
-print(total())          -- 0
-print(total(1, 2, 3))   -- 6
-```
-
-And `...` before a value does the opposite: it **unrolls** an array into arguments, or into another array.
-
-```qlang
-fun total(...numbers: int) -> int
-  let sum = 0
-  for n in numbers do
-    sum += n
-  end
-  sum
-end
-let xs = [1, 2, 3]
-print(total(...xs))            -- 6
-print(total(10, ...xs, 20))    -- 36
-print([...xs, 4, ...xs])       -- [1, 2, 3, 4, 1, 2, 3]
-```
-
 ## Remember
 
 - `fun name(param: type) -> return_type … end`
 - Last expression = returned value; `return` to leave earlier.
 - Recursion = base case + recursive case.
-- A function is a value: `map` / `filter` / `reduce` follow from it.
-- `...numbers: int` collects the remaining arguments in an array; `...list` unrolls an array.
+- A function is a value: you can store it in a variable or hand it to another function.
 - Depth limit: 1000 nested calls (error `R901`); 250 on this site, where the browser has less room.

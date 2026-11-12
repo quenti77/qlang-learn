@@ -88,27 +88,10 @@ b = tmp
 print("a={a} b={b}")
 ```
 
-## Portée : une variable créée dans un bloc n'existe que dans ce bloc
+## Copier une valeur
 
-```qlang
-let x = 1
-if true then
-  let x = 100           -- une AUTRE variable x, qui cache la première
-  print("dedans : {x}")
-end
-print("dehors : {x}")  -- 1
-```
-
-## Références : tableaux et structures sont partagés, pas copiés
-
-```qlang
-let t1 = [1, 2, 3]
-let t2 = t1          -- t2 désigne le MÊME tableau
-t2[0] = 99
-print(t1)            -- [99, 2, 3]  surprise !
-```
-
-Les nombres, booléens et textes, eux, sont copiés.
+Quand on met une variable dans une autre, les nombres, les booléens et les textes sont **copiés** : les deux
+variables sont ensuite indépendantes.
 
 ```qlang
 let n1 = 5
@@ -117,17 +100,11 @@ n2 = 6
 print(n1)            -- 5
 ```
 
-Un `const` fixe le **nom**, pas le contenu d'un tableau.
-
-```qlang
-const liste = [1]
-liste[0] = 2
-print(liste)
-```
+Les tableaux, eux, se comportent autrement : on les voit au chapitre 9.
 
 ## À retenir
 
 - `let` = variable modifiable, `const` = nom figé.
 - Le type d'une variable ne change jamais.
-- Les tableaux se partagent (référence), les nombres se copient.
+- Les nombres, booléens et textes se copient d'une variable à l'autre.
 - `x += 1`, `x -= 1`, `x *= 2` sont des raccourcis.

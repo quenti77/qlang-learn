@@ -121,8 +121,9 @@ impl Compte
   end
 
   public fun deposer(self, montant: int)
-    assert(montant > 0, "le montant doit être positif")
-    self.solde += montant
+    if montant > 0 then
+      self.solde += montant
+    end
   end
 
   public fun retirer(self, montant: int) -> bool

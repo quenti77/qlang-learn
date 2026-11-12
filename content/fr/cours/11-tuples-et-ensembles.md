@@ -74,25 +74,6 @@ end
 print(cur)
 ```
 
-## Tuples et `match`
-
-Un `match` peut défaire un tuple, ce qui est pratique pour regarder deux valeurs à la fois.
-
-```qlang
-fun fizzbuzz(n: int) -> string
-  match (n mod 3, n mod 5)
-    case (0, 0) then "FizzBuzz"
-    case (0, _) then "Fizz"
-    case (_, 0) then "Buzz"
-    else "{n}"
-  end
-end
-
-for i in 1..=15 do
-  print(fizzbuzz(i))
-end
-```
-
 ## Les ensembles
 
 Un `Set<T>` est une collection de valeurs **sans doublon**, qui garde l'ordre d'ajout. Il est
@@ -156,6 +137,5 @@ print(visites.contains((1, 2)))
 
 - Un tuple groupe des valeurs de types différents ; on le lit avec `t.0`, `t.1`, on le défait
   avec `let (a, b) = t`, et `(a, b) = (b, a)` échange deux variables.
-- `match` accepte des motifs de tuple : `case (0, _) then …`.
 - `Set<T>` : pas de doublon, ordre d'ajout conservé ; `add` dit si la valeur était nouvelle.
 - Les valeurs d'un ensemble suivent la règle des clés de dictionnaire (pas de tableau).

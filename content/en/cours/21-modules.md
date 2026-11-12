@@ -13,7 +13,7 @@ Here is `lib/maths.q`. At the end, `export` lists what the other files are allow
 
 ```qlang-module
 -- file: lib/maths.q
--- Small demonstration module (imported by lesson 20)
+-- Small demonstration module (imported by lesson 21)
 const SECRET = 42
 
 fun add(a: int, b: int) -> int

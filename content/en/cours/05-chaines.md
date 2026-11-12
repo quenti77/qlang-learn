@@ -79,6 +79,9 @@ print(s.count("o"))          -- 2
 
 ## Splitting and joining
 
+`split` cuts a text into an **array** (a list of values, seen in lesson 9) and `join` glues the pieces of an array
+back into a text.
+
 ```qlang
 let words = "apple,pear,plum".split(",")
 print(words)
@@ -96,15 +99,6 @@ Handy for making tables.
 ```qlang
 print("7".pad_left(3, "0"))     -- 007
 print("ab".pad_right(5, ".") + "|")
-```
-
-## Going through the characters
-
-```qlang
-for c in "abc" do
-  write("[{c}] ")
-end
-print("")
 ```
 
 ## Unicode codes

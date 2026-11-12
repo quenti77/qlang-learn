@@ -159,7 +159,7 @@ test('lesson pages have previous and next links that exist', async ({ page }) =>
 });
 
 test('a lesson can import files shown on the page', async ({ page }) => {
-  await page.goto('/fr/cours/20-modules/');
+  await page.goto('/fr/cours/21-modules/');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   await expect(page.getByTestId('module-name')).toHaveText('lib/maths.q');
   const run = page.locator('.qlang-widget').nth(1);
