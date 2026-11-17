@@ -11,11 +11,11 @@ print(7 + 2)       -- 9
 print(7 - 2)       -- 5
 print(7 * 2)       -- 14
 print(7 / 2)       -- 3.5  : `/` donne TOUJOURS un float
-print(7 div 2)     -- 3    : division entière (on jette le reste)
+print(7 // 2)     -- 3    : division entière (on jette le reste)
 print(7 mod 2)     -- 1    : le reste de la division (aussi noté %)
 print(7 % 2)       -- 1
 print(2 ** 10)     -- 1024 : puissance
-print(-7 div 2)    -- -3   (on tronque vers zéro)
+print(-7 // 2)    -- -3   (on tronque vers zéro)
 print(5.5 mod 2)   -- 1.5
 ```
 
@@ -70,10 +70,10 @@ print(age >= 18 and age < 65)   -- true
 ```
 
 `and` et `or` sont « paresseux » : si le côté gauche suffit, le droit n'est jamais
-calculé. Ici `1 div 0` serait une erreur, mais il n'est pas évalué :
+calculé. Ici `1 // 0` serait une erreur, mais il n'est pas évalué :
 
 ```qlang
-print(false and (1 div 0 == 0))   -- false, pas d'erreur
+print(false and (1 // 0 == 0))   -- false, pas d'erreur
 ```
 
 ## Fonctions numériques
@@ -107,7 +107,7 @@ Un `int` ne dépasse pas 64 bits : dépasser est une erreur d'exécution. Essaie
 
 ## À retenir
 
-- `/` donne un float, `div` un entier, `mod` le reste.
+- `/` donne un float, `//` un entier, `mod` le reste.
 - `and`, `or`, `not` combinent des booléens.
 - Les comparaisons ne se chaînent pas : `a < b < c` est interdit, écris
   `a < b and b < c`.

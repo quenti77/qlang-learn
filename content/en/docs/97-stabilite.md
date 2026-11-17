@@ -28,7 +28,7 @@ Since 1.0, what is *stable* is **guaranteed**: what 1.0 promises is listed at th
 | --- | --- |
 | Syntax: `let`, `fun`, `if`/`elseif`/`else`, `for`, `while`, `match`, `struct`, `enum`, `trait`, `impl`, `import`/`export`, interpolation `"{x}"` | **stable** |
 | Variadic parameters (`fun f(...xs: int)`) and the spread `...` in a call, an array and a map | **stable** (since 1.1) |
-| `BigInt` and `BigDecimal` of the prelude (`+ - * ** div %`, comparisons, rounding, `to_json`) | provisional (since 1.2) |
+| `BigInt` and `BigDecimal` of the prelude (`+ - * ** // %`, comparisons, rounding, `to_json`) | provisional (since 1.2) |
 | `File` and `Dir`, `fs.append`, `fs.remove`, `fs.remove_dir`, `fs.rename`, `fs.copy`, `fs.is_file` | **stable** (since 1.3) |
 | `Iterator`, `Iterable`, `KeyedIterable` and `Step` of the prelude: `for` and `...` on a type of the program, `map`, `filter`, `take`, `skip`, `collect` | **stable** (since 1.3) |
 | `datetime` (type, accessors, `format`, `parse`) and `Duration`, with the methods of 1.1 (comparisons, `diff_in_*`, `start_of_*` / `end_of_*`, `with`, `format_in` and `humanize` in `en` and `fr`) | **stable** (since 1.3) |

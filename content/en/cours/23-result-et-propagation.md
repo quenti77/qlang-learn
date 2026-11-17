@@ -17,7 +17,7 @@ fun divide(a: int, b: int) -> Result<int, Error>
   if b == 0 then
     return Err(Error { message: "division by zero" })
   end
-  Ok(a div b)
+  Ok(a // b)
 end
 
 match divide(10, 2)

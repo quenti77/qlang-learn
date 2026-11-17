@@ -142,7 +142,7 @@ print(stack.items)
 | `a - b` | `Sub` | `sub` |
 | `a * b` | `Mul` | `mul` |
 | `a / b` | `Div` | `divide` |
-| `a div b` | `IntDiv` | `int_div` |
+| `a // b` | `IntDiv` | `int_div` |
 | `a mod b`, `a % b` | `Mod` | `modulo` |
 | `a ** b` | `Pow` | `pow` |
 | `-a` | `Neg` | `neg` |

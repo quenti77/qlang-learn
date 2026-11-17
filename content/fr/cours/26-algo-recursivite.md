@@ -14,7 +14,7 @@ de base.
 ```qlang
 fun puissance(x: int, n: int) -> int
   if n == 0 then return 1 end
-  let moitie = puissance(x, n div 2)
+  let moitie = puissance(x, n // 2)
   if n mod 2 == 0 then moitie * moitie else moitie * moitie * x end
 end
 print(puissance(2, 30))
@@ -35,7 +35,7 @@ print(pgcd(1071, 462))     -- 21
 
 ```qlang
 fun somme_chiffres(n: int) -> int
-  if n < 10 then n else n mod 10 + somme_chiffres(n div 10) end
+  if n < 10 then n else n mod 10 + somme_chiffres(n // 10) end
 end
 print(somme_chiffres(12345))   -- 15
 ```

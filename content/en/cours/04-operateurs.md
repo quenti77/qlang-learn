@@ -11,11 +11,11 @@ print(7 + 2)       -- 9
 print(7 - 2)       -- 5
 print(7 * 2)       -- 14
 print(7 / 2)       -- 3.5  : `/` ALWAYS gives a float
-print(7 div 2)     -- 3    : integer division (the remainder is dropped)
+print(7 // 2)     -- 3    : integer division (the remainder is dropped)
 print(7 mod 2)     -- 1    : the remainder of the division (also written %)
 print(7 % 2)       -- 1
 print(2 ** 10)     -- 1024 : power
-print(-7 div 2)    -- -3   (truncated towards zero)
+print(-7 // 2)    -- -3   (truncated towards zero)
 print(5.5 mod 2)   -- 1.5
 ```
 
@@ -70,10 +70,10 @@ print(age >= 18 and age < 65)   -- true
 ```
 
 `and` and `or` are "lazy": if the left side is enough, the right side is never computed. Here
-`1 div 0` would be an error, but it is not evaluated:
+`1 // 0` would be an error, but it is not evaluated:
 
 ```qlang
-print(false and (1 div 0 == 0))   -- false, no error
+print(false and (1 // 0 == 0))   -- false, no error
 ```
 
 ## Numeric functions
@@ -107,6 +107,6 @@ An `int` does not go beyond 64 bits: going past it is a runtime error. Try
 
 ## Remember
 
-- `/` gives a float, `div` an integer, `mod` the remainder.
+- `/` gives a float, `//` an integer, `mod` the remainder.
 - `and`, `or`, `not` combine booleans.
 - Comparisons cannot be chained: `a < b < c` is forbidden, write `a < b and b < c`.

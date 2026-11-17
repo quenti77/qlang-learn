@@ -71,7 +71,7 @@ let first = datetime.of(2026, 3, 1)
 let last = datetime.of(2026, 3, 8)
 print(first < last)
 print(last - first)
-print((last - first) div 86_400_000)
+print((last - first) // 86_400_000)
 print(first.days_until(last))
 ```
 

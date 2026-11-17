@@ -88,7 +88,7 @@ fun cherche(xs: array<int>, cible: int) -> int?
   let bas = 0
   let haut = xs.len() - 1
   while bas <= haut do
-    let m = (bas + haut) div 2
+    let m = (bas + haut) // 2
     if xs[m] == cible then return m end
     if xs[m] < cible then bas = m + 1 else haut = m - 1 end
   end
@@ -99,7 +99,7 @@ end
 ```qlang-hint
 À chaque étape, regarde l'élément du milieu : la cible est avant, après, ou c'est lui.
 
-Garde deux bornes `bas` et `haut`. Tant que `bas <= haut`, `m = (bas + haut) div 2`, puis réduis l'intervalle d'un côté. Si la boucle finit, renvoie `none`.
+Garde deux bornes `bas` et `haut`. Tant que `bas <= haut`, `m = (bas + haut) // 2`, puis réduis l'intervalle d'un côté. Si la boucle finit, renvoie `none`.
 ```
 
 ## Exercice 4

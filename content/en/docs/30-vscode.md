@@ -12,7 +12,7 @@ real compiler: you see the same errors as in the terminal.
 ## What it does
 
 - **Syntax highlighting**: keywords, types, numbers (`0xFF_FF`, `0b0101`, `1_000`), strings with
-  `{interpolation}` and the three kinds of comments (`--`, `--( … --)`, `--" … --"`).
+  `{interpolation}` and the three kinds of comments (`--`, `--* … --*`, `--" … --"`).
 - **Errors as you type**: underlined in the editor and listed in the Problems panel, including the
   ones in imported modules.
 - **Tooltips**: hover a name to see its type (`names: array<string>`), the signature of a function

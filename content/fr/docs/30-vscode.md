@@ -12,7 +12,7 @@ s'appuie sur le vrai compilateur : tu vois les mêmes erreurs que dans le termin
 ## Ce qu'elle fait
 
 - **Coloration syntaxique** : mots-clés, types, nombres (`0xFF_FF`, `0b0101`, `1_000`), chaînes avec
-  `{interpolation}` et les trois formes de commentaires (`--`, `--( … --)`, `--" … --"`).
+  `{interpolation}` et les trois formes de commentaires (`--`, `--* … --*`, `--" … --"`).
 - **Erreurs pendant la frappe** : soulignées dans l'éditeur et listées dans le panneau Problèmes, y
   compris celles des modules importés.
 - **Infobulles** : survole un nom pour voir son type (`noms: array<string>`), la signature d'une

@@ -73,7 +73,7 @@ let debut = datetime.of(2026, 3, 1)
 let fin = datetime.of(2026, 3, 8)
 print(debut < fin)
 print(fin - debut)
-print((fin - debut) div 86_400_000)
+print((fin - debut) // 86_400_000)
 print(debut.days_until(fin))
 ```
 
