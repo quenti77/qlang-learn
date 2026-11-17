@@ -88,7 +88,7 @@ fun search(xs: array<int>, target: int) -> int?
   let low = 0
   let high = xs.len() - 1
   while low <= high do
-    let m = (low + high) div 2
+    let m = (low + high) // 2
     if xs[m] == target then return m end
     if xs[m] < target then low = m + 1 else high = m - 1 end
   end
@@ -99,7 +99,7 @@ end
 ```qlang-hint
 At each step, look at the middle element: the target is before it, after it, or it is the target.
 
-Keep two bounds `low` and `high`. While `low <= high`, `m = (low + high) div 2`, then shrink the interval on one side. If the loop ends, return `none`.
+Keep two bounds `low` and `high`. While `low <= high`, `m = (low + high) // 2`, then shrink the interval on one side. If the loop ends, return `none`.
 ```
 
 ## Exercise 4

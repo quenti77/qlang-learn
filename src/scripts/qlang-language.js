@@ -39,9 +39,9 @@ const qlang = {
   name: 'qlang',
   startState: () => ({ block: null, after: null, dot: false }),
   token(stream, state) {
-    // inside a block comment `--( ... --)` or a documentation comment `--" ... --"`
+    // inside a block comment `--* ... --*` or a documentation comment `--" ... --"`
     if (state.block) {
-      const end = state.block === 'doc' ? '--"' : '--)';
+      const end = state.block === 'doc' ? '--"' : state.close;
       const kind = state.block;
       while (!stream.eol()) {
         if (stream.match(end)) {
@@ -53,10 +53,11 @@ const qlang = {
       return kind;
     }
     if (stream.eatSpace()) return null;
-    if (stream.match('--(')) {
+    if (stream.match('--*') || stream.match('--(')) {
       state.block = 'comment';
+      state.close = stream.current().endsWith('(') ? '--)' : '--*';
       while (!stream.eol()) {
-        if (stream.match('--)')) {
+        if (stream.match(state.close)) {
           state.block = null;
           break;
         }
@@ -109,7 +110,7 @@ const qlang = {
       if (/^[A-Z][A-Z0-9_]+$/.test(word)) return 'constant';
       return call ? 'fn' : 'name';
     }
-    if (stream.match('..=') || stream.match('..') || stream.match('->') || stream.match(/^[=!<>+\-*/%]=/) || stream.match(/^\*\*/)) return 'operator';
+    if (stream.match('//=') || stream.match('//') || stream.match('..=') || stream.match('..') || stream.match('->') || stream.match(/^[=!<>+\-*/%]=/) || stream.match(/^\*\*/)) return 'operator';
     const c = stream.next();
     if (c === '.') {
       state.dot = true;
@@ -118,7 +119,7 @@ const qlang = {
     if ('+-*/%=<>?'.includes(c)) return 'operator';
     return 'punctuation';
   },
-  languageData: { commentTokens: { line: '--', block: { open: '--(', close: '--)' } }, closeBrackets: { brackets: ['(', '[', '{', '"'] } },
+  languageData: { commentTokens: { line: '--', block: { open: '--*', close: '--*' } }, closeBrackets: { brackets: ['(', '[', '{', '"'] } },
   tokenTable,
 };
 

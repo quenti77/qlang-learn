@@ -37,7 +37,7 @@ fun binary_search(xs: array<int>, target: int) -> int?
   let low = 0
   let high = xs.len() - 1
   while low <= high do
-    let middle = (low + high) div 2
+    let middle = (low + high) // 2
     if xs[middle] == target then
       return middle
     elseif xs[middle] < target then
@@ -149,7 +149,7 @@ end
 
 fun merge_sort(xs: array<int>) -> array<int>
   if xs.len() <= 1 then return xs end
-  let m = xs.len() div 2
+  let m = xs.len() // 2
   merge(merge_sort(xs.slice(0, m)), merge_sort(xs.slice(m, xs.len())))
 end
 print(merge_sort([38, 27, 43, 3, 9, 82, 10]))

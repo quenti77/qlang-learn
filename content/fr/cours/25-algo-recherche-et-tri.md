@@ -37,7 +37,7 @@ fun dichotomie(xs: array<int>, cible: int) -> int?
   let bas = 0
   let haut = xs.len() - 1
   while bas <= haut do
-    let milieu = (bas + haut) div 2
+    let milieu = (bas + haut) // 2
     if xs[milieu] == cible then
       return milieu
     elseif xs[milieu] < cible then
@@ -150,7 +150,7 @@ end
 
 fun tri_fusion(xs: array<int>) -> array<int>
   if xs.len() <= 1 then return xs end
-  let m = xs.len() div 2
+  let m = xs.len() // 2
   fusionner(tri_fusion(xs.slice(0, m)), tri_fusion(xs.slice(m, xs.len())))
 end
 print(tri_fusion([38, 27, 43, 3, 9, 82, 10]))

@@ -150,7 +150,7 @@ struct Session
 end
 
 -- émettre : un jeton de 15 minutes contre un email et un mot de passe
-let now = time.now() div 1000
+let now = time.now() // 1000
 let signed = jwt.sign(Session { sub: "{row.id}", email: row.email, iat: now, exp: now + 900 }, jwt.Key.hs256(config.secret))
 
 -- vérifier : une garde, puis les revendications dans la route

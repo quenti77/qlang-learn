@@ -101,7 +101,7 @@ Run each example to see the message.
 
 <!-- expect-error -->
 ```qlang
-print(1 div 0)                 -- division by zero
+print(1 // 0)                 -- division by zero
 ```
 
 <!-- expect-error -->

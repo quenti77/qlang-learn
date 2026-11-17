@@ -13,7 +13,7 @@ Recursion solves a problem by reducing it to a smaller problem, down to a base c
 ```qlang
 fun power(x: int, n: int) -> int
   if n == 0 then return 1 end
-  let half = power(x, n div 2)
+  let half = power(x, n // 2)
   if n mod 2 == 0 then half * half else half * half * x end
 end
 print(power(2, 30))
@@ -34,7 +34,7 @@ print(gcd(1071, 462))     -- 21
 
 ```qlang
 fun digit_sum(n: int) -> int
-  if n < 10 then n else n mod 10 + digit_sum(n div 10) end
+  if n < 10 then n else n mod 10 + digit_sum(n // 10) end
 end
 print(digit_sum(12345))   -- 15
 ```

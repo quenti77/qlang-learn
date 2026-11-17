@@ -55,7 +55,7 @@ fun facteurs(n: int) -> array<int>
   while n > 1 do
     while n mod d == 0 do
       res[] = d
-      n = n div d
+      n = n // d
     end
     d += 1
   end
@@ -74,7 +74,7 @@ fun en_base(n: int, base: int) -> string
   let s = ""
   while n > 0 do
     s = (n mod base) as string + s
-    n = n div base
+    n = n // base
   end
   s
 end
@@ -120,7 +120,7 @@ print(BigDecimal.parse("19.99").unwrap() * 3)
 print(BigDecimal.parse("10").unwrap().divide(BigDecimal.of(3), 4, "half_even"))
 ```
 
-Il n'y a pas de `/` sur ces types : `div` pour la division entière d'un `BigInt`, et `divide(b, chiffres, mode)` pour un
+Il n'y a pas de `/` sur ces types : `//` pour la division entière d'un `BigInt`, et `divide(b, chiffres, mode)` pour un
 `BigDecimal`, qui oblige à choisir l'arrondi. Ils sont écrits en qlang : parfaits pour quelques milliers de chiffres.
 
 ## Les textes

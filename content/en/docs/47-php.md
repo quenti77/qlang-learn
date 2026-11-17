@@ -37,7 +37,7 @@ and, above all, the places where PHP habits trip you up.
 
 - **Everything is typed, nothing is silently converted.** `"5" + 1` is an error, not `6`. Convert by hand:
   `int.parse("5")` gives an `int?` (`none` if it is not a number).
-- **`/` is decimal division.** `7 / 2` is `3.5`; for integer division, `7 div 2` (and `%` for the remainder).
+- **`/` is decimal division.** `7 / 2` is `3.5`; for integer division, `7 // 2` (and `%` for the remainder).
 - **No exceptions.** A function that can fail gives a `Result`. `?` returns the error to the caller; `unwrap()`
   stops the program on an error (like an uncaught exception).
 - **`none` is not everywhere.** A `string` variable can never be `none`; you need `string?`, and the compiler

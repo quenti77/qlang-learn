@@ -18,7 +18,7 @@ fun diviser(a: int, b: int) -> Result<int, Error>
   if b == 0 then
     return Err(Error { message: "division par zéro" })
   end
-  Ok(a div b)
+  Ok(a // b)
 end
 
 match diviser(10, 2)
