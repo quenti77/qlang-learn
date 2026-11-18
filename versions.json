@@ -1,9 +1,10 @@
 {
-  "latest": "1.6",
+  "latest": "1.7",
   "versions": [
-    { "name": "1.6", "qlang": "1.6.1", "std": "1.0.0", "status": "stable", "released": "2026-11-17" },
+    { "name": "1.7", "qlang": "1.7.0", "std": "1.0.0", "status": "stable", "released": "2026-11-18" },
+    { "name": "1.6", "qlang": "1.6.1", "std": "1.0.0", "status": "stable", "released": "2026-11-17", "source": "site-1.6" },
     { "name": "1.5", "qlang": "1.5.0", "std": "1.0.0", "status": "stable", "released": "2026-11-16", "source": "site-1.5" },
-    { "name": "1.4", "qlang": "1.4.0", "std": "1.0.0", "status": "stable", "released": "2026-11-12", "source": "site-1.4" },
+    { "name": "1.4", "qlang": "1.4.0", "std": "1.0.0", "status": "archived", "released": "2026-11-12", "source": "site-1.4" },
     { "name": "1.3", "qlang": "1.3.0", "std": "1.0.0", "status": "archived", "released": "2026-11-08", "source": "site-1.3" },
     { "name": "1.2", "qlang": "1.2.1", "std": "1.0.0", "status": "archived", "released": "2026-11-05", "source": "site-1.2" },
     { "name": "1.1", "qlang": "1.1.0", "std": "0.20.0", "status": "archived", "released": "2026-11-04", "source": "site-1.1" },
