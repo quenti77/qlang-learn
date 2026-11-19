@@ -64,4 +64,12 @@ if (what === 'std') {
 manifest.versions.sort((a, b) => (a.name === 'next') - (b.name === 'next') || (a.name === 'next' ? 0 : compare(`${b.name}.0`, `${a.name}.0`)));
 manifest.versions.filter((v) => v.status !== 'next').forEach((v, i) => (v.status = i < STABLE_LINES ? 'stable' : 'archived'));
 fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2).replace(/\{\s+"name"([^}]*?)\s+\}/g, (m) => m.replace(/\s*\n\s*/g, ' '))}\n`);
+
+// the end-to-end list is built from the same pins as the latest line (build-versions refuses a latest line that disagrees)
+const fixtureFile = path.join(root, 'e2e', 'fixtures', 'versions.json');
+if (fs.existsSync(fixtureFile)) {
+  const fixture = JSON.parse(fs.readFileSync(fixtureFile, 'utf8'));
+  for (const v of fixture.versions) Object.assign(v, { qlang: latest().qlang, std: latest().std });
+  fs.writeFileSync(fixtureFile, `${JSON.stringify(fixture, null, 2)}\n`);
+}
 console.log(JSON.stringify(result));
