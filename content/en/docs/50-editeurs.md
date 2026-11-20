@@ -83,7 +83,7 @@ With the repository's TextMate grammar so that `source.qlang` exists.
 
 JetBrains IDEs read an LSP server through the **LSP4IJ** plugin: `Language Servers` > `+` > *New Language Server*,
 command `qlang lsp`, and in *Mappings* the file extension `*.q`. The TextMate grammar loads through
-`Settings > Editor > TextMate Bundles`. There is no dedicated JetBrains plugin yet.
+`Settings > Editor > TextMate Bundles`. A dedicated plugin (highlighting, LSP, `end` and indentation on Enter) is developed in a separate repository, [quenti77/qlang-jetbrains](https://github.com/quenti77/qlang-jetbrains), with no published version for now.
 
 ## Zed
 

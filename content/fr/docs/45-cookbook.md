@@ -141,3 +141,28 @@ let envoye = mailer.send(mail.Mail {
 `mail.q` passe par l'API HTTP d'un service (Resend, Postmark, SendGrid, Mailgun), pas par SMTP. Pour les tests,
 `MemoryMailer` garde ce qui a été envoyé. Depuis une route, mets l'envoi dans la file de tâches pour qu'un service
 lent ne ralentisse pas la réponse. Les détails sont dans la page de [`mail.q`](../54-std-mail/).
+
+## Écrire un fichier que toi seul peux lire
+
+```qlang-ref
+let secret = "DB_PASSWORD=" + (env.get("DB_PASSWORD") ?? "")
+fs.write("credentials.env", secret, mode: 0o600).unwrap()
+print(fs.mode("credentials.env").unwrap() == 0o600)      -- true
+```
+
+Avec `mode`, le fichier est **créé** avec ces droits : personne d'autre ne peut le lire, pas même un instant (écrire puis
+`chmod` laisserait une fenêtre). `fs.chmod(chemin, 0o644)` change les droits d'un fichier qui existe, `fs.mode(chemin)` les
+donne. Sous Windows, les droits n'ont pas d'effet.
+
+## Lancer un programme avec un délai
+
+```qlang-ref
+let r = Process.run_with("git", ["fetch", "--all"], ProcessOptions { cwd: "projet", timeout_ms: 30000 })
+match r
+  case Ok(o) then print(o.status)
+  case Err(e) then print("abandonné : {e.message}")
+end
+```
+
+À lancer avec `qlang run --allow-process`. Au bout de 30 secondes, `git` et ce qu'il a lancé sont arrêtés et le résultat est
+un `Err`. Dans une tâche `Worker`, `w.cancel()` fait la même chose.

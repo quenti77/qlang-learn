@@ -52,9 +52,9 @@ programme de ta machine et `qlang.vsix` sur la
 code --install-extension qlang.vsix
 ```
 
-**Windows** : il n'y a pas encore de programme précompilé. Installe Rust, puis
-`cargo install --git https://github.com/quenti77/qlang qlang-cli` ; l'extension (`qlang.vsix`) se
-télécharge sur la page des versions.
+**Windows** : un programme précompilé existe. Dans PowerShell :
+`irm https://raw.githubusercontent.com/quenti77/qlang/main/install.ps1 | iex` (ou `scoop bucket add qlang https://github.com/quenti77/scoop-qlang`
+puis `scoop install qlang`) ; l'extension (`qlang.vsix`) se télécharge sur la page des versions.
 
 Si `qlang` n'est pas dans ton `PATH`, indique son chemin complet dans le réglage **qlang.path**.
 Ce réglage n'est lu que dans tes réglages utilisateur, jamais dans le `.vscode/settings.json` d'un

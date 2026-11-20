@@ -24,7 +24,27 @@ qlang migrate --check     # liste les fichiers qui changeraient, sans les touche
 qlang migrate             # réécrit
 ```
 
-Aujourd'hui une règle : `Log.warn` → `Log.warning` (déprécié en 0.69, retiré en 0.83). Ce qui n'est pas un renommage reste décrit ci-dessous.
+Les règles : `Log.warn` → `Log.warning` (déprécié en 0.69, retiré en 0.83), `div` → `//` et `div=` → `//=`, et le bloc de
+commentaire `--(` … `--)` → `--*` … `--*` (dépréciés en 1.6, retirés en 1.9 : `qlang migrate` les lit encore pour les réécrire). Ce qui
+n'est pas un renommage reste décrit ci-dessous.
+
+## 1.9 : `div`, `div=` et `--(` … `--)` sont retirés
+
+- **Avant** : `a div b`, `n div= 2` et le bloc `--(` … `--)` marchaient, avec l'avertissement `W001` (depuis la 1.6).
+- **Après** : `div` n'est plus un mot réservé, c'est un nom comme un autre (variable, fonction, méthode, champ) ; `a div b` est une
+  erreur de syntaxe qui dit d'écrire `//`. Un bloc `--(` … `--)` fermé est l'erreur `L006` qui dit d'écrire `--*` … `--*` ; un `--(`
+  jamais fermé est un commentaire de ligne.
+- **S'adapter** : `qlang migrate` (avec la 1.9) réécrit les deux. `qlang check --deny-warnings` en 1.8 liste ce qu'il y a à changer.
+  `qlang-std` 1.0.1 et `qlang-kit` 1.1 n'emploient plus `div`.
+
+## 1.6 : `//` remplace `div`, `--*` remplace `--(` (déprécié en 1.6, retiré en 1.9)
+
+- **Avant** : la division entière s'écrivait `a div b` (`n div= 2`), et un commentaire sur plusieurs lignes `--(` … `--)`.
+- **Après** : `a // b` (`n //= 2`) et `--*` … `--*` (le même marqueur ouvre et ferme, comme `--"` pour la documentation). Le résultat est le
+  même : `//` coupe **vers zéro** (`-7 // 2` vaut `-3`), il n'arrondit pas vers le bas comme le `//` de Python.
+- **Les anciennes formes marchaient encore de la 1.6 à la 1.8**, avec l'avertissement `W001` à chaque emploi.
+- **Cassant dès la 1.6** : une ligne qui commence par `--*` ouvrait un commentaire de ligne (`--*****`, `--* titre`) ; elle ouvre
+  maintenant un bloc, qui court jusqu'au prochain `--*`. Écrire `-- *****` ou `-----` pour une ligne de séparation.
 
 ## 1.3 : `File.is_link()` d'un chemin absent (provisoire)
 

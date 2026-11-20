@@ -110,6 +110,11 @@ you have to ask for it when starting.
 qlang run --allow-process tool.q
 ```
 
+For more control, `Process.run_with("uv", ["run", "python", "tool.py"], ProcessOptions { cwd: "project",
+env: { "DEBUG": "1" }, timeout_ms: 45000 })` chooses the folder the program runs in, adds variables to its
+environment and gives it a delay (one minute by default). At the delay it is stopped with everything it started, and the
+result is an `Err`. A cancelled `Worker` task stops the program it was waiting for in the same way.
+
 It is the same principle as for files and the network: the language does nothing outside itself
 unless the environment allows it. The web page never allows it, one more reason for this lesson
 to stay a reading.

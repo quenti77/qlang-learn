@@ -121,7 +121,9 @@ print(int.MAX + 1)             -- dépassement d'entier
 ```
 
 Deux autres erreurs d'exécution viennent des limites de qlang : `R900` (trop d'étapes : une
-boucle infinie ?) et `R901` (trop d'appels imbriqués : une récursion infinie ?).
+boucle infinie ?) et `R901` (trop d'appels imbriqués : une récursion infinie ?). Le compteur d'étapes
+repart de zéro à chaque attente (`time.sleep`, la saisie au terminal) : seule une boucle **entre deux
+attentes** atteint la limite, pas un programme qui tourne longtemps en attendant des événements.
 
 Dans un terminal, le programme se termine avec le code de sortie 0 en cas de succès, 1 pour
 une erreur de compilation et 2 pour une erreur d'exécution. C'est utile dans des scripts shell.

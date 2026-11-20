@@ -24,7 +24,27 @@ qlang migrate --check     # lists the files that would change, without touching 
 qlang migrate             # rewrites
 ```
 
-Today there is one rule: `Log.warn` → `Log.warning` (deprecated in 0.69, removed in 0.83). What is not a rename stays described below.
+The rules: `Log.warn` → `Log.warning` (deprecated in 0.69, removed in 0.83), `div` → `//` and `div=` → `//=`, and the block comment
+`--(` … `--)` → `--*` … `--*` (deprecated in 1.6, removed in 1.9: `qlang migrate` still reads them to rewrite them). What is not a
+rename stays described below.
+
+## 1.9: `div`, `div=` and `--(` … `--)` are removed
+
+- **Before**: `a div b`, `n div= 2` and the `--(` … `--)` block worked, with the `W001` warning (since 1.6).
+- **After**: `div` is no longer a reserved word, it is a name like any other (variable, function, method, field); `a div b` is a
+  syntax error that says to write `//`. A closed `--(` … `--)` block is the error `L006` that says to write `--*` … `--*`; a `--(`
+  that is never closed is a line comment.
+- **How to adapt**: `qlang migrate` (with 1.9) rewrites both. `qlang check --deny-warnings` with 1.8 lists what has to change.
+  `qlang-std` 1.0.1 and `qlang-kit` 1.1 no longer use `div`.
+
+## 1.6: `//` replaces `div`, `--*` replaces `--(` (deprecated in 1.6, removed in 1.9)
+
+- **Before**: integer division was written `a div b` (`n div= 2`), and a multi-line comment `--(` … `--)`.
+- **After**: `a // b` (`n //= 2`) and `--*` … `--*` (the same marker opens and closes, like `--"` for documentation). The result is the
+  same: `//` cuts **toward zero** (`-7 // 2` is `-3`), it does not round down like Python's `//`.
+- **The old forms still worked from 1.6 to 1.8**, with the `W001` warning at each use.
+- **Breaking since 1.6**: a line that starts with `--*` used to open a line comment (`--*****`, `--* title`); it now opens a block that
+  runs to the next `--*`. Write `-- *****` or `-----` for a separator line.
 
 ## 1.3: `File.is_link()` of a missing path (provisional)
 

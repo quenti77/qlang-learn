@@ -37,6 +37,14 @@ slower than the one of `glibc`.
   compiled: a numeric computation goes much faster than processing that mostly handles structures.
 - Strings are also handled by the register machine for the common operations (literals, `+`, comparisons,
   interpolation, `print`, usual methods), and it can create arrays inside a loop: a text-processing loop stays fast.
+- A **hot** function (called more than 300 times) that only computes with numbers is translated to machine code (JIT, since
+  1.7); a hot loop goes native in the middle of its run, also when it reads and writes arrays of numbers or numeric fields of
+  a structure (`p.x += 1`, since 1.8). A loop that creates a structure or reads a text stays on the register machine.
+  `QLANG_NO_JIT=1` turns native code off.
+- A **hot** function (called more than 300 times) that only computes with numbers is translated to machine code (JIT, since
+  1.7); a hot loop goes native in the middle of its run, also when it reads and writes arrays of numbers or numeric fields of
+  a structure (`p.x += 1`, since 1.8). A loop that creates a structure or reads a text stays on the register machine.
+  `QLANG_NO_JIT=1` turns native code off.
 - A database or the network almost always dominates: measure before optimising a computation.
 
 ## Measuring the server

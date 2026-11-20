@@ -18,6 +18,7 @@ print(-7)
 print(1_000_000)      -- the _ makes big numbers easier to read
 print(0xFF)           -- hexadecimal (base 16)  -> 255
 print(0b1010)         -- binary (base 2)        -> 10
+print(0o644)          -- octal (base 8)         -> 420, for the permissions of a file
 ```
 
 ## Decimal numbers: `float`

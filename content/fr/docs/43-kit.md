@@ -126,6 +126,14 @@ Il lit ce que l'application sert déjà : `/health`, `/metrics` (le format Prome
 totaux, routes les plus sollicitées, dernières erreurs), les **routes**, les **requêtes** (par route : nombre, erreurs, p50 et
 p95), les **logs** (filtre par niveau et par texte) et les avertissements **N+1** du mode `--dev`.
 
+## Écrire son propre écran : `@kit/tui`
+
+Les écrans de kit sont faits avec le dossier `tui/` du paquet, que tes programmes peuvent importer (`import ... from "@kit/tui/app.q"`,
+niveau expérimental) : un `Program` (`update` et `view`), `run_in_terminal`, des composants (`Table`, `List`, `TextInput`, `Block`,
+fenêtres de dialogue) et un `Harness` pour les tester sans terminal. Depuis kit 1.1, `Table.colorize` donne un style à une
+cellule, `Table.marker("▶ ")` marque la ligne choisie, et `run_in_terminal(programme, mouse: false)` laisse la souris au terminal
+(on peut alors sélectionner et copier du texte). Un écran qui attend des événements n'atteint pas la limite d'étapes (qlang 1.8).
+
 ## Réglages : kit.json
 
 ```json
