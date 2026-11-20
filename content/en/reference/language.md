@@ -55,7 +55,7 @@ let x = 1 -- or at the end of a line
 - `--` followed by `*` or `"` always opens a block or documentation comment, never a line
   comment: `--*****` therefore opens a block. For a separator line, write `-- *****` or `-----`.
 - An editor can prefix every line of a block with `*`; only the last `--*` closes it.
-- Deprecated in 1.6 (removed in 1.8): the old `--(` … `--)` block is still read, with the
+- Deprecated in 1.6 (removed in 1.9): the old `--(` … `--)` block is still read, with the
   `W001` warning. `qlang migrate` rewrites it as `--*` … `--*`.
 - Careful: `a --b` is a comment. To subtract a negative number, write `a - -b`.
 
@@ -119,7 +119,7 @@ does not need to be written.
 
 | Type        | Examples                                | Note             |
 | ----------- | --------------------------------------- | ---------------- |
-| `int`       | `42`, `1_000`, `0xFF_FF`, `0b0101_0101` | 64-bit integer   |
+| `int`       | `42`, `1_000`, `0xFF_FF`, `0b0101_0101`, `0o644` | 64-bit integer   |
 | `float`     | `3.14`, `2.5e3`, `1_000.5`              | decimal number   |
 | `bool`      | `true`, `false`                         |                  |
 | `string`    | `"text"`                                | cannot be modified |
@@ -134,7 +134,7 @@ capital letter by convention.
 ### Numbers
 
 - `int` and `float` are two distinct types: `1` is an `int`, `1.0` is a `float`.
-- Numbers in base 2 (`0b…`) and base 16 (`0x…`) are accepted.
+- Numbers in base 2 (`0b…`), base 8 (`0o…`, for the permissions of a file: `0o644`) and base 16 (`0x…`) are accepted.
 - The `_` character can separate digits for readability: `1_000`, `0xFF_FF`,
   `0b0101_0101`. It must be **between two digits**.
 - A `float` always has a digit after the point: `0..10` is the range from 0 to 10, not a
@@ -416,7 +416,7 @@ From the weakest to the strongest:
 | `2 ** 10`    | `1024`   | two `int`s give an `int`                            |
 | `2.0 ** 0.5` | `1.414…` | otherwise, a `float`                                |
 
-- `//` only applies to two `int`s and cuts toward zero (`-7 // 2` is `-3`), unlike Python's `//`. `div` is the old name: deprecated in 1.6 (`W001`), removed in 1.8; `qlang migrate` writes `//` instead. `mod` also applies to `float`s (`5.5 mod 2` is `1.5`).
+- `//` only applies to two `int`s and cuts toward zero (`-7 // 2` is `-3`), unlike Python's `//`. `div` is the old name: deprecated in 1.6 (`W001`), removed in 1.9; `qlang migrate` writes `//` instead. `mod` also applies to `float`s (`5.5 mod 2` is `1.5`).
 - Dividing by zero (`/`, `//`, `mod`) is a run-time error.
 - A negative exponent with two `int`s is an error (`2 ** -1`): write `2.0 ** -1.0`.
 - **`int` and `float` mix** for computing and comparing: `1 + 2.5` is `3.5` (a `float`).
@@ -1923,7 +1923,7 @@ interpreter**: there is no `async` / `await`. The values of the interpreter cann
   Each has its own copy of the program, its connections and its module state, like the starting workers; `--db-pool N`
   bounds the real connections to the database, `--max-queue N` refuses requests when the line is full, `--request-timeout S`
   stops a request that lasts too long (when it gets control back).
-- **What stays blocking, on purpose**: `Process.run` (one minute at most) occupies its interpreter; so does a
+- **What stays blocking, on purpose**: `Process.run` (one minute by default, `timeout_ms` of `run_with` to change it) occupies its interpreter; so does a
   `Redis.subscribe` while it listens; a WebSocket is served by the interpreter that accepted it, between two requests.
   For these, a dedicated `Worker` or a separate process (`qlang run` of a loop) is the right shape.
 
@@ -3308,6 +3308,10 @@ end
 fs.write("output.txt", "content").unwrap()
 ```
 
+`fs.write(path, content, mode: 0o600)` (and `fs.write_bytes`) **creates** the file with these permissions: nobody else can read it,
+not even for an instant, and a file that was already there gets them too. `fs.chmod(path, 0o644)` changes the permissions of a
+file or a folder, `fs.mode(path)` gives them (`Result<int?, Error>`). Permissions have no effect on Windows (`fs.mode` gives `none` there).
+
 **Changing the disk.** `fs.append(path, text)` adds at the end of a file (creating it if needed); `fs.is_file(path)`
 says whether it is a file; `fs.remove(path)` deletes a file or a link (a folder is an error: use `fs.remove_dir`);
 `fs.remove_dir(folder)` deletes an **empty** folder, and `fs.remove_dir(folder, all: true)` also deletes everything it
@@ -3484,6 +3488,15 @@ parentheses: each statement there fits on its line.
 returns a `Result<ProcessOutput, Error>`; `ProcessOutput` has three public fields: `status` (the
 exit code, −1 if a signal stopped it), `stdout` and `stderr` (what it wrote, as text).
 `Process.run_with_input(command, arguments, text)` also writes `text` to its standard input.
+`Process.run_with(command, arguments, options)` takes more choices in a `ProcessOptions` (all optional): `input` (the standard
+input), `cwd` (the folder it runs in), `env` (variables added to its environment, it keeps the others) and `timeout_ms`
+(from 1 to 3,600,000 milliseconds, one minute by default). At the delay, the program is stopped **with everything it started**
+(its process group), and the result is an `Err` that says so. A cancelled `Worker` (`w.cancel()`) stops the program it was
+waiting for in the same way.
+
+```
+let r = Process.run_with("uv", ["run", "python", "probe.py"], ProcessOptions { cwd: "project", env: { "DEBUG": "1" }, timeout_ms: 45000 })
+```
 
 `Process.stopping()` says whether the program was told to stop (Ctrl-C, `kill`, a service manager). **The first call makes the program take over**: from then on the signal no longer ends it at once, it only makes this return `true`, so that a worker can finish what it is doing and leave; a second signal ends the program (code 130). A program that never calls it stops as before. In a program served by `qlang serve`, it is `true` while the server stops.
 
@@ -3509,7 +3522,7 @@ end
   JSON protocol, the browser and a `qlang.toml` cannot grant it. `qlang check` does not need
   it.
 - A program that is run is **not limited** by `--root` nor by qlang's limits (steps, memory);
-  it is stopped if it runs for more than a minute, and at most 16 MB of each stream is kept.
+  it is stopped if it runs longer than its delay (one minute by default), and at most 16 MB of each stream is kept.
 
 ### Prelude: the terminal
 
@@ -3612,6 +3625,11 @@ The time spent in built-in operations counts too: searching an array (`contains`
 `index_of`), sorting it, joining it (`join`), copying a string (`+`, `replace`, `split`…)
 costs about one step per 4 elements (or 32 bytes). A loop that searches a very large array
 at each turn therefore reaches the step limit, like any loop that is too long.
+
+The step counter starts again from zero each time the program gives the hand back to wait for the outside: `time.sleep`,
+`Term.event`, the reception of a message of a `Worker` or of a task, with a delay greater than zero. The limit therefore
+protects against a loop **between two waits**, not against the lifetime of a terminal screen, a daemon or a queue
+consumer. A loop that only polls (`Term.event(0)`) does not give the hand back and stays bounded.
 
 Comparing two values (`==`, `<`) goes down at most 1,000 levels into nested enums, arrays and
 tuples: beyond that, `R092` (a program can build linked lists of millions of links; freeing
