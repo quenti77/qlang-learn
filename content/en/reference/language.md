@@ -1378,6 +1378,23 @@ fun hello(g: Greeter) -> string
 end
 ```
 
+The methods of `Named` can be written in the `impl` of `Greeter`: they count as the implementation of `Named`,
+with no separate `impl Named for Cat` (the order of the `impl` blocks in the files does not matter).
+
+```
+impl Greeter for Cat
+  fun greet(self) -> string
+    "meow " + self.name()
+  end
+  fun name(self) -> string     -- comes from Named
+    self.label
+  end
+end
+```
+
+Both ways work, but not together for the same trait: if `Cat` has an `impl Named` of its own, the methods of
+`Named` do not belong in `impl Greeter` (`T137`).
+
 ### A method without `self`: `Self` and `T.zero()`
 
 A trait can declare a method **without `self`**, and `Self` there stands for the type that implements the trait:
