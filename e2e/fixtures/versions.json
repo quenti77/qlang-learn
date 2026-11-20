@@ -4,14 +4,14 @@
   "versions": [
     {
       "name": "1.6",
-      "qlang": "1.8.0",
+      "qlang": "1.9.0",
       "std": "1.0.0",
       "status": "stable",
       "released": "2026-11-17"
     },
     {
       "name": "0.9",
-      "qlang": "1.8.0",
+      "qlang": "1.9.0",
       "std": "1.0.0",
       "status": "archived",
       "released": "2026-10-01"
