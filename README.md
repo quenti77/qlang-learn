@@ -16,7 +16,7 @@ when `main` changes. To use a newer qlang, change `QLANG_VERSION` (a release tha
 
 ## Versions
 
-The site is published once per version of qlang, side by side: `/1.0/fr/docs/…`, `/1.1/…`. `/latest/…` and the
+The site is published once per version of qlang, side by side: `/1.0/fr/docs/…`, …, `/1.9/…`. `/latest/…` and the
 addresses from before the versions (`/fr/docs/…`) redirect to the latest. `versions.json` lists them (name,
 qlang and std releases, `stable` / `archived` / `next`) and is read by the selector in the header and by the
 banner of an old version. `npm run build:versions` builds each one with its own pair of releases (sync,
@@ -89,16 +89,15 @@ The generated pages are grouped by theme in the menu (`scripts/sync-qlang.mjs`):
 
 ## Not done (version selector, qlang-learn#64)
 
-The selector, the archived versions (`/1.0/`, `/1.1/`, `/latest/`, `/next/`) and the deploy are done. Not done, and
+The selector, the archived versions (`/1.0/` to `/1.9/`, `/latest/`, `/next/`) and the deploy are done. Not done, and
 not needed to read a version:
 
 - a table of the pages and anchors renamed between versions (an old link to a renamed page is a 404 in the new version);
-- the differences between two versions generated from the `CHANGELOG` ("what changed in 1.1");
+- the differences between two versions generated from the `CHANGELOG` ("what changed in 1.9");
 - links from `qlang` (error codes, `qlang doc`) to the documentation of the installed version;
 - versions of the documentation of `qlang-kit` and `qlang-test` (they follow `latest` for now).
 
 ## To do
 
-Convert the 28 lessons of `qlang-algo`, exercises (statement, starter code, hidden tests, hints,
-solution), progress in the browser, a real code editor (CodeMirror) with the hover and
-completion of the VS Code extension, deployment.
+Convert the 28 lessons of `qlang-algo` (exercises with statement, starter code, hidden tests, hints
+and solution; progress in the browser and the deployment are done).
