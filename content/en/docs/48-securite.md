@@ -62,6 +62,6 @@ just one more net.
 Worth knowing:
 
 - `--root` does **not** confine a program started with `--allow-process`: a command it starts sees the whole disk and
-  has no step or memory limit (one minute at most). Granting `--allow-process` is granting access to the machine.
+  has no step or memory limit (one minute by default, `timeout_ms` of `Process.run_with` to change it). Granting `--allow-process` is granting access to the machine.
 - `--root` does not limit packages (`qlang.toml`): the project chooses them.
 - The server has no TLS or authentication of its own: see [Deploying](../46-deployer/) for putting a proxy in front.

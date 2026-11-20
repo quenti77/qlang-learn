@@ -111,6 +111,11 @@ défaut** : il faut le demander au lancement.
 qlang run --allow-process outil.q
 ```
 
+Pour plus de contrôle, `Process.run_with("uv", ["run", "python", "outil.py"], ProcessOptions { cwd: "projet",
+env: { "DEBUG": "1" }, timeout_ms: 45000 })` choisit le dossier où le programme tourne, ajoute des variables à son
+environnement et lui donne un délai (une minute par défaut). Au délai, il est arrêté avec tout ce qu'il a lancé, et le
+résultat est un `Err`. Une tâche `Worker` annulée arrête de la même façon le programme qu'elle attendait.
+
 C'est le même principe que pour les fichiers et le réseau : le langage ne fait rien d'extérieur
 sans que l'environnement le permette. La page web ne l'autorise jamais, ce qui est une raison de
 plus pour que cette leçon reste de la lecture.

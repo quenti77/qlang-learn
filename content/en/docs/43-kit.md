@@ -123,6 +123,14 @@ It reads what the application already serves: `/health`, `/metrics` (the Prometh
 totals, the busiest routes, the latest errors), the **routes**, the **requests** (per route: count, errors, p50 and p95), the
 **logs** (filter by level and by text) and the **N+1** warnings of `--dev`.
 
+## Writing your own screen: `@kit/tui`
+
+The screens of kit are made with the `tui/` folder of the package, which your programs can import (`import ... from "@kit/tui/app.q"`,
+experimental level): a `Program` (`update` and `view`), `run_in_terminal`, components (`Table`, `List`, `TextInput`, `Block`,
+dialogs) and a `Harness` to test them without a terminal. Since kit 1.1, `Table.colorize` gives a cell a style,
+`Table.marker("▶ ")` marks the chosen row, and `run_in_terminal(program, mouse: false)` leaves the mouse to the terminal (you can
+then select and copy text). A screen that waits for events does not reach the step limit (qlang 1.8).
+
 ## Settings: kit.json
 
 ```json

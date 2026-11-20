@@ -120,7 +120,9 @@ print(int.MAX + 1)             -- integer overflow
 ```
 
 Two other runtime errors come from qlang's limits: `R900` (too many steps: an infinite loop?)
-and `R901` (too many nested calls: infinite recursion?).
+and `R901` (too many nested calls: infinite recursion?). The step counter starts again from zero at each wait
+(`time.sleep`, reading input in a terminal): only a loop **between two waits** reaches the limit, not a program that
+runs for a long time waiting for events.
 
 In a terminal, the program exits with code 0 on success, 1 for a compile error and 2 for a
 runtime error. This is useful in shell scripts.

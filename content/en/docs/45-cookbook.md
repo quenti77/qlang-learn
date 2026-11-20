@@ -140,3 +140,28 @@ let sent = mailer.send(mail.Mail {
 `mail.q` goes through the HTTP API of a service (Resend, Postmark, SendGrid, Mailgun), not SMTP. In tests,
 `MemoryMailer` keeps what was sent. From a route, put the sending in the job queue so a slow service never slows
 an answer. The details are on the page of [`mail.q`](../54-std-mail/).
+
+## Write a file only you can read
+
+```qlang-ref
+let secret = "DB_PASSWORD=" + (env.get("DB_PASSWORD") ?? "")
+fs.write("credentials.env", secret, mode: 0o600).unwrap()
+print(fs.mode("credentials.env").unwrap() == 0o600)      -- true
+```
+
+With `mode`, the file is **created** with these permissions: nobody else can read it, not even for an instant (writing
+then `chmod` would leave a window). `fs.chmod(path, 0o644)` changes the permissions of a file that exists, `fs.mode(path)`
+gives them. On Windows, permissions have no effect.
+
+## Run a program with a delay
+
+```qlang-ref
+let r = Process.run_with("git", ["fetch", "--all"], ProcessOptions { cwd: "project", timeout_ms: 30000 })
+match r
+  case Ok(o) then print(o.status)
+  case Err(e) then print("given up: {e.message}")
+end
+```
+
+Run it with `qlang run --allow-process`. After 30 seconds, `git` and what it started are stopped and the result is an
+`Err`. In a `Worker` task, `w.cancel()` does the same.

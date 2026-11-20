@@ -6,7 +6,7 @@ import { tags as t } from '@lezer/highlight';
 const CONTROL = new Set('if then elseif else end while for in step do break continue match case return'.split(' '));
 const DECL = new Set('fun struct impl trait enum let const'.split(' '));
 const MODIFIER = new Set('public private protected static override extends import export from as'.split(' '));
-const OPERATOR_WORDS = new Set('and or not div mod'.split(' '));
+const OPERATOR_WORDS = new Set('and or not mod'.split(' '));
 const ATOMS = new Set(['true', 'false', 'none']);
 const SELF = new Set(['self', 'super']);
 const TYPES = new Set('int float bool string uuid ulid array map range'.split(' '));
@@ -53,9 +53,9 @@ const qlang = {
       return kind;
     }
     if (stream.eatSpace()) return null;
-    if (stream.match('--*') || stream.match('--(')) {
+    if (stream.match('--*')) {
       state.block = 'comment';
-      state.close = stream.current().endsWith('(') ? '--)' : '--*';
+      state.close = '--*';
       while (!stream.eol()) {
         if (stream.match(state.close)) {
           state.block = null;
@@ -91,7 +91,7 @@ const qlang = {
       }
       return 'string';
     }
-    if (stream.match(/^0[xX][0-9a-fA-F_]+/) || stream.match(/^0[bB][01_]+/) || stream.match(/^\d[\d_]*(\.\d[\d_]*)?([eE][+-]?\d+)?/)) return 'number';
+    if (stream.match(/^0[xX][0-9a-fA-F_]+/) || stream.match(/^0[bB][01_]+/) || stream.match(/^0[oO][0-7_]+/) || stream.match(/^\d[\d_]*(\.\d[\d_]*)?([eE][+-]?\d+)?/)) return 'number';
     if (stream.match(/^[A-Za-z_][A-Za-z0-9_]*/)) {
       const word = stream.current();
       const call = /^\s*(\(|<[^>]*>\s*\()/.test(stream.string.slice(stream.pos));

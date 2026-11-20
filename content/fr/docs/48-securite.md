@@ -68,7 +68,7 @@ premières exécutions n'ont rien trouvé : ce n'est pas une preuve, juste un fi
 À savoir :
 
 - `--root` ne borne **pas** un programme lancé avec `--allow-process` : une commande lancée voit
-  tout le disque et n'a pas de limite de pas ni de mémoire (une minute au plus). Accorder
+  tout le disque et n'a pas de limite de pas ni de mémoire (une minute par défaut, `timeout_ms` de `Process.run_with` pour changer). Accorder
   `--allow-process`, c'est accorder l'accès à la machine.
 - `--root` ne limite pas les paquets (`qlang.toml`) : c'est le projet qui les choisit.
 - Le serveur n'a pas de TLS ni d'authentification propres : voir [Déployer](../46-deployer/) pour mettre un proxy devant.

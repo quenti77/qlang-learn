@@ -18,6 +18,7 @@ print(-7)
 print(1_000_000)      -- le _ sert à rendre les grands nombres lisibles
 print(0xFF)           -- hexadécimal (base 16)  -> 255
 print(0b1010)         -- binaire (base 2)       -> 10
+print(0o644)          -- octal (base 8)         -> 420, pour les droits d'un fichier
 ```
 
 ## Les nombres à virgule : `float`

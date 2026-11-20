@@ -39,6 +39,10 @@ l'allocateur est plus lent que celui de `glibc`.
 - Les textes sont aussi pris en charge par la machine à registres pour les opérations courantes (littéraux, `+`,
   comparaisons, interpolation, `print`, méthodes usuelles), et elle sait créer des tableaux dans une boucle : une
   boucle de traitement de texte reste rapide.
+- Une fonction **chaude** (appelée plus de 300 fois) qui ne calcule qu'avec des nombres est traduite en code machine
+  (JIT, depuis la 1.7) ; une boucle chaude passe en code natif en plein milieu de son exécution, y compris quand elle lit et
+  écrit des tableaux de nombres ou des champs numériques d'une structure (`p.x += 1`, depuis la 1.8). Une boucle qui crée une
+  structure ou lit un texte reste sur la machine à registres. `QLANG_NO_JIT=1` désactive le code natif.
 - Une base de données ou le réseau dominent presque toujours : mesurez avant d'optimiser du calcul.
 
 ## Mesurer le serveur
