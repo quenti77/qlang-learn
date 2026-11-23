@@ -209,7 +209,13 @@ A variable that a **function or an anonymous function assigns** (`x = ...` in it
 without having declared it there) is never narrowed: a call between the test and the use
 could set it back to `none`. Copy its value into a local variable before testing it.
 
+`assert(x != none)` (or `assert(x != none, "message")`) also narrows `x` for the rest of the
+block, like `if x == none then return end`.
+
 Calling a method or reading a field on a value that may be `none` is a compile-time error.
+Two methods are the exception: **`x.unwrap()`** and **`x.expect("message")`** give the value
+of a nullable (of type `T`), or stop the program if it is `none` (with the given message for
+`expect`). They also work on a call result: `find(id).expect("the user exists")`.
 
 **`a ?? b`** gives `a` if it is not `none`, otherwise `b`. `a` must be nullable (`T?`); `b` has type
 `T` (the result is then a `T`) or `T?` (the result stays nullable). `b` is only evaluated when `a` is
@@ -2019,6 +2025,8 @@ The library is deliberately small, and will grow with use.
 | `find(f)`             | first element for which `f(element)` is `true`, or `none`        |
 | `each(f)`             | calls `f(element)` for each element, in order                    |
 | `sort_by(f)`          | sorts the array in place with `f(a, b)` as the comparator (negative if `a` comes first, positive otherwise, `0` if equal) |
+| `reversed()`, `sorted()` | new array in the opposite order / sorted (the array is not changed), chainable with `filter`, `map`, `take`… |
+| `sorted_by(f)`        | like `sort_by(f)`, but returns a new sorted array                |
 | `unique()`            | new array keeping only the first occurrence of each value        |
 | `flatten()`           | new array that flattens an array of arrays (one level only)      |
 | `first()`, `last()`   | first / last element, or `none` if empty (`T?`)                  |
@@ -2702,6 +2710,11 @@ end
 - `is_ok()`, `is_err()`: know which of the two cases you have.
 - `unwrap()`, `unwrap_err()`: read the value or the error, or stop the
   program (`panic`) if you picked the wrong case.
+- `unwrap_or(value)`: the value, or `value` for an error; `ok()`: the value, or `none` for an
+  error (a `T?`).
+- `map(f)` turns the value of an `Ok`, `map_err(f)` the error of an `Err`, `and_then(f)` chains a
+  step that itself returns a `Result` (the other case is kept as it is):
+  `posts.get(id).map_err(to_http)`.
 - `Result`/`Error` are ordinary declarations: a structure `Error` (or an enumeration
   `Result`) that you write yourself in your own file **shadows** the prelude's, exactly like a
   local variable shadows a variable of wider scope.
