@@ -1,7 +1,7 @@
 {
   "latest": "1.12",
   "versions": [
-    { "name": "1.12", "qlang": "1.12.1", "std": "1.0.1", "status": "stable", "released": "2026-11-26" },
+    { "name": "1.12", "qlang": "1.12.2", "std": "1.0.1", "status": "stable", "released": "2026-11-26" },
     { "name": "1.11", "qlang": "1.11.0", "std": "1.0.1", "status": "stable", "released": "2026-11-23", "source": "site-1.11" },
     { "name": "1.10", "qlang": "1.10.0", "std": "1.0.1", "status": "stable", "released": "2026-11-20", "source": "site-1.10" },
     { "name": "1.9", "qlang": "1.9.0", "std": "1.0.1", "status": "archived", "released": "2026-11-20", "source": "site-1.9" },
